@@ -199,14 +199,14 @@ export const chatPOST = httpAction(async (ctx, req) => {
       };
 
       const result = streamText({
-        model: google("gemini-2.0-flash"),
+        model: google("gemini-2.0-flash-lite"),
         abortSignal: remoteCancel.signal,
         messages: [
           {
             role: "system",
             content: "You are a helpful assistant.",
           },
-          ...mapped_messages,
+          ...mapped_messages.reverse(),
         ],
       });
 
