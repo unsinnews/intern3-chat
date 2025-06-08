@@ -2,11 +2,15 @@ import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { ConvexQueryClient } from "@convex-dev/react-query";
-import { ConvexProvider } from "convex/react";
+import { ConvexProviderWithAuth } from "convex/react";
 import { routeTree } from "./routeTree.gen";
+import { useSession, useToken } from "@/hooks/auth-hooks";
+import { useMemo } from "react";
 
 export function createRouter() {
-  const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL!;
+  const CONVEX_URL = (
+    import.meta as unknown as { env: { VITE_CONVEX_URL: string } }
+  ).env.VITE_CONVEX_URL!;
   if (!CONVEX_URL) {
     console.error("missing envar VITE_CONVEX_URL");
   }
@@ -28,9 +32,12 @@ export function createRouter() {
       defaultPreload: "intent",
       context: { queryClient },
       Wrap: ({ children }) => (
-        <ConvexProvider client={convexQueryClient.convexClient}>
+        <ConvexProviderWithAuth
+          client={convexQueryClient.convexClient}
+          useAuth={useBetterAuth}
+        >
           {children}
-        </ConvexProvider>
+        </ConvexProviderWithAuth>
       ),
     }),
     queryClient
@@ -38,6 +45,19 @@ export function createRouter() {
 
   return router;
 }
+
+const useBetterAuth = () => {
+  const data = useToken();
+  const session = useSession();
+  return useMemo(
+    () => ({
+      isLoading: data.isPending || data.isLoading,
+      isAuthenticated: !!session.user?.id,
+      fetchAccessToken: async () => data.token ?? null,
+    }),
+    [data.isPending, data.isLoading, session.user?.id, data.token]
+  );
+};
 
 declare module "@tanstack/react-router" {
   interface Register {
