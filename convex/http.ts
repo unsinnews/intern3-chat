@@ -1,6 +1,6 @@
 import { corsRouter } from "convex-helpers/server/cors";
 import { httpRouter } from "convex/server";
-import { chat } from "./chat";
+import { chatGET, chatPOST } from "./chat_http";
 
 const http = httpRouter();
 const cors = corsRouter(http, {
@@ -16,7 +16,13 @@ const cors = corsRouter(http, {
 cors.route({
   path: "/chat",
   method: "POST",
-  handler: chat,
+  handler: chatPOST,
+});
+
+cors.route({
+  path: "/chat",
+  method: "GET",
+  handler: chatGET,
 });
 
 export default http;

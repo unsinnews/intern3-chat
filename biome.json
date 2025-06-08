@@ -45,7 +45,8 @@
                 }
             },
             "correctness": {
-                "noUnusedImports": "info"
+                "noUnusedImports": "info",
+                "useExhaustiveDependencies": "warn"
             },
             "nursery": {
                 "useSortedClasses": {

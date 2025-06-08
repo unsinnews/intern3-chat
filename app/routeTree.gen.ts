@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as ThreadThreadIdImport } from './routes/thread.$threadId'
 import { Route as AuthPathnameImport } from './routes/auth/$pathname'
 
 // Create/Update Routes
@@ -19,6 +20,12 @@ import { Route as AuthPathnameImport } from './routes/auth/$pathname'
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ThreadThreadIdRoute = ThreadThreadIdImport.update({
+  id: '/thread/$threadId',
+  path: '/thread/$threadId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -46,6 +53,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPathnameImport
       parentRoute: typeof rootRoute
     }
+    '/thread/$threadId': {
+      id: '/thread/$threadId'
+      path: '/thread/$threadId'
+      fullPath: '/thread/$threadId'
+      preLoaderRoute: typeof ThreadThreadIdImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -54,36 +68,41 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/thread/$threadId': typeof ThreadThreadIdRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/thread/$threadId': typeof ThreadThreadIdRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/thread/$threadId': typeof ThreadThreadIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/$pathname'
+  fullPaths: '/' | '/auth/$pathname' | '/thread/$threadId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/$pathname'
-  id: '__root__' | '/' | '/auth/$pathname'
+  to: '/' | '/auth/$pathname' | '/thread/$threadId'
+  id: '__root__' | '/' | '/auth/$pathname' | '/thread/$threadId'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthPathnameRoute: typeof AuthPathnameRoute
+  ThreadThreadIdRoute: typeof ThreadThreadIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthPathnameRoute: AuthPathnameRoute,
+  ThreadThreadIdRoute: ThreadThreadIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -97,7 +116,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/auth/$pathname"
+        "/auth/$pathname",
+        "/thread/$threadId"
       ]
     },
     "/": {
@@ -105,6 +125,9 @@ export const routeTree = rootRoute
     },
     "/auth/$pathname": {
       "filePath": "auth/$pathname.tsx"
+    },
+    "/thread/$threadId": {
+      "filePath": "thread.$threadId.tsx"
     }
   }
 }
