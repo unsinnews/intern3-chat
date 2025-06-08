@@ -60,7 +60,8 @@ export function Chat({
         const proposedNewAssistantId = generateIdSeeded();
         seedNextId.current = proposedNewAssistantId;
 
-        const message = (body.messages as Message[]).pop();
+        const messages = body.messages as Message[];
+        const message = messages[messages.length - 1];
         return {
           id: threadId,
           proposedNewAssistantId,
