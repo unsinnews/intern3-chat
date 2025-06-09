@@ -1,9 +1,8 @@
 import { GitHubIcon, UserButton } from "@daveyplate/better-auth-ui";
-
 import { Link } from "@tanstack/react-router";
-import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 import { SidebarTrigger } from "./ui/sidebar";
+import { ThemeSwitcher } from "./themes/theme-switcher";
 
 export function Header() {
   return (
@@ -46,7 +45,7 @@ export function Header() {
             </Button>
           </a>
 
-          <ModeToggle />
+          <ThemeSwitcher />
           <UserButton />
         </div>
       </div>

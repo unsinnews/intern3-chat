@@ -2,11 +2,11 @@ import { AuthQueryProvider } from "@daveyplate/better-auth-tanstack";
 import { AuthUIProviderTanstack } from "@daveyplate/better-auth-ui/tanstack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
-import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -23,16 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthQueryProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          themeColor={{
-            light: "oklch(1 0 0)",
-            dark: "oklch(0.145 0 0)",
-          }}
-        >
+        <ThemeProvider>
           <AuthUIProviderTanstack
             authClient={authClient}
             navigate={(href) => router.navigate({ href })}
