@@ -1,7 +1,7 @@
 import { Chat } from "@/components/chat";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/thread/$threadId")({
+export const Route = createFileRoute("/_chat/thread/$threadId")({
   component: RouteComponent,
 });
 

@@ -139,3 +139,22 @@ export const getThreadMessages = query({
     return messages;
   },
 });
+
+export const getAllUserThreads = query({
+  args: {},
+  handler: async ({ db, auth }) => {
+    const user = await getUserIdentity(auth, {
+      allowAnons: true,
+    });
+
+    if ("error" in user) return { error: user.error };
+
+    const threads = await db
+      .query("threads")
+      .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+      .order("desc")
+      .collect();
+
+    return threads;
+  },
+});
