@@ -54,8 +54,6 @@ export const ToolInvocationUIPart = v.object({
     result: v.optional(v.any()),
     toolCallId: v.string(),
     toolName: v.string(),
-    mcpName: v.optional(v.string()),
-    mcpType: v.optional(v.union(v.literal("stdio"), v.literal("sse"))),
     step: v.optional(v.number()),
   }),
 });
