@@ -56,6 +56,7 @@ export function Chat({
       headers: {
         authorization: `Bearer ${tokenData.token}`,
       },
+      experimental_throttle: 50,
       experimental_prepareRequestBody(body) {
         const proposedNewAssistantId = generateIdSeeded();
         seedNextId.current = proposedNewAssistantId;
