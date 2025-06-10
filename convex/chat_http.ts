@@ -24,6 +24,7 @@ import {
   createDataStream,
   createDataStreamResponse,
   formatDataStreamPart,
+  smoothStream,
   streamText,
   type TextStreamPart,
   type ToolCall,
@@ -201,6 +202,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
       const result = streamText({
         model: google("gemini-2.0-flash-lite"),
         abortSignal: remoteCancel.signal,
+        experimental_transform: smoothStream(),
         messages: [
           {
             role: "system",
