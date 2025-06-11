@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { ImportThemeDialog } from "./import-theme-dialog";
+import { toggleThemeMode } from "@/lib/toggle-theme-mode";
 
 const THEME_URLS = [
   "https://tweakcn.com/r/themes/vintage-paper.json",
@@ -194,10 +195,7 @@ export function ThemeSwitcher() {
   };
 
   const toggleMode = () => {
-    setThemeState({
-      currentMode: themeState.currentMode === "light" ? "dark" : "light",
-      cssVars: themeState.cssVars,
-    });
+    toggleThemeMode();
   };
 
   const randomizeTheme = () => {

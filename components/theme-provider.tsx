@@ -7,7 +7,7 @@ type ThemeProviderProps = {
 };
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { themeState, setThemeState } = useEditorStore();
+  const { themeState } = useEditorStore();
   const [isClient, setIsClient] = useState(false);
 
   // Handle hydration and initialize CSS transitions
