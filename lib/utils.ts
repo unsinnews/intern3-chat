@@ -1,6 +1,25 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
+
+export const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    // Fallback for older browsers
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand("copy");
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+    document.body.removeChild(textArea);
+  }
+};

@@ -2,6 +2,7 @@ import { marked } from "marked";
 import { memo, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Codeblock } from "./codeblock";
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   const tokens = marked.lexer(markdown);
@@ -10,7 +11,16 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 
 const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
-    return <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>;
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code: Codeblock,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    );
   },
   (prevProps, nextProps) => {
     if (prevProps.content !== nextProps.content) return false;
