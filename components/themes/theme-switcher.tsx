@@ -23,6 +23,8 @@ import { ImportThemeDialog } from "./import-theme-dialog";
 import { toggleThemeMode } from "@/lib/toggle-theme-mode";
 
 const THEME_URLS = [
+  "https://tweakcn.com/editor/theme?theme=mono",
+  "https://tweakcn.com/editor/theme?theme=perpetuity",
   "https://tweakcn.com/r/themes/vintage-paper.json",
   "https://tweakcn.com/r/themes/amethyst-haze.json",
   "https://tweakcn.com/r/themes/claude.json",

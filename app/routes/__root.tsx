@@ -72,7 +72,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
 
-      <body>
+      <body className="h-screen overflow-hidden">
         <Providers>{children}</Providers>
 
         <Scripts />

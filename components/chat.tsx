@@ -136,9 +136,11 @@ export function Chat({
 
   console.log("messages", messages, threadMessages, threadId);
   return (
-    <div className="flex h-full grow flex-col">
+    <div className="flex h-[calc(100vh-64px)] flex-col relative mb-80">
       <Messages messages={messages} />
-      <MultimodalInput append={append} />
+      <div className="absolute bottom-2 left-0 right-0">
+        <MultimodalInput append={append} />
+      </div>
     </div>
   );
 }

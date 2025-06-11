@@ -66,7 +66,7 @@ export function MultimodalInput({
       onValueChange={setInput}
       isLoading={isLoading}
       onSubmit={handleSubmit}
-      className="w-full max-w-(--breakpoint-md)"
+      className="w-full max-w-2xl mx-auto"
     >
       {files.length > 0 && (
         <div className="flex flex-wrap gap-2 pb-2">
