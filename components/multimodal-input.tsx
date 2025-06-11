@@ -3,53 +3,127 @@ import type { useChat } from "@ai-sdk/react";
 import { Send, RotateCcw } from "lucide-react";
 import { nanoid } from "nanoid";
 
+// export function MultimodalInput({
+//   append,
+// }: {
+//   append: ReturnType<typeof useChat>["append"];
+// }) {
+("use client");
+
+import {
+  PromptInput,
+  PromptInputAction,
+  PromptInputActions,
+  PromptInputTextarea,
+} from "@/components/prompt-kit/prompt-input";
+import { Button } from "@/components/ui/button";
+import { ArrowUp, Paperclip, Square, X } from "lucide-react";
+import { useRef, useState } from "react";
+
 export function MultimodalInput({
   append,
 }: {
   append: ReturnType<typeof useChat>["append"];
 }) {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const message = formData.get("message") as string;
-    if (message.trim()) {
-      append({
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = async () => {
+    if (input.trim() || files.length > 0) {
+      setIsLoading(true);
+      await append({
         id: nanoid(),
         role: "user",
-        content: message,
-        parts: [{ type: "text", text: message }],
+        content: input,
+        parts: [{ type: "text", text: input }],
         createdAt: new Date(),
       });
-      e.currentTarget.reset();
+      setIsLoading(false);
+      setInput("");
+      setFiles([]);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const newFiles = Array.from(event.target.files);
+      setFiles((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    if (uploadInputRef?.current) {
+      uploadInputRef.current.value = "";
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 p-4 border-t">
-      <textarea
-        name="message"
-        placeholder="Type your message..."
-        className={cn(
-          "flex-1 min-h-[44px] max-h-32 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        )}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            const form = e.currentTarget.form;
-            if (form) {
-              form.requestSubmit();
-            }
-          }
-        }}
-      />
-      <button
-        type="submit"
-        className={cn(
-          "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        )}
-      >
-        <Send className="h-4 w-4" />
-      </button>
-    </form>
+    <PromptInput
+      value={input}
+      onValueChange={setInput}
+      isLoading={isLoading}
+      onSubmit={handleSubmit}
+      className="w-full max-w-(--breakpoint-md)"
+    >
+      {files.length > 0 && (
+        <div className="flex flex-wrap gap-2 pb-2">
+          {files.map((file, index) => (
+            <div
+              key={index}
+              className="bg-secondary flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
+            >
+              <Paperclip className="size-4" />
+              <span className="max-w-[120px] truncate">{file.name}</span>
+              <button
+                onClick={() => handleRemoveFile(index)}
+                className="hover:bg-secondary/50 rounded-full p-1"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <PromptInputTextarea placeholder="Ask me anything..." />
+
+      <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
+        <PromptInputAction tooltip="Attach files">
+          <label
+            htmlFor="file-upload"
+            className="hover:bg-secondary-foreground/10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl"
+          >
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+              id="file-upload"
+            />
+            <Paperclip className="text-primary size-5" />
+          </label>
+        </PromptInputAction>
+
+        <PromptInputAction
+          tooltip={isLoading ? "Stop generation" : "Send message"}
+        >
+          <Button
+            variant="default"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            onClick={handleSubmit}
+          >
+            {isLoading ? (
+              <Square className="size-5 fill-current" />
+            ) : (
+              <ArrowUp className="size-5" />
+            )}
+          </Button>
+        </PromptInputAction>
+      </PromptInputActions>
+    </PromptInput>
   );
 }
