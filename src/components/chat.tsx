@@ -54,10 +54,16 @@ export function Chat({
       : "skip"
   );
 
-  const initialMessages = useMemo(() => {
-    if (!threadMessages || "error" in threadMessages) return [];
-    return backendToUiMessages(threadMessages);
-  }, [threadMessages, threadId]);
+  const thread = useConvexQuery(
+    api.threads.getThread,
+    threadId ? { threadId: threadId as Id<"threads"> } : "skip"
+  );
+
+  const [loadingMessages, initialMessages] = useMemo(() => {
+    if (!threadMessages) return ["loading" as const, []];
+    if ("error" in threadMessages) return ["error" as const, []];
+    return ["ready" as const, backendToUiMessages(threadMessages)];
+  }, [threadMessages]);
 
   const {
     messages,
@@ -104,10 +110,15 @@ export function Chat({
 
   useAutoResume({
     autoResume: true,
-    initialMessages: [],
+    loadingMessages,
+    initialMessages,
     experimental_resume,
     data,
     setMessages,
+    thread: thread || undefined,
+    threadId,
+    status,
+    messages,
   });
 
   const resetAll = () => {
