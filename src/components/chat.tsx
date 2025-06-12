@@ -26,7 +26,10 @@ export function Chat({
   const queryClient = useQueryClient();
   const [rerenderTrigger, setRerenderTrigger] = useState(nanoid());
   const skipNextDataCheck = useRef<boolean>(true);
+  const [input, setInput] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const { selectedModel, setSelectedModel } = useModelStore();
+
   const generateIdSeeded = useCallback(() => {
     if (seedNextId.current) {
       const copy = seedNextId.current;
@@ -152,14 +155,19 @@ export function Chat({
     lastProcessedDataIndex.current = (data?.length ?? 0) - 1;
   }, [data]);
 
-  const handleInputSubmit = (input?: string, _files?: File[]) => {
+  const handleInputSubmit = (input?: string, files?: File[]) => {
+    if (status === "streaming") {
+      stop();
+      return;
+    }
+
     if (status === "submitted") {
       return;
     }
 
-    if (status === "streaming") {
-      stop();
-      return;
+    if (input?.trim() || (files && files.length > 0)) {
+      setMessages([]);
+      setData([]);
     }
 
     append({
@@ -180,6 +188,10 @@ export function Chat({
           models={models}
           onSubmit={handleInputSubmit}
           status={status}
+          input={input}
+          files={files}
+          setInput={setInput}
+          setFiles={setFiles}
         />
       </div>
     </div>

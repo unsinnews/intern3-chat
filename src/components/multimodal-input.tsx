@@ -10,41 +10,43 @@ import { Button } from "@/components/ui/button";
 import type { modelSchema } from "@/convex/lib/models";
 import { useModelStore } from "@/lib/model-store";
 import { ArrowUp, Loader2, Paperclip, Square, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import type { z } from "zod";
 
 export function MultimodalInput({
   models,
   onSubmit,
   status,
+  input,
+  files,
+  setInput,
+  setFiles,
 }: {
   models: z.infer<typeof modelSchema>[];
   onSubmit: (input?: string, files?: File[]) => void;
   status: ReturnType<typeof useChat>["status"];
+  input: string;
+  files: File[];
+  setInput: (input: string) => void;
+  setFiles: (files: File[]) => void;
 }) {
   const { selectedModel, setSelectedModel } = useModelStore();
-  const [input, setInput] = useState("");
   const isLoading = status === "streaming";
-  const [files, setFiles] = useState<File[]>([]);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async () => {
-    if (input.trim() || files.length > 0) {
-      setInput("");
-      setFiles([]);
-      onSubmit(input, files);
-    }
+    onSubmit(input, files);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const newFiles = Array.from(event.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      setFiles([...files, ...newFiles]);
     }
   };
 
   const handleRemoveFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFiles(files.filter((_, i) => i !== index));
     if (uploadInputRef?.current) {
       uploadInputRef.current.value = "";
     }
