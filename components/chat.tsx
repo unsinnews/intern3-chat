@@ -11,6 +11,7 @@ import { useAutoResume } from "@/hooks/use-auto-resume";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Id } from "@/convex/_generated/dataModel";
 import { backendToUiMessages } from "@/convex/lib/backend_to_ui_messages";
+import { useModelStore } from "@/lib/model-store";
 
 export function Chat({
   threadId: routeThreadId,
@@ -25,7 +26,7 @@ export function Chat({
   const queryClient = useQueryClient();
   const [rerenderTrigger, setRerenderTrigger] = useState(nanoid());
   const skipNextDataCheck = useRef<boolean>(true);
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const { selectedModel, setSelectedModel } = useModelStore();
   const generateIdSeeded = useCallback(() => {
     if (seedNextId.current) {
       const copy = seedNextId.current;
@@ -38,9 +39,11 @@ export function Chat({
   }, []);
 
   const models = useConvexQuery(api.models.getModels, {}) ?? [];
-  if (!selectedModel && models.length > 0) {
-    setSelectedModel(models[0].id);
-  }
+  useEffect(() => {
+    if (!selectedModel && models.length > 0) {
+      setSelectedModel(models[0].id);
+    }
+  }, [selectedModel, models, setSelectedModel]);
 
   const threadMessages = useConvexQuery(
     api.threads.getThreadMessages,

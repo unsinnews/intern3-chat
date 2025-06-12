@@ -13,18 +13,16 @@ import { useRef, useState } from "react";
 import { ModelSelector } from "@/components/model-selector";
 import { z } from "zod";
 import { modelSchema } from "@/convex/lib/models";
+import { useModelStore } from "@/lib/model-store";
 
 export function MultimodalInput({
   models,
-  selectedModel,
-  setSelectedModel,
   append,
 }: {
   models: z.infer<typeof modelSchema>[];
-  selectedModel: string | null;
-  setSelectedModel: (model: string) => void;
   append: ReturnType<typeof useChat>["append"];
 }) {
+  const { selectedModel, setSelectedModel } = useModelStore();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
