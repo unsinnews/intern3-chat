@@ -9,8 +9,8 @@ export const modelSchema = z.object({
 export const getAllModels = (): z.infer<typeof modelSchema>[] => {
   return [
     {
-      id: "gpt-4o",
-      name: "GPT 4o",
+      id: "gpt-4.1",
+      name: "GPT-4.1",
       provider: "openai",
     },
     {
