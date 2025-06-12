@@ -27,6 +27,11 @@ export const getAllModels = (): Model[] => {
       provider: "openai",
     },
     {
+      id: "gpt-4o-mini",
+      name: "GPT 4o mini",
+      provider: "openai",
+    },
+    {
       id: "claude-3-5-sonnet",
       name: "Claude 3.5 Sonnet",
       provider: "anthropic",
@@ -47,6 +52,7 @@ export const getAllModels = (): Model[] => {
 export function getProviderFromModelId(modelId: string): Provider | null {
   const providerMap: Record<string, Provider> = {
     "gpt-4o": "openai",
+    "gpt-4o-mini": "openai",
     "claude-3-5-sonnet": "anthropic",
     "gemini-2.0-flash-lite": "google",
     "gemini-2.5-flash-preview-05-20": "google",

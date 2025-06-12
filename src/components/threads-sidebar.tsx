@@ -1,14 +1,7 @@
 import { Search, Pin, Plus } from "lucide-react";
 import { useQuery as useConvexQuery } from "convex/react";
 import { Link } from "@tanstack/react-router";
-import {
-  format,
-  formatDistanceToNow,
-  isToday,
-  isYesterday,
-  subDays,
-  isAfter,
-} from "date-fns";
+import { isToday, isYesterday, subDays, isAfter } from "date-fns";
 
 import { api } from "@/convex/_generated/api";
 import { useSession } from "@/hooks/auth-hooks";
