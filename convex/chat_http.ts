@@ -42,6 +42,15 @@ const globalAbortSignals: Record<string, AbortController> = {}
 let globalStreamContext: ResumableStreamContext | null = null
 const getStreamContext = () => {
     if (!globalStreamContext) {
+        if (!process.env.UPSTASH_REDIS_REST_URL) {
+            console.log(" > Resumable streams are disabled due to missing UPSTASH_REDIS_REST_URL")
+            return null
+        }
+        if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
+            console.log(" > Resumable streams are disabled due to missing UPSTASH_REDIS_REST_TOKEN")
+            return null
+        }
+
         try {
             globalStreamContext = createResumableStreamContext({
                 waitUntil: (promise) => promise,
