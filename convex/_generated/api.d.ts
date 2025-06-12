@@ -19,7 +19,9 @@ import type * as lib_backend_to_ui_messages from "../lib/backend_to_ui_messages.
 import type * as lib_db_to_core_messages from "../lib/db_to_core_messages.js";
 import type * as lib_env from "../lib/env.js";
 import type * as lib_identity from "../lib/identity.js";
+import type * as lib_models from "../lib/models.js";
 import type * as messages from "../messages.js";
+import type * as models from "../models.js";
 import type * as schema_message from "../schema/message.js";
 import type * as schema_parts from "../schema/parts.js";
 import type * as schema_streams from "../schema/streams.js";
@@ -42,7 +44,9 @@ declare const fullApi: ApiFromModules<{
   "lib/db_to_core_messages": typeof lib_db_to_core_messages;
   "lib/env": typeof lib_env;
   "lib/identity": typeof lib_identity;
+  "lib/models": typeof lib_models;
   messages: typeof messages;
+  models: typeof models;
   "schema/message": typeof schema_message;
   "schema/parts": typeof schema_parts;
   "schema/streams": typeof schema_streams;

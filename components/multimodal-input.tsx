@@ -10,69 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
 import { useRef, useState } from "react";
-import { ModelSelector, type Model } from "@/components/model-selector";
-import OpenAI from "@/assets/openai.svg";
-import Gemini from "@/assets/gemini.svg";
-import Claude from "@/assets/claude.svg";
-
-const MODELS: Model[] = [
-  {
-    id: "gpt-4o",
-    icon: <OpenAI />,
-    name: "GPT 4o",
-    description: "Most capable model, best for complex tasks",
-    provider: "OpenAI",
-  },
-  {
-    id: "gemini-2.0-flash",
-    icon: <Gemini />,
-    name: "Gemini 2.0 Flash",
-    description: "Fast and efficient for most tasks",
-    provider: "Google",
-  },
-  {
-    id: "gemini-2.5-pro",
-    icon: <Gemini />,
-    name: "Gemini 2.5 Pro",
-    description: "Best for complex tasks",
-    provider: "Google",
-  },
-  {
-    id: "claude-3-5-sonnet",
-    icon: <Claude />,
-    name: "Claude 3.5 Sonnet",
-    description: "Best for complex tasks",
-    provider: "Anthropic",
-  },
-  {
-    id: "claude-3-7-sonnet",
-    icon: <Claude />,
-    name: "Claude 3.7 Sonnet",
-    description: "Best for complex tasks",
-    provider: "Anthropic",
-  },
-  {
-    id: "gpt-4o-mini",
-    icon: <OpenAI />,
-    name: "GPT 4o mini",
-    description: "Best for complex tasks",
-    provider: "OpenAI",
-  },
-  {
-    id: "o3-mini",
-    icon: <OpenAI />,
-    name: "o3 mini",
-    description: "Best for complex tasks",
-    provider: "OpenAI",
-  },
-  {
-    id: "o4-mini",
-    icon: <OpenAI />,
-    name: "o4 mini",
-    description: "Best for complex tasks",
-    provider: "OpenAI",
-  },
-];
+import { ModelSelector } from "@/components/model-selector";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export function MultimodalInput({
   append,
@@ -82,8 +22,13 @@ export function MultimodalInput({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+
+  const models = useQuery(api.models.getModels, {}) ?? [];
+  if (!selectedModel && models.length > 0) {
+    setSelectedModel(models[0].id);
+  }
 
   const handleSubmit = async () => {
     if (input.trim() || files.length > 0) {
@@ -147,11 +92,13 @@ export function MultimodalInput({
 
       <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
         <div className="flex items-center gap-2">
-          <ModelSelector
-            models={MODELS}
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-          />
+          {selectedModel && (
+            <ModelSelector
+              models={models}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
+          )}
           <PromptInputAction tooltip="Attach files">
             <label
               htmlFor="file-upload"

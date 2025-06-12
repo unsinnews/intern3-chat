@@ -16,14 +16,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { modelSchema } from "@/convex/lib/models";
+import { z } from "zod";
+import OpenAI from "@/assets/openai.svg";
+import Gemini from "@/assets/gemini.svg";
+import Claude from "@/assets/claude.svg";
 
-export interface Model {
-  id: string;
-  icon: React.ReactNode;
-  name: string;
-  description?: string;
-  provider: string;
-}
+type Model = z.infer<typeof modelSchema>;
 
 interface ModelSelectorProps {
   models: Model[];
@@ -96,7 +95,9 @@ export function ModelSelector({
                       }}
                       className="flex items-center gap-2"
                     >
-                      {model.icon}
+                      {model.provider === "openai" && <OpenAI />}
+                      {model.provider === "anthropic" && <Claude />}
+                      {model.provider === "google" && <Gemini />}
                       <span>{model.name}</span>
                       {model.id === selectedModel && (
                         <Check className="ml-auto h-4 w-4" />
