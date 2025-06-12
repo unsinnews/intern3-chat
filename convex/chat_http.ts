@@ -24,17 +24,17 @@ import {
   createDataStream,
   createDataStreamResponse,
   formatDataStreamPart,
+  LanguageModelV1,
   smoothStream,
   streamText,
   type TextStreamPart,
   type ToolCall,
 } from "ai";
 import { differenceInSeconds } from "date-fns";
-import { google } from "@ai-sdk/google";
 import { dbMessagesToCore } from "./lib/db_to_core_messages";
 import type { ErrorUIPart } from "./schema/parts";
 import type { HTTPAIMessage } from "./schema/message";
-import { DelayedPromise } from "@/lib/delayed-promise";
+import { createLanguageModel, getProviderFromModelId } from "./lib/models";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
@@ -112,6 +112,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
   const body: {
     id?: string;
     message: Infer<typeof HTTPAIMessage>;
+    model: string;
     proposedNewAssistantId: string;
   } = await req.json();
   const user = await getUserIdentity(ctx.auth, { allowAnons: true });
@@ -159,6 +160,27 @@ export const chatPOST = httpAction(async (ctx, req) => {
     | Infer<typeof ErrorUIPart>
   > = [];
 
+  const provider = getProviderFromModelId(body.model);
+
+  if (!provider) {
+    return new ChatError("bad_request:api", "Unsupported model").toResponse();
+  }
+
+  const userApiKey = await ctx.runQuery(internal.apikeys.getDecryptedApiKey, {
+    userId: user.id,
+    provider,
+  });
+
+  const modelResult = createLanguageModel(body.model, provider, userApiKey);
+
+  if (!modelResult) {
+    return new ChatError("bad_request:api", "No model found").toResponse();
+  }
+
+  if (modelResult instanceof ChatError) {
+    return modelResult.toResponse();
+  }
+
   const stream = createDataStream({
     execute: async (dataStream) => {
       dataStream.writeData({
@@ -200,7 +222,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
       };
 
       const result = streamText({
-        model: google("gemini-2.0-flash-lite"),
+        model: modelResult,
         abortSignal: remoteCancel.signal,
         experimental_transform: smoothStream(),
         messages: [
