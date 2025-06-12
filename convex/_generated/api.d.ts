@@ -19,7 +19,6 @@ import type * as http from "../http.js";
 import type * as lib_backend_to_ui_messages from "../lib/backend_to_ui_messages.js";
 import type * as lib_db_to_core_messages from "../lib/db_to_core_messages.js";
 import type * as lib_encryption from "../lib/encryption.js";
-import type * as lib_env from "../lib/env.js";
 import type * as lib_identity from "../lib/identity.js";
 import type * as lib_models from "../lib/models.js";
 import type * as messages from "../messages.js";
@@ -47,7 +46,6 @@ declare const fullApi: ApiFromModules<{
   "lib/backend_to_ui_messages": typeof lib_backend_to_ui_messages;
   "lib/db_to_core_messages": typeof lib_db_to_core_messages;
   "lib/encryption": typeof lib_encryption;
-  "lib/env": typeof lib_env;
   "lib/identity": typeof lib_identity;
   "lib/models": typeof lib_models;
   messages: typeof messages;

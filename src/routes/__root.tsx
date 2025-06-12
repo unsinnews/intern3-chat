@@ -3,7 +3,7 @@ import { createRootRouteWithContext } from "@tanstack/react-router";
 import { HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import globalsCss from "@/styles/globals.css?url";
+import globals_css from "@/styles/globals.css?url";
 import { Providers } from "../providers";
 
 export const Route = createRootRouteWithContext<{
@@ -23,7 +23,7 @@ export const Route = createRootRouteWithContext<{
       },
     ],
     links: [
-      { rel: "stylesheet", href: globalsCss },
+      { rel: "stylesheet", href: globals_css },
       { rel: "icon", href: "/favicon.ico" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },

@@ -4,7 +4,7 @@ import { type Message, useChat } from "@ai-sdk/react";
 import { Messages } from "@/components/messages";
 import { MultimodalInput } from "@/components/multimodal-input";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { browserEnv } from "@/convex/lib/env";
+import { browserEnv } from "@/lib/browser-env";
 import { useToken } from "@/hooks/auth-hooks";
 import { nanoid } from "nanoid";
 import { useAutoResume } from "@/hooks/use-auto-resume";
