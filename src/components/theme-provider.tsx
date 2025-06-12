@@ -1,28 +1,28 @@
-import { useEffect, useState } from "react";
-import { useEditorStore } from "@/lib/editor-store";
-import { applyThemeToElement } from "@/lib/apply-theme";
+import { applyThemeToElement } from "@/lib/apply-theme"
+import { useEditorStore } from "@/lib/editor-store"
+import { useEffect, useState } from "react"
 
 type ThemeProviderProps = {
-  children: React.ReactNode;
-};
+    children: React.ReactNode
+}
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { themeState } = useEditorStore();
-  const [isClient, setIsClient] = useState(false);
+    const { themeState } = useEditorStore()
+    const [isClient, setIsClient] = useState(false)
 
-  // Handle hydration and initialize CSS transitions
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+    // Handle hydration and initialize CSS transitions
+    useEffect(() => {
+        setIsClient(true)
+    }, [])
 
-  useEffect(() => {
-    if (!isClient) return;
+    useEffect(() => {
+        if (!isClient) return
 
-    const root = document.documentElement;
-    if (!root) return;
+        const root = document.documentElement
+        if (!root) return
 
-    applyThemeToElement(themeState, root);
-  }, [themeState, isClient]);
+        applyThemeToElement(themeState, root)
+    }, [themeState, isClient])
 
-  return <>{children}</>;
+    return <>{children}</>
 }

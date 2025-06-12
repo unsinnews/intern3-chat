@@ -4,66 +4,66 @@
  * but not accessed.
  */
 export class DelayedPromise<T> {
-  private status:
-    | { type: "pending" }
-    | { type: "resolved"; value: T }
-    | { type: "rejected"; error: unknown } = { type: "pending" };
-  private promise: Promise<T> | undefined;
-  private _resolve: undefined | ((value: T) => void) = undefined;
-  private _reject: undefined | ((error: unknown) => void) = undefined;
-  private _onResolve: undefined | ((value: T) => void) = undefined;
-  private _onReject: undefined | ((error: unknown) => void) = undefined;
+    private status:
+        | { type: "pending" }
+        | { type: "resolved"; value: T }
+        | { type: "rejected"; error: unknown } = { type: "pending" }
+    private promise: Promise<T> | undefined
+    private _resolve: undefined | ((value: T) => void) = undefined
+    private _reject: undefined | ((error: unknown) => void) = undefined
+    private _onResolve: undefined | ((value: T) => void) = undefined
+    private _onReject: undefined | ((error: unknown) => void) = undefined
 
-  setLifecycleHooks(
-    params: {
-      onResolve?: (value: T) => void;
-      onReject?: (error: unknown) => void;
-    } = {}
-  ) {
-    if (params.onResolve) {
-      this._onResolve = params.onResolve;
-    }
-    if (params.onReject) {
-      this._onReject = params.onReject;
-    }
-  }
-
-  get value(): Promise<T> {
-    if (this.promise) {
-      return this.promise;
+    setLifecycleHooks(
+        params: {
+            onResolve?: (value: T) => void
+            onReject?: (error: unknown) => void
+        } = {}
+    ) {
+        if (params.onResolve) {
+            this._onResolve = params.onResolve
+        }
+        if (params.onReject) {
+            this._onReject = params.onReject
+        }
     }
 
-    this.promise = new Promise<T>((resolve, reject) => {
-      if (this.status.type === "resolved") {
-        resolve(this.status.value);
-      } else if (this.status.type === "rejected") {
-        reject(this.status.error);
-      }
+    get value(): Promise<T> {
+        if (this.promise) {
+            return this.promise
+        }
 
-      this._resolve = resolve;
-      this._reject = reject;
-    });
+        this.promise = new Promise<T>((resolve, reject) => {
+            if (this.status.type === "resolved") {
+                resolve(this.status.value)
+            } else if (this.status.type === "rejected") {
+                reject(this.status.error)
+            }
 
-    return this.promise;
-  }
+            this._resolve = resolve
+            this._reject = reject
+        })
 
-  resolve(value: T): void {
-    this.status = { type: "resolved", value };
-
-    if (this.promise) {
-      this._resolve?.(value);
+        return this.promise
     }
 
-    this._onResolve?.(value);
-  }
+    resolve(value: T): void {
+        this.status = { type: "resolved", value }
 
-  reject(error: unknown): void {
-    this.status = { type: "rejected", error };
+        if (this.promise) {
+            this._resolve?.(value)
+        }
 
-    if (this.promise) {
-      this._reject?.(error);
+        this._onResolve?.(value)
     }
 
-    this._onReject?.(error);
-  }
+    reject(error: unknown): void {
+        this.status = { type: "rejected", error }
+
+        if (this.promise) {
+            this._reject?.(error)
+        }
+
+        this._onReject?.(error)
+    }
 }
