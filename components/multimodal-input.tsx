@@ -11,24 +11,24 @@ import { Button } from "@/components/ui/button";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { ModelSelector } from "@/components/model-selector";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { z } from "zod";
+import { modelSchema } from "@/convex/lib/models";
 
 export function MultimodalInput({
+  models,
+  selectedModel,
+  setSelectedModel,
   append,
 }: {
+  models: z.infer<typeof modelSchema>[];
+  selectedModel: string | null;
+  setSelectedModel: (model: string) => void;
   append: ReturnType<typeof useChat>["append"];
 }) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-
-  const models = useQuery(api.models.getModels, {}) ?? [];
-  if (!selectedModel && models.length > 0) {
-    setSelectedModel(models[0].id);
-  }
 
   const handleSubmit = async () => {
     if (input.trim() || files.length > 0) {

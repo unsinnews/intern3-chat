@@ -25,6 +25,7 @@ export function Chat({
   const queryClient = useQueryClient();
   const [rerenderTrigger, setRerenderTrigger] = useState(nanoid());
   const skipNextDataCheck = useRef<boolean>(true);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const generateIdSeeded = useCallback(() => {
     if (seedNextId.current) {
       const copy = seedNextId.current;
@@ -35,6 +36,11 @@ export function Chat({
     const id = nanoid();
     return id;
   }, []);
+
+  const models = useConvexQuery(api.models.getModels, {}) ?? [];
+  if (!selectedModel && models.length > 0) {
+    setSelectedModel(models[0].id);
+  }
 
   const threadMessages = useConvexQuery(
     api.threads.getThreadMessages,
@@ -66,6 +72,7 @@ export function Chat({
         return {
           id: threadId,
           proposedNewAssistantId,
+          model: selectedModel,
           message: {
             parts: message?.parts,
             role: message?.role,
@@ -139,7 +146,12 @@ export function Chat({
     <div className="flex h-[calc(100vh-64px)] flex-col relative mb-80">
       <Messages messages={messages} />
       <div className="absolute bottom-2 left-0 right-0">
-        <MultimodalInput append={append} />
+        <MultimodalInput
+          models={models}
+          selectedModel={selectedModel}
+          setSelectedModel={setSelectedModel}
+          append={append}
+        />
       </div>
     </div>
   );
