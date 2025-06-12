@@ -6,7 +6,7 @@ import { ConvexProviderWithAuth } from "convex/react";
 import { routeTree } from "./routeTree.gen";
 import { useSession, useToken } from "@/hooks/auth-hooks";
 import { useMemo } from "react";
-import { browserEnv } from "@/convex/lib/env";
+import { browserEnv } from "@/lib/browser-env";
 
 export function createRouter() {
   const convexQueryClient = new ConvexQueryClient(
@@ -28,6 +28,7 @@ export function createRouter() {
       routeTree,
       defaultPreload: "intent",
       context: { queryClient },
+      defaultNotFoundComponent: () => <div>Not Found</div>,
       Wrap: ({ children }) => (
         <ConvexProviderWithAuth
           client={convexQueryClient.convexClient}

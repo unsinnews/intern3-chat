@@ -22,8 +22,8 @@ export type Model = {
 export const getAllModels = (): Model[] => {
   return [
     {
-      id: "gpt-4.1",
-      name: "GPT-4.1",
+      id: "gpt-4o",
+      name: "GPT-4o",
       provider: "openai",
     },
     {
