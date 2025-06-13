@@ -1,102 +1,66 @@
+import { MODELS_SHARED } from "@/convex/lib/models"
+import { ABILITIES } from "@/convex/lib/toolkit"
 import { z } from "zod"
 
-// Zod schemas for validation
 const AIConfigSchema = z.object({
-  selectedModel: z.string().nullable(),
-  enabledTools: z.array(z.string()).default(["web_search"])
+    selectedModel: z.string().nullable(),
+    enabledTools: z.array(z.enum(ABILITIES as [string, ...string[]])).default(["web_search"])
 })
 
-const UserInputSchema = z.string().default("")
-
 export type AIConfig = z.infer<typeof AIConfigSchema>
-export type UserInput = z.infer<typeof UserInputSchema>
 
-// Storage keys
 const AI_CONFIG_KEY = "ai-config"
 const USER_INPUT_KEY = "user-input"
 
-// Safe localStorage operations with error handling
-const safeGetItem = (key: string): string | null => {
-  if (typeof window === "undefined") return null
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-
-const safeSetItem = (key: string, value: string): void => {
-  if (typeof window === "undefined") return
-  try {
-    localStorage.setItem(key, value)
-  } catch {
-    // Silently fail - could be storage quota exceeded or incognito mode
-  }
-}
-
 const safeRemoveItem = (key: string): void => {
-  if (typeof window === "undefined") return
-  try {
-    localStorage.removeItem(key)
-  } catch {
-    // Silently fail
-  }
+    if (typeof window === "undefined") return
+    try {
+        localStorage.removeItem(key)
+    } catch {}
 }
 
-// AI Config persistence
 export const loadAIConfig = (): AIConfig => {
-  const stored = safeGetItem(AI_CONFIG_KEY)
-  if (!stored) {
-    return { selectedModel: null, enabledTools: ["web_search"] }
-  }
+    if (typeof window === "undefined") return { selectedModel: null, enabledTools: ["web_search"] }
+    const stored = localStorage.getItem(AI_CONFIG_KEY)
+    if (!stored) {
+        return { selectedModel: null, enabledTools: ["web_search"] }
+    }
 
-  try {
-    const parsed = JSON.parse(stored)
-    return AIConfigSchema.parse(parsed)
-  } catch {
-    // Invalid data - remove and return defaults
-    safeRemoveItem(AI_CONFIG_KEY)
-    return { selectedModel: null, enabledTools: ["web_search"] }
-  }
+    try {
+        const parsed = JSON.parse(stored)
+
+        if (
+            parsed.selectedModel &&
+            !MODELS_SHARED.some((model) => model.id === parsed.selectedModel)
+        ) {
+            parsed.selectedModel = null
+        }
+
+        if (parsed.enabledTools.some((tool) => !ABILITIES.includes(tool))) {
+            parsed.enabledTools = ["web_search"]
+        }
+
+        return AIConfigSchema.parse(parsed)
+    } catch {
+        safeRemoveItem(AI_CONFIG_KEY)
+        return { selectedModel: null, enabledTools: ["web_search"] }
+    }
+}
+
+export const loadUserInput = (): string => {
+    if (typeof window === "undefined") return ""
+    const stored = localStorage.getItem(USER_INPUT_KEY)
+    return stored?.trim() ?? ""
 }
 
 export const saveAIConfig = (config: AIConfig): void => {
-  try {
+    if (typeof window === "undefined") return
     const validated = AIConfigSchema.parse(config)
-    safeSetItem(AI_CONFIG_KEY, JSON.stringify(validated))
-  } catch {
-    // Invalid config - don't save
-  }
-}
-
-// User Input persistence
-export const loadUserInput = (): string => {
-  const stored = safeGetItem(USER_INPUT_KEY)
-  if (!stored) return ""
-
-  try {
-    return UserInputSchema.parse(stored)
-  } catch {
-    // Invalid data - remove and return default
-    safeRemoveItem(USER_INPUT_KEY)
-    return ""
-  }
+    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(validated))
 }
 
 export const saveUserInput = (input: string): void => {
-  try {
-    const validated = UserInputSchema.parse(input)
-    if (validated.trim()) {
-      safeSetItem(USER_INPUT_KEY, validated)
-    } else {
-      // Clear empty input from storage
-      safeRemoveItem(USER_INPUT_KEY)
-    }
-  } catch {
-    // Invalid input - don't save
-  }
-}
-
-export const clearUserInput = (): void => {
-  safeRemoveItem(USER_INPUT_KEY)
+    if (typeof window === "undefined") return
+    if (input.trim()) localStorage.setItem(USER_INPUT_KEY, input)
+    else localStorage.removeItem(USER_INPUT_KEY)
 }

@@ -27,7 +27,6 @@ import type * as lib_resumable_stream_context from "../lib/resumable_stream_cont
 import type * as lib_toolkit from "../lib/toolkit.js";
 import type * as lib_tools_web_search from "../lib/tools/web_search.js";
 import type * as messages from "../messages.js";
-import type * as models from "../models.js";
 import type * as schema_apikey from "../schema/apikey.js";
 import type * as schema_message from "../schema/message.js";
 import type * as schema_parts from "../schema/parts.js";
@@ -59,7 +58,6 @@ declare const fullApi: ApiFromModules<{
   "lib/toolkit": typeof lib_toolkit;
   "lib/tools/web_search": typeof lib_tools_web_search;
   messages: typeof messages;
-  models: typeof models;
   "schema/apikey": typeof schema_apikey;
   "schema/message": typeof schema_message;
   "schema/parts": typeof schema_parts;

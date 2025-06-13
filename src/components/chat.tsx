@@ -1,6 +1,7 @@
 import { ChatInput } from "@/components/chat-input";
 import { Messages } from "@/components/messages";
 import { api } from "@/convex/_generated/api";
+import { MODELS_SHARED } from "@/convex/lib/models";
 import { useChatActions } from "@/hooks/use-chat-actions";
 import { useChatDataProcessor } from "@/hooks/use-chat-data-processor";
 import { useChatIntegration } from "@/hooks/use-chat-integration";
@@ -17,14 +18,12 @@ export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
   const { selectedModel, setSelectedModel } = useModelStore();
   const { threadId } = useThreadSync({ routeThreadId });
 
-  const models = useConvexQuery(api.models.getModels, {}) ?? [];
-  
   // Memoize model selection to avoid unnecessary re-renders
   useMemo(() => {
-    if (!selectedModel && models.length > 0) {
-      setSelectedModel(models[0].id);
+    if (!selectedModel && MODELS_SHARED.length > 0) {
+      setSelectedModel(MODELS_SHARED[0].id);
     }
-  }, [selectedModel, models, setSelectedModel]);
+  }, [selectedModel, setSelectedModel]);
 
   const { status, append, stop, data, messages } = useChatIntegration({
     threadId,
@@ -41,10 +40,7 @@ export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
   return (
     <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
       <Messages messages={messages} />
-      <ChatInput
-        onSubmit={handleInputSubmit}
-        status={status}
-      />
+      <ChatInput onSubmit={handleInputSubmit} status={status} />
     </div>
   );
 };
