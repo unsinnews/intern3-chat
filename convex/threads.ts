@@ -151,3 +151,43 @@ export const getAllUserThreads = query({
         return threads
     }
 })
+
+// Public version of getThreadById
+export const getThread = query({
+    args: { threadId: v.id("threads") },
+    handler: async ({ db, auth }, { threadId }) => {
+        const user = await getUserIdentity(auth, {
+            allowAnons: true
+        })
+
+        if ("error" in user) return null
+
+        const thread = await db.get(threadId)
+        if (!thread || thread.authorId !== user.id) return null
+
+        return thread
+    }
+})
+
+export const updateThreadStreamingState = internalMutation({
+    args: {
+        threadId: v.id("threads"),
+        isLive: v.boolean(),
+        streamStartedAt: v.optional(v.number()),
+        currentStreamId: v.optional(v.string())
+    },
+    handler: async ({ db }, { threadId, isLive, streamStartedAt, currentStreamId }) => {
+        const thread = await db.get(threadId)
+        if (!thread) {
+            console.error("[cvx][updateThreadStreamingState] Thread not found", threadId)
+            return
+        }
+
+        await db.patch(threadId, {
+            isLive,
+            streamStartedAt: isLive ? streamStartedAt : undefined,
+            currentStreamId: isLive ? currentStreamId : undefined,
+            updatedAt: Date.now()
+        })
+    }
+})

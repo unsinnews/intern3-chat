@@ -2,6 +2,25 @@ import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
 import { MemoizedMarkdown } from "./memoized-markdown"
 import { ScrollArea } from "./ui/scroll-area"
+import { memo } from "react"
+
+const PartsRenderer = memo(({ part, markdown, id }: { part: UIMessage["parts"][number], markdown: boolean, id: string }) => {
+    switch (part.type) {
+        case "text":
+            return markdown ? <MemoizedMarkdown content={part.text} id={id} /> : <div>{part.text.split("\n").map((line, index) => <div key={index}>{line}</div>)}</div>
+        case "reasoning":
+            return markdown ? (
+                <div className="border rounded-lg p-4 bg-muted/50">
+                    <MemoizedMarkdown content={part.reasoning} id={id} />
+                </div>
+            ) : (
+                <div className="border rounded-lg p-4 bg-muted/50">
+                    {part.reasoning.split("\n").map((line, index) => <div key={index}>{line}</div>)}
+                </div>
+            )
+    }
+});
+PartsRenderer.displayName = "PartsRenderer";
 
 export function Messages({ messages }: { messages: UIMessage[] }) {
     return (
@@ -15,16 +34,12 @@ export function Messages({ messages }: { messages: UIMessage[] }) {
                             "prose-code:before:hidden prose-code:after:hidden",
                             "mb-8",
                             message.role === "user" &&
-                                "ml-auto w-fit max-w-md rounded-xl bg-primary px-2.5 py-1.5 text-primary-foreground"
+                            "ml-auto w-fit max-w-md rounded-xl bg-primary px-2.5 py-1.5 text-primary-foreground"
                         )}
                     >
-                        {message.role === "assistant" ? (
-                            <MemoizedMarkdown content={message.content} id={message.id} />
-                        ) : (
-                            message.content
-                                ?.split("\n")
-                                .map((line, index) => <div key={index}>{line}</div>)
-                        )}
+                        {message.parts.map((part) => (
+                            <PartsRenderer part={part} markdown={message.role === "assistant"} id={message.id} />
+                        ))}
                     </div>
                 ))}
             </div>

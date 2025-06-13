@@ -1,48 +1,68 @@
 "use client"
 
-import type { UseChatHelpers } from "@ai-sdk/react"
-import type { UIMessage } from "ai"
+import type { Thread } from "@/convex/schema/thread"
+import type { Infer } from "convex/values"
 import { useEffect } from "react"
+import { useChatStore } from "@/lib/chat-store"
 
-export type DataPart = { type: "append-message"; message: string }
-
-export interface Props {
+export interface AutoResumeProps {
     autoResume: boolean
-    initialMessages: UIMessage[]
-    experimental_resume: UseChatHelpers["experimental_resume"]
-    data: UseChatHelpers["data"]
-    setMessages: UseChatHelpers["setMessages"]
+    thread?: Infer<typeof Thread>
+    threadId?: string
+    experimental_resume: () => void
+    status?: "idle" | "streaming" | "submitted" | string
 }
 
 export function useAutoResume({
     autoResume,
-    initialMessages,
+    thread,
+    threadId,
     experimental_resume,
-    data,
-    setMessages
-}: Props) {
-    // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally run this once
+    status
+}: AutoResumeProps) {
+    const attachedStreamId = useChatStore((s) =>
+        threadId ? s.attachedStreamIds[threadId] : undefined
+    )
+    const setAttachedStreamId = useChatStore((s) => s.setAttachedStreamId)
+    const pending = useChatStore((s) => (threadId ? s.pendingStreams[threadId] : false))
+
     useEffect(() => {
+        // Debug: log state each time effect runs (concise)
+        console.log("[AR:evaluate]", {
+            t: threadId,
+            live: !!thread?.isLive,
+            cur: thread?.currentStreamId?.slice(0, 5),
+            att: attachedStreamId?.slice(0, 5)
+        })
+
         if (!autoResume) return
+        if (!threadId) return
+        if (!thread?.isLive || !thread.currentStreamId) return
+        if (pending) return // we initiated this stream, wait for stream_id
 
-        const mostRecentMessage = initialMessages.at(-1)
-
-        if (mostRecentMessage?.role === "user") {
-            experimental_resume()
+        if (attachedStreamId === thread.currentStreamId) {
+            // Already attached to this live stream
+            return
         }
 
-        // we intentionally run this once
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+        console.log("[AR:resume]", {
+            t: threadId,
+            cur: thread.currentStreamId.slice(0, 5),
+            att: attachedStreamId?.slice(0, 5)
+        })
 
-    useEffect(() => {
-        if (!data || data.length === 0) return
-
-        const dataPart = data[0] as DataPart
-
-        if (dataPart.type === "append-message") {
-            const message = JSON.parse(dataPart.message) as UIMessage
-            setMessages([...initialMessages, message])
-        }
-    }, [data, initialMessages, setMessages])
+        experimental_resume()
+        // Optimistically mark as attached
+        setAttachedStreamId(threadId, thread.currentStreamId)
+    }, [
+        autoResume,
+        thread?.isLive,
+        thread?.currentStreamId,
+        threadId,
+        attachedStreamId,
+        pending,
+        experimental_resume,
+        status,
+        setAttachedStreamId
+    ])
 }
