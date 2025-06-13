@@ -42,6 +42,7 @@ export function MultimodalInput({
 
     onSubmit(inputValue, files);
     promptInputRef.current?.clear();
+    localStorage.setItem("user-input", inputValue);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
