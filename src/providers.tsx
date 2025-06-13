@@ -15,8 +15,11 @@ export const convexQueryClient = new ConvexQueryClient(
 );
 
 export const queryClient: QueryClient = new QueryClient({
+
   defaultOptions: {
     queries: {
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 5,
       queryKeyHashFn: convexQueryClient.hashFn(),
       queryFn: convexQueryClient.queryFn(),
     },

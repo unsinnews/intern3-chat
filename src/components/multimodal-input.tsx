@@ -36,6 +36,14 @@ export function MultimodalInput({
 
   const handleSubmit = async () => {
     const inputValue = promptInputRef.current?.getValue() || "";
+
+    // Check if input is empty or just whitespace
+    if (!inputValue.trim()) {
+      // Focus the textarea if input is empty
+      promptInputRef.current?.focus();
+      return;
+    }
+
     onSubmit(inputValue, files);
     promptInputRef.current?.clear();
   };
