@@ -10,9 +10,15 @@
         "check-types": "tsc --noEmit",
         "postinstall": "patch-package",
         "auth:generate": "npx @better-auth/cli generate --output src/database/auth-schema.ts",
-        "auth:migrate": "npx @better-auth/cli@latest migrate"
+        "auth:migrate": "npx drizzle-kit migrate",
+        "auth:push": "npx drizzle-kit push"
     },
-    "keywords": ["better-auth", "tanstack", "vite", "react"],
+    "keywords": [
+        "better-auth",
+        "tanstack",
+        "vite",
+        "react"
+    ],
     "author": "daveycodez",
     "license": "MIT",
     "dependencies": {
@@ -90,6 +96,10 @@
     },
     "packageManager": "pnpm@10.6.4",
     "pnpm": {
-        "onlyBuiltDependencies": ["@parcel/watcher", "esbuild", "sharp"]
+        "onlyBuiltDependencies": [
+            "@parcel/watcher",
+            "esbuild",
+            "sharp"
+        ]
     }
 }
