@@ -91,7 +91,7 @@ export function CommandK() {
             {searchResults.map((thread: Thread) => (
               <CommandItem
                 key={thread._id}
-                value={thread.title}
+                value={thread._id}
                 onSelect={() => handleSelect(thread._id)}
               >
                 <div className="flex items-center gap-3 w-full">
