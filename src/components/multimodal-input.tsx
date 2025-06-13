@@ -15,18 +15,15 @@ import { ArrowUp, Loader2, Paperclip, Search, Square, X } from "lucide-react";
 import { useRef } from "react";
 import type { z } from "zod";
 
-
 export function MultimodalInput({
-  models,
   onSubmit,
   status,
 }: {
-  models: z.infer<typeof modelSchema>[];
   onSubmit: (input?: string, files?: File[]) => void;
   status: ReturnType<typeof useChat>["status"];
 }) {
-  const { selectedModel, setSelectedModel } = useModelStore();
-  const { files, setFiles, enabledTools } = useChatStore();
+  const { selectedModel, setSelectedModel, enabledTools } = useModelStore();
+  const { files, setFiles } = useChatStore();
   const isLoading = status === "streaming";
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const promptInputRef = useRef<PromptInputRef>(null);
@@ -109,7 +106,6 @@ export function MultimodalInput({
           </PromptInputAction>
           {selectedModel && (
             <ModelSelector
-              models={models}
               selectedModel={selectedModel}
               onModelChange={setSelectedModel}
             />
@@ -125,7 +121,6 @@ export function MultimodalInput({
               </label>
             </PromptInputAction>
           )}
-
         </div>
 
         <PromptInputAction

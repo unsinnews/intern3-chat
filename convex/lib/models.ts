@@ -19,43 +19,41 @@ export type Model = {
     provider: Provider
 }
 
-export const getAllModels = () => {
-    return [
-        {
-            id: "gpt-4o",
-            name: "GPT-4o",
-            provider: "openai"
-        },
-        {
-            id: "gpt-4o-mini",
-            name: "GPT 4o mini",
-            provider: "openai"
-        },
-        {
-            id: "o3-mini",
-            name: "o3 mini",
-            provider: "openai"
-        },
-        {
-            id: "claude-3-5-sonnet",
-            name: "Claude 3.5 Sonnet",
-            provider: "anthropic"
-        },
-        {
-            id: "gemini-2.0-flash-lite",
-            name: "Gemini 2.0 Flash Lite",
-            provider: "google"
-        },
-        {
-            id: "gemini-2.5-flash-preview-05-20",
-            name: "Gemini 2.5 Flash",
-            provider: "google"
-        }
-    ] as const
-}
+export const MODELS_SHARED = [
+    {
+        id: "gpt-4o",
+        name: "GPT-4o",
+        provider: "openai"
+    },
+    {
+        id: "gpt-4o-mini",
+        name: "GPT 4o mini",
+        provider: "openai"
+    },
+    {
+        id: "o3-mini",
+        name: "o3 mini",
+        provider: "openai"
+    },
+    {
+        id: "claude-3-5-sonnet",
+        name: "Claude 3.5 Sonnet",
+        provider: "anthropic"
+    },
+    {
+        id: "gemini-2.0-flash-lite",
+        name: "Gemini 2.0 Flash Lite",
+        provider: "google"
+    },
+    {
+        id: "gemini-2.5-flash-preview-05-20",
+        name: "Gemini 2.5 Flash",
+        provider: "google"
+    }
+] as const
 
 export function getProviderFromModelId(modelId: string): Provider | null {
-    const providerMap: Record<ReturnType<typeof getAllModels>[number]["id"], Provider> = {
+    const providerMap: Record<(typeof MODELS_SHARED)[number]["id"], Provider> = {
         "gpt-4o": "openai",
         "gpt-4o-mini": "openai",
         "o3-mini": "openai",
@@ -77,7 +75,7 @@ export function createLanguageModel(
     apiKey?: string | null
 ): LanguageModelV1 | ChatError {
     // validate modelId
-    const model = getAllModels().find((model) => model.id === modelId)
+    const model = MODELS_SHARED.find((model) => model.id === modelId)
     if (!model) {
         return new ChatError("bad_request:api", "Unsupported model")
     }

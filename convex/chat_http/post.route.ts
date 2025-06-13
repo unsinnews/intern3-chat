@@ -30,7 +30,7 @@ import { RESPONSE_OPTS } from "./shared"
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
 import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
 import { generateThreadName } from "./generate_thread_name"
-import { getToolkit, ToolId } from "../lib/toolkit"
+import { getToolkit, type AbilityId } from "../lib/toolkit"
 
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
@@ -38,7 +38,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         message: Infer<typeof HTTPAIMessage>
         model: string
         proposedNewAssistantId: string
-        enabledTools: ToolId[]
+        enabledTools: AbilityId[]
     } = await req.json()
     const user = await getUserIdentity(ctx.auth, { allowAnons: true })
     if ("error" in user) return new ChatError("unauthorized:chat").toResponse()
@@ -133,7 +133,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         }
                     } satisfies GoogleGenerativeAIProviderOptions,
                     openai: {
-                        reasoningEffort: "low",
+                        reasoningEffort: "low"
                     } satisfies OpenAIResponsesProviderOptions
                 }
             })

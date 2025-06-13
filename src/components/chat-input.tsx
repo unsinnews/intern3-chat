@@ -10,15 +10,9 @@ export function ChatInput({
   onSubmit: (input?: string, files?: File[]) => void;
   status: UseChatHelpers["status"];
 }) {
-  const models = useConvexQuery(api.models.getModels, {}) ?? [];
-
   return (
     <div className="absolute right-0 bottom-2 left-0">
-      <MultimodalInput
-        models={models}
-        onSubmit={onSubmit}
-        status={status}
-      />
+      <MultimodalInput onSubmit={onSubmit} status={status} />
     </div>
   );
 }
