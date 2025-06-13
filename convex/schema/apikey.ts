@@ -10,10 +10,8 @@ export const ApiKey = v.object({
     userId: v.string(),
     provider: providerSchema,
     encryptedKey: v.string(),
-    name: v.optional(v.string()), // Optional name for the key
     createdAt: v.number(),
-    updatedAt: v.number(),
-    isActive: v.boolean()
+    updatedAt: v.number()
 })
 
 export type ApiKey = Infer<typeof ApiKey>

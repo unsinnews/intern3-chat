@@ -12,7 +12,10 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ChatRouteImport } from './routes/_chat'
+import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as ChatIndexRouteImport } from './routes/_chat.index'
+import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
+import { Route as SettingsApikeysRouteImport } from './routes/settings/apikeys'
 import { Route as AuthPathnameRouteImport } from './routes/auth/$pathname'
 import { Route as ChatThreadThreadIdRouteImport } from './routes/_chat.thread.$threadId'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
@@ -23,10 +26,25 @@ const ChatRoute = ChatRouteImport.update({
   id: '/_chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRouteRoute = SettingsRouteRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatIndexRoute = ChatIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ChatRoute,
+} as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsApikeysRoute = SettingsApikeysRouteImport.update({
+  id: '/apikeys',
+  path: '/apikeys',
+  getParentRoute: () => SettingsRouteRoute,
 } as any)
 const AuthPathnameRoute = AuthPathnameRouteImport.update({
   id: '/auth/$pathname',
@@ -45,37 +63,63 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/settings': typeof SettingsRouteRouteWithChildren
   '': typeof ChatRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings/apikeys': typeof SettingsApikeysRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/': typeof ChatIndexRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
 }
 export interface FileRoutesByTo {
+  '/settings': typeof SettingsRouteRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings/apikeys': typeof SettingsApikeysRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/': typeof ChatIndexRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/settings': typeof SettingsRouteRouteWithChildren
   '/_chat': typeof ChatRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings/apikeys': typeof SettingsApikeysRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/_chat/': typeof ChatIndexRoute
   '/_chat/thread/$threadId': typeof ChatThreadThreadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/auth/$pathname' | '/' | '/thread/$threadId'
+  fullPaths:
+    | '/settings'
+    | ''
+    | '/auth/$pathname'
+    | '/settings/apikeys'
+    | '/settings/profile'
+    | '/'
+    | '/thread/$threadId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth/$pathname' | '/' | '/thread/$threadId'
+  to:
+    | '/settings'
+    | '/auth/$pathname'
+    | '/settings/apikeys'
+    | '/settings/profile'
+    | '/'
+    | '/thread/$threadId'
   id:
     | '__root__'
+    | '/settings'
     | '/_chat'
     | '/auth/$pathname'
+    | '/settings/apikeys'
+    | '/settings/profile'
     | '/_chat/'
     | '/_chat/thread/$threadId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
   ChatRoute: typeof ChatRouteWithChildren
   AuthPathnameRoute: typeof AuthPathnameRoute
 }
@@ -110,12 +154,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_chat/': {
       id: '/_chat/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof ChatIndexRouteImport
       parentRoute: typeof ChatRoute
+    }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/apikeys': {
+      id: '/settings/apikeys'
+      path: '/apikeys'
+      fullPath: '/settings/apikeys'
+      preLoaderRoute: typeof SettingsApikeysRouteImport
+      parentRoute: typeof SettingsRouteRoute
     }
     '/auth/$pathname': {
       id: '/auth/$pathname'
@@ -145,6 +210,20 @@ declare module '@tanstack/react-start/server' {
   }
 }
 
+interface SettingsRouteRouteChildren {
+  SettingsApikeysRoute: typeof SettingsApikeysRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
+}
+
+const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
+  SettingsApikeysRoute: SettingsApikeysRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
+}
+
+const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
+  SettingsRouteRouteChildren,
+)
+
 interface ChatRouteChildren {
   ChatIndexRoute: typeof ChatIndexRoute
   ChatThreadThreadIdRoute: typeof ChatThreadThreadIdRoute
@@ -158,6 +237,7 @@ const ChatRouteChildren: ChatRouteChildren = {
 const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  SettingsRouteRoute: SettingsRouteRouteWithChildren,
   ChatRoute: ChatRouteWithChildren,
   AuthPathnameRoute: AuthPathnameRoute,
 }
