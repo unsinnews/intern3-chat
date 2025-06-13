@@ -12,6 +12,7 @@ interface ChatState {
     skipNextDataCheck: boolean
     attachedStreamIds: Record<string, string>
     pendingStreams: Record<string, boolean>
+    enabledTools: string[]
 }
 
 interface ChatActions {
@@ -27,6 +28,7 @@ interface ChatActions {
     triggerRerender: () => void
     setAttachedStreamId: (threadId: string, streamId: string) => void
     setPendingStream: (threadId: string, pending: boolean) => void
+    setEnabledTools: (tools: string[]) => void
 }
 
 const initialState: ChatState = {
@@ -39,7 +41,8 @@ const initialState: ChatState = {
     shouldUpdateQuery: false,
     skipNextDataCheck: true,
     attachedStreamIds: {},
-    pendingStreams: {}
+    pendingStreams: {},
+    enabledTools: ["web_search"]
 }
 
 export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
@@ -92,5 +95,9 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
                 [threadId]: pending
             }
         }))
+    },
+
+    setEnabledTools: (tools) => {
+        set({ enabledTools: tools })
     }
 }))

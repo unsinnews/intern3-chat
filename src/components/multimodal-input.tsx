@@ -8,28 +8,25 @@ import {
 } from "@/components/prompt-kit/prompt-input";
 import { Button } from "@/components/ui/button";
 import type { modelSchema } from "@/convex/lib/models";
+import { useChatStore } from "@/lib/chat-store";
 import { useModelStore } from "@/lib/model-store";
 import type { useChat } from "@ai-sdk/react";
-import { ArrowUp, Loader2, Paperclip, Square, X } from "lucide-react";
+import { ArrowUp, Loader2, Paperclip, Search, Square, X } from "lucide-react";
 import { useRef } from "react";
 import type { z } from "zod";
 
-interface MultimodalInputProps {
-  models: z.infer<typeof modelSchema>[];
-  onSubmit: (input?: string, files?: File[]) => void;
-  status: ReturnType<typeof useChat>["status"];
-  files: File[];
-  setFiles: (files: File[]) => void;
-}
 
 export function MultimodalInput({
   models,
   onSubmit,
   status,
-  files,
-  setFiles,
-}: MultimodalInputProps) {
+}: {
+  models: z.infer<typeof modelSchema>[];
+  onSubmit: (input?: string, files?: File[]) => void;
+  status: ReturnType<typeof useChat>["status"];
+}) {
   const { selectedModel, setSelectedModel } = useModelStore();
+  const { files, setFiles, enabledTools } = useChatStore();
   const isLoading = status === "streaming";
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const promptInputRef = useRef<PromptInputRef>(null);
@@ -93,14 +90,7 @@ export function MultimodalInput({
       <PromptInputTextarea placeholder="Ask me anything..." />
 
       <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
-        <div className="flex items-center gap-2">
-          {selectedModel && (
-            <ModelSelector
-              models={models}
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-            />
-          )}
+        <div className="flex items-center gap-0.5">
           <PromptInputAction tooltip="Attach files">
             <label
               htmlFor="file-upload"
@@ -117,6 +107,25 @@ export function MultimodalInput({
               <Paperclip className="size-5 text-primary" />
             </label>
           </PromptInputAction>
+          {selectedModel && (
+            <ModelSelector
+              models={models}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
+          )}
+
+          {enabledTools.includes("web_search") && (
+            <PromptInputAction tooltip="Search the web">
+              <label
+                htmlFor="web-search"
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10"
+              >
+                <Search className="size-5 text-primary" />
+              </label>
+            </PromptInputAction>
+          )}
+
         </div>
 
         <PromptInputAction

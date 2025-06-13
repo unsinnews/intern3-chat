@@ -24,6 +24,8 @@ import type * as lib_encryption from "../lib/encryption.js";
 import type * as lib_identity from "../lib/identity.js";
 import type * as lib_models from "../lib/models.js";
 import type * as lib_resumable_stream_context from "../lib/resumable_stream_context.js";
+import type * as lib_toolkit from "../lib/toolkit.js";
+import type * as lib_tools_web_search from "../lib/tools/web_search.js";
 import type * as messages from "../messages.js";
 import type * as models from "../models.js";
 import type * as schema_apikey from "../schema/apikey.js";
@@ -54,6 +56,8 @@ declare const fullApi: ApiFromModules<{
   "lib/identity": typeof lib_identity;
   "lib/models": typeof lib_models;
   "lib/resumable_stream_context": typeof lib_resumable_stream_context;
+  "lib/toolkit": typeof lib_toolkit;
+  "lib/tools/web_search": typeof lib_tools_web_search;
   messages: typeof messages;
   models: typeof models;
   "schema/apikey": typeof schema_apikey;

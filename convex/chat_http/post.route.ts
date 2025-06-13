@@ -29,6 +29,7 @@ import { manualStreamTransform } from "./manual_stream_transform"
 import { RESPONSE_OPTS } from "./shared"
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
 import { generateThreadName } from "./generate_thread_name"
+import { getToolkit, ToolId } from "../lib/toolkit"
 
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
@@ -36,6 +37,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         message: Infer<typeof HTTPAIMessage>
         model: string
         proposedNewAssistantId: string
+        enabledTools: ToolId[]
     } = await req.json()
     const user = await getUserIdentity(ctx.auth, { allowAnons: true })
     if ("error" in user) return new ChatError("unauthorized:chat").toResponse()
@@ -107,8 +109,10 @@ export const chatPOST = httpAction(async (ctx, req) => {
 
             const result = streamText({
                 model: modelResult,
+                maxSteps: 100,
                 abortSignal: remoteCancel.signal,
                 experimental_transform: smoothStream(),
+                tools: getToolkit(ctx, body.enabledTools),
                 messages: [
                     {
                         role: "system",

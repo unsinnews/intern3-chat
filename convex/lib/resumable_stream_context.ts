@@ -10,17 +10,19 @@ const redis = new Redis({
     token: process.env.UPSTASH_REDIS_REST_TOKEN!
 })
 
+if (!process.env.UPSTASH_REDIS_REST_URL) {
+    console.log(" > Resumable streams are disabled due to missing UPSTASH_REDIS_REST_URL")
+}
+if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
+    console.log(" > Resumable streams are disabled due to missing UPSTASH_REDIS_REST_TOKEN")
+}
+
 const debugMode = false as boolean
 
 const globalUnsubscribers: Record<string, () => void> = {}
 let globalStreamContext: ResumableStreamContext | null = null
 export const getResumableStreamContext = () => {
-    if (!process.env.UPSTASH_REDIS_REST_URL) {
-        console.log(" > Resumable streams are disabled due to missing UPSTASH_REDIS_REST_URL")
-        return null
-    }
-    if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
-        console.log(" > Resumable streams are disabled due to missing UPSTASH_REDIS_REST_TOKEN")
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
         return null
     }
     if (!globalStreamContext) {
@@ -28,7 +30,7 @@ export const getResumableStreamContext = () => {
             globalStreamContext = createResumableStreamContext({
                 waitUntil: (promise) => promise,
                 subscriber: {
-                    connect: async () => {},
+                    connect: async () => { },
                     subscribe: (async (channel: string, callback: (message: string) => void) => {
                         console.debug(`[Redis] Subscribing to channel: ${channel}`)
                         const subscriber = redis.subscribe(channel)
@@ -90,7 +92,7 @@ export const getResumableStreamContext = () => {
                     }) satisfies Subscriber["unsubscribe"]
                 },
                 publisher: {
-                    connect: async () => {},
+                    connect: async () => { },
                     publish: async (channel: string, message: string) => {
                         if (debugMode)
                             console.debug(`[Redis] Publishing to channel: ${channel} ${message}`)

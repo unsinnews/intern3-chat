@@ -25,7 +25,8 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
         setShouldUpdateQuery,
         generateIdSeeded,
         setSeedNextId,
-        triggerRerender
+        triggerRerender,
+        enabledTools
     } = useChatStore()
 
     const threadMessages = useConvexQuery(
@@ -66,7 +67,8 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
                     parts: message?.parts,
                     role: message?.role,
                     messageId: message?.id
-                }
+                },
+                enabledTools
             }
         },
         initialMessages,

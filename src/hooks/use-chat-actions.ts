@@ -43,9 +43,5 @@ export function useChatActions({ append, stop, status }: UseChatActionsProps) {
 
   return {
     handleInputSubmit,
-    input,
-    files,
-    setInput,
-    setFiles,
   };
 }
