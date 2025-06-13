@@ -104,7 +104,7 @@ export function MultimodalInput({
                 id="file-upload"
                 ref={uploadInputRef}
               />
-              <Paperclip className="size-5 text-primary" />
+              <Paperclip className="size-5 text-primary -rotate-45" />
             </label>
           </PromptInputAction>
           {selectedModel && (

@@ -5,6 +5,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
 
+import { CommandK } from "@/components/commandk";
 import { ThemeProvider } from "@/components/theme-provider";
 import { authClient } from "@/lib/auth-client";
 import { ConvexQueryClient } from "@convex-dev/react-query";
@@ -15,7 +16,6 @@ export const convexQueryClient = new ConvexQueryClient(
 );
 
 export const queryClient: QueryClient = new QueryClient({
-
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,
@@ -52,6 +52,7 @@ export function Providers({
           >
             {children}
 
+            <CommandK />
             <Toaster />
           </AuthUIProviderTanstack>
         </ThemeProvider>
