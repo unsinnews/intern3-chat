@@ -37,11 +37,11 @@ const useBetterAuth = () => {
   //   });
   const data = useToken({
     initialData: () => {
+      console.log("initialData");
       const token = queryClient.getQueryData(["auth_token"]);
       return token ?? undefined;
     },
   });
-  console.log("data", data);
   const session = useSession();
   return useMemo(
     () => ({

@@ -3,7 +3,7 @@ import { useQuery as useConvexQuery } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { Pin, Plus, Search } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
     Sidebar,
@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import { useSession } from "@/hooks/auth-hooks"
 import { useState } from "react"
+import { cn } from "@/lib/utils"
 
 interface Thread {
     _id: string
@@ -117,12 +118,16 @@ export function ThreadsSidebar() {
                     <div className="flex items-center justify-between">
                         <div className="font-medium text-base text-sidebar-foreground">T3.chat</div>
                     </div>
-                    <Button asChild className="w-full justify-start">
-                        <Link to="/">
-                            <Plus />
-                            New Chat
-                        </Link>
-                    </Button>
+                    <Link
+                        to="/"
+                        className={cn(
+                            buttonVariants({ variant: "default" }),
+                            "w-full justify-start"
+                        )}
+                    >
+                        <Plus />
+                        New Chat
+                    </Link>
                 </SidebarHeader>
                 <SidebarContent>
                     <div className="p-4 text-center text-muted-foreground">
@@ -140,10 +145,16 @@ export function ThreadsSidebar() {
                     <div className="flex items-center justify-between">
                         <div className="font-medium text-base text-sidebar-foreground">T3.chat</div>
                     </div>
-                    <Button className="w-full justify-start">
+                    <Link
+                        to="/"
+                        className={cn(
+                            buttonVariants({ variant: "default" }),
+                            "w-full justify-start"
+                        )}
+                    >
                         <Plus />
                         New Chat
-                    </Button>
+                    </Link>
                     <div className="relative">
                         <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -186,8 +197,8 @@ export function ThreadsSidebar() {
 
     const filteredThreads = searchQuery
         ? threads.filter((thread: Thread) =>
-              thread.title.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+            thread.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
         : threads
 
     const groupedThreads = groupThreadsByTime(filteredThreads)
@@ -198,12 +209,16 @@ export function ThreadsSidebar() {
                 <div className="flex items-center justify-between">
                     <div className="font-medium text-base text-sidebar-foreground">T3.chat</div>
                 </div>
-                <Button asChild className="w-full justify-start">
-                    <Link to="/">
-                        <Plus />
-                        New Chat
-                    </Link>
-                </Button>
+                <Link
+                    to="/"
+                    className={cn(
+                        buttonVariants({ variant: "default" }),
+                        "w-full justify-start"
+                    )}
+                >
+                    <Plus />
+                    New Chat
+                </Link>
                 <div className="relative">
                     <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
                     <Input

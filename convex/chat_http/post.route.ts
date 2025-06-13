@@ -27,6 +27,7 @@ import type { HTTPAIMessage } from "../schema/message"
 import type { ErrorUIPart } from "../schema/parts"
 import { manualStreamTransform } from "./manual_stream_transform"
 import { RESPONSE_OPTS } from "./shared"
+import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
 
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
@@ -108,7 +109,15 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         content: "You are a helpful assistant."
                     },
                     ...mapped_messages.reverse()
-                ]
+                ],
+
+                providerOptions: {
+                    google: {
+                        thinkingConfig: {
+                            includeThoughts: true,
+                        },
+                    } satisfies GoogleGenerativeAIProviderOptions,
+                },
             })
 
             dataStream.merge(
@@ -127,15 +136,15 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     parts.length > 0
                         ? parts
                         : [
-                              {
-                                  type: "error",
-                                  error: {
-                                      code: "no-response",
-                                      message:
-                                          "The model did not generate a response. Please try again."
-                                  }
-                              }
-                          ],
+                            {
+                                type: "error",
+                                error: {
+                                    code: "no-response",
+                                    message:
+                                        "The model did not generate a response. Please try again."
+                                }
+                            }
+                        ],
                 metadata: {
                     modelId: "gpt-4.1-mini",
                     serverDurationMs: Date.now() - streamStartTime

@@ -59,7 +59,7 @@ export const Route = createRootRouteWithContext<{
     ],
   }),
   beforeLoad: async () => {
-    const token = await getAccessToken();
+    const token = await getAccessToken().catch(() => null);
     return {
       token,
     };
@@ -67,7 +67,7 @@ export const Route = createRootRouteWithContext<{
   component: RootComponent,
 });
 
-async function RootComponent() {
+function RootComponent() {
   return (
     <RootDocument>
       <Outlet />
