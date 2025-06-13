@@ -38,7 +38,7 @@ export const Route = createRootRouteWithContext<{
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Better Auth TanStack Starter",
+        title: "Intern3 Chat",
       },
     ],
     links: [
@@ -93,6 +93,11 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
           name="theme-color"
           media="(prefers-color-scheme: dark)"
           content="oklch(0.145 0 0)"
+        />
+
+        <script
+          crossOrigin="anonymous"
+          src="//unpkg.com/react-scan/dist/auto.global.js"
         />
 
         <HeadContent />
