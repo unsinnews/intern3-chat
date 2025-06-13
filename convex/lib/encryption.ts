@@ -1,42 +1,66 @@
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!
-const IV_LENGTH = 16
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
+if (!ENCRYPTION_KEY) {
+    throw new Error("ENCRYPTION_KEY is required")
+}
+const ALGORITHM = "AES-GCM"
 
-if (!ENCRYPTION_KEY) throw new Error("ENCRYPTION_KEY is required")
+const keyBuffer = Uint8Array.from(atob(ENCRYPTION_KEY), (c) => c.charCodeAt(0))
 
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
-
-async function getCryptoKey() {
-    const keyBuffer = Buffer.from(ENCRYPTION_KEY, "hex")
-    return await crypto.subtle.importKey("raw", keyBuffer, { name: "AES-CBC" }, false, [
-        "encrypt",
-        "decrypt"
-    ])
+if (keyBuffer.length !== 32) {
+    throw new Error("ENCRYPTION_KEY must be 32 bytes long")
 }
 
-export async function keyGen(): Promise<string> {
-    const key = crypto.getRandomValues(new Uint8Array(32))
-    return Buffer.from(key).toString("hex")
+let cryptoKey: CryptoKey | null = null
+
+async function getCryptoKey(): Promise<CryptoKey> {
+    if (!cryptoKey) {
+        cryptoKey = await crypto.subtle.importKey(
+            "raw",
+            keyBuffer,
+            { name: ALGORITHM, length: 256 },
+            false,
+            ["encrypt", "decrypt"]
+        )
+    }
+    return cryptoKey
 }
 
-export async function encrypt(plainText: string): Promise<string> {
-    const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
+export async function encryptKey(plaintext: string): Promise<string> {
+    const iv = crypto.getRandomValues(new Uint8Array(12))
     const key = await getCryptoKey()
-    const encrypted = await crypto.subtle.encrypt(
-        { name: "AES-CBC", iv },
+    const plaintextBytes = new TextEncoder().encode(plaintext)
+    const encryptedBuffer = await crypto.subtle.encrypt(
+        { name: ALGORITHM, iv },
         key,
-        encoder.encode(plainText)
+        plaintextBytes
     )
-    return `${Buffer.from(iv).toString("hex")}:${Buffer.from(encrypted).toString("hex")}`
+
+    // Combine IV + encrypted data into a single base64 string
+    const encryptedArray = new Uint8Array(encryptedBuffer)
+    const combined = new Uint8Array(iv.length + encryptedArray.length)
+    combined.set(iv, 0)
+    combined.set(encryptedArray, iv.length)
+
+    return btoa(String.fromCharCode(...combined))
 }
 
-export async function decrypt(cipherText: string): Promise<string> {
-    const [ivHex, encryptedHex] = cipherText.split(":")
-    if (!ivHex || !encryptedHex) throw new Error("Invalid cipher format")
+export async function decryptKey(encryptedData: string): Promise<string> {
+    // Decode the combined data
+    const combined = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0))
 
-    const iv = Buffer.from(ivHex, "hex")
-    const encryptedBuffer = Buffer.from(encryptedHex, "hex")
+    // Extract IV (first 12 bytes) and encrypted data (rest)
+    const iv = combined.slice(0, 12)
+    const encrypted = combined.slice(12)
+
     const key = await getCryptoKey()
-    const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, encryptedBuffer)
-    return decoder.decode(decrypted)
+    const decryptedBuffer = await crypto.subtle.decrypt({ name: ALGORITHM, iv }, key, encrypted)
+
+    return new TextDecoder().decode(decryptedBuffer)
+}
+
+export function maskKey(key: string): string {
+    if (key.length <= 8) {
+        return "*".repeat(key.length)
+    }
+    return key.slice(0, 4) + "*".repeat(key.length - 8) + key.slice(-4)
 }

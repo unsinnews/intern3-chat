@@ -1,14 +1,13 @@
 import { v } from "convex/values"
-import { internalQuery, mutation } from "./_generated/server"
-import { decrypt, encrypt } from "./lib/encryption"
+import { internalQuery, mutation, query } from "./_generated/server"
+import { decryptKey, encryptKey } from "./lib/encryption"
 import { getUserIdentity } from "./lib/identity"
 import { providerSchema } from "./schema/apikey"
 
 export const storeApiKey = mutation({
     args: {
         provider: providerSchema,
-        apiKey: v.string(),
-        name: v.optional(v.string())
+        apiKey: v.string()
     },
     handler: async (ctx, args) => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
@@ -25,21 +24,19 @@ export const storeApiKey = mutation({
             .collect()
 
         for (const key of existingKeys) {
-            await ctx.db.patch(key._id, { isActive: false, updatedAt: Date.now() })
+            await ctx.db.patch(key._id, { updatedAt: Date.now() })
         }
 
         // Encrypt the API key
-        const encryptedKey = await encrypt(args.apiKey)
+        const encryptedKey = await encryptKey(args.apiKey)
 
         // Store the new key
         return await ctx.db.insert("apiKeys", {
             userId: user.id,
             provider: args.provider,
             encryptedKey,
-            name: args.name,
             createdAt: Date.now(),
-            updatedAt: Date.now(),
-            isActive: true
+            updatedAt: Date.now()
         })
     }
 })
@@ -59,7 +56,7 @@ export const deleteApiKey = mutation({
             throw new Error("API key not found or unauthorized")
         }
 
-        await ctx.db.patch(args.keyId, { isActive: false, updatedAt: Date.now() })
+        await ctx.db.delete(args.keyId)
     }
 })
 
@@ -74,7 +71,6 @@ export const getDecryptedApiKey = internalQuery({
             .withIndex("byUserProvider", (q) =>
                 q.eq("userId", args.userId).eq("provider", args.provider)
             )
-            .filter((q) => q.eq(q.field("isActive"), true))
             .first()
 
         if (!apiKey) {
@@ -82,11 +78,38 @@ export const getDecryptedApiKey = internalQuery({
         }
 
         try {
-            const decryptedKey = await decrypt(apiKey.encryptedKey)
+            const decryptedKey = await decryptKey(apiKey.encryptedKey)
             return decryptedKey
         } catch (error) {
             console.error("Failed to decrypt API key:", error)
             return null
         }
+    }
+})
+
+export const listApiKeys = query({
+    handler: async (ctx) => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) {
+            throw new Error("Unauthorized")
+        }
+
+        const apiKeys = await ctx.db
+            .query("apiKeys")
+            .withIndex("byUserProvider", (q) => q.eq("userId", user.id))
+
+        if (!apiKeys) {
+            return []
+        }
+
+        const keys = await apiKeys.collect()
+
+        return keys.map((key) => {
+            return {
+                id: key._id,
+                provider: key.provider,
+                createdAt: key.createdAt
+            }
+        })
     }
 })
