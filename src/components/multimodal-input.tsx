@@ -4,6 +4,7 @@ import {
   PromptInputAction,
   PromptInputActions,
   PromptInputTextarea,
+  type PromptInputRef,
 } from "@/components/prompt-kit/prompt-input";
 import { Button } from "@/components/ui/button";
 import type { modelSchema } from "@/convex/lib/models";
@@ -17,9 +18,7 @@ interface MultimodalInputProps {
   models: z.infer<typeof modelSchema>[];
   onSubmit: (input?: string, files?: File[]) => void;
   status: ReturnType<typeof useChat>["status"];
-  input: string;
   files: File[];
-  setInput: (input: string) => void;
   setFiles: (files: File[]) => void;
 }
 
@@ -27,17 +26,18 @@ export function MultimodalInput({
   models,
   onSubmit,
   status,
-  input,
   files,
-  setInput,
   setFiles,
 }: MultimodalInputProps) {
   const { selectedModel, setSelectedModel } = useModelStore();
   const isLoading = status === "streaming";
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const promptInputRef = useRef<PromptInputRef>(null);
 
   const handleSubmit = async () => {
-    onSubmit(input, files);
+    const inputValue = promptInputRef.current?.getValue() || "";
+    onSubmit(inputValue, files);
+    promptInputRef.current?.clear();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,8 +56,7 @@ export function MultimodalInput({
 
   return (
     <PromptInput
-      value={input}
-      onValueChange={setInput}
+      ref={promptInputRef}
       isLoading={isLoading}
       onSubmit={handleSubmit}
       className="mx-auto w-full max-w-2xl"

@@ -25,7 +25,7 @@ export function Chat({ threadId: routeThreadId }: ChatProps) {
     threadId,
   });
 
-  const { handleInputSubmit, input, files, setInput, setFiles } =
+  const { handleInputSubmit, files, setFiles } =
     useChatActions({
       append,
       stop,
@@ -40,9 +40,7 @@ export function Chat({ threadId: routeThreadId }: ChatProps) {
       <ChatInput
         onSubmit={handleInputSubmit}
         status={status}
-        input={input}
         files={files}
-        setInput={setInput}
         setFiles={setFiles}
       />
     </div>

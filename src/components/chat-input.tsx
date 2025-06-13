@@ -6,18 +6,14 @@ import { useQuery as useConvexQuery } from "convex/react";
 interface ChatInputProps {
   onSubmit: (input?: string, files?: File[]) => void;
   status: UseChatHelpers["status"];
-  input: string;
   files: File[];
-  setInput: (input: string) => void;
   setFiles: (files: File[]) => void;
 }
 
 export function ChatInput({
   onSubmit,
   status,
-  input,
   files,
-  setInput,
   setFiles,
 }: ChatInputProps) {
   const models = useConvexQuery(api.models.getModels, {}) ?? [];
@@ -28,9 +24,7 @@ export function ChatInput({
         models={models}
         onSubmit={onSubmit}
         status={status}
-        input={input}
         files={files}
-        setInput={setInput}
         setFiles={setFiles}
       />
     </div>

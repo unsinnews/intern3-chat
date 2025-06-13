@@ -2,24 +2,22 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type React from "react"
-import { createContext, useContext, useEffect, useRef, useState } from "react"
+import { createContext, useContext, useRef, forwardRef, useImperativeHandle } from "react"
 
 type PromptInputContextType = {
     isLoading: boolean
-    value: string
-    setValue: (value: string) => void
     maxHeight: number | string
     onSubmit?: () => void
     disabled?: boolean
+    textareaRef: React.RefObject<HTMLTextAreaElement | null>
 }
 
 const PromptInputContext = createContext<PromptInputContextType>({
     isLoading: false,
-    value: "",
-    setValue: () => {},
     maxHeight: 240,
     onSubmit: undefined,
-    disabled: false
+    disabled: false,
+    textareaRef: { current: null }
 })
 
 function usePromptInput() {
@@ -30,41 +28,55 @@ function usePromptInput() {
     return context
 }
 
+export type PromptInputRef = {
+    getValue: () => string
+    setValue: (value: string) => void
+    clear: () => void
+    focus: () => void
+}
+
 type PromptInputProps = {
     isLoading?: boolean
-    value?: string
-    onValueChange?: (value: string) => void
     maxHeight?: number | string
     onSubmit?: () => void
     children: React.ReactNode
     className?: string
 }
 
-function PromptInput({
+const PromptInput = forwardRef<PromptInputRef, PromptInputProps>(({
     className,
     isLoading = false,
     maxHeight = 240,
-    value,
-    onValueChange,
     onSubmit,
     children
-}: PromptInputProps) {
-    const [internalValue, setInternalValue] = useState(value || "")
+}, ref) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-    const handleChange = (newValue: string) => {
-        setInternalValue(newValue)
-        onValueChange?.(newValue)
-    }
+    useImperativeHandle(ref, () => ({
+        getValue: () => textareaRef.current?.value || "",
+        setValue: (value: string) => {
+            if (textareaRef.current) {
+                textareaRef.current.value = value
+            }
+        },
+        clear: () => {
+            if (textareaRef.current) {
+                textareaRef.current.value = ""
+            }
+        },
+        focus: () => {
+            textareaRef.current?.focus()
+        }
+    }), [])
 
     return (
         <TooltipProvider>
             <PromptInputContext.Provider
                 value={{
                     isLoading,
-                    value: value ?? internalValue,
-                    setValue: onValueChange ?? handleChange,
                     maxHeight,
-                    onSubmit
+                    onSubmit,
+                    textareaRef
                 }}
             >
                 <div
@@ -78,7 +90,9 @@ function PromptInput({
             </PromptInputContext.Provider>
         </TooltipProvider>
     )
-}
+})
+
+PromptInput.displayName = "PromptInput"
 
 export type PromptInputTextareaProps = {
     disableAutosize?: boolean
@@ -90,19 +104,7 @@ function PromptInputTextarea({
     disableAutosize = false,
     ...props
 }: PromptInputTextareaProps) {
-    const { value, setValue, maxHeight, onSubmit, disabled } = usePromptInput()
-    const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-    useEffect(() => {
-        if (disableAutosize) return
-
-        if (!textareaRef.current) return
-        textareaRef.current.style.height = "auto"
-        textareaRef.current.style.height =
-            typeof maxHeight === "number"
-                ? `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`
-                : `min(${textareaRef.current.scrollHeight}px, ${maxHeight})`
-    }, [value, maxHeight, disableAutosize])
+    const { maxHeight, onSubmit, disabled, textareaRef } = usePromptInput()
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -112,12 +114,22 @@ function PromptInputTextarea({
         onKeyDown?.(e)
     }
 
+    const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+        if (disableAutosize) return
+
+        const target = e.target as HTMLTextAreaElement
+        target.style.height = "auto"
+        target.style.height =
+            typeof maxHeight === "number"
+                ? `${Math.min(target.scrollHeight, maxHeight)}px`
+                : `min(${target.scrollHeight}px, ${maxHeight})`
+    }
+
     return (
         <Textarea
             ref={textareaRef}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onInput={handleInput}
             className={cn(
                 "min-h-[44px] w-full resize-none border-none bg-transparent text-primary shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
                 className
