@@ -31,6 +31,7 @@ import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
 import { generateThreadName } from "./generate_thread_name";
 import { getToolkit, type AbilityId } from "../lib/toolkit";
+import { buildPrompt } from "./prompt";
 
 export const chatPOST = httpAction(async (ctx, req) => {
   const body: {
@@ -137,7 +138,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant.",
+            content: buildPrompt(body.enabledTools),
           },
           ...mapped_messages,
         ],

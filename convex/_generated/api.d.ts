@@ -16,6 +16,7 @@ import type {
 import type * as apikeys from "../apikeys.js";
 import type * as chat_http_generate_thread_name from "../chat_http/generate_thread_name.js";
 import type * as chat_http_manual_stream_transform from "../chat_http/manual_stream_transform.js";
+import type * as chat_http_prompt from "../chat_http/prompt.js";
 import type * as chat_http_shared from "../chat_http/shared.js";
 import type * as http from "../http.js";
 import type * as lib_backend_to_ui_messages from "../lib/backend_to_ui_messages.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   apikeys: typeof apikeys;
   "chat_http/generate_thread_name": typeof chat_http_generate_thread_name;
   "chat_http/manual_stream_transform": typeof chat_http_manual_stream_transform;
+  "chat_http/prompt": typeof chat_http_prompt;
   "chat_http/shared": typeof chat_http_shared;
   http: typeof http;
   "lib/backend_to_ui_messages": typeof lib_backend_to_ui_messages;
