@@ -19,7 +19,7 @@ export type Model = {
     provider: Provider
 }
 
-export const getAllModels = (): Model[] => {
+export const getAllModels = () => {
     return [
         {
             id: "gpt-4o",
@@ -29,6 +29,11 @@ export const getAllModels = (): Model[] => {
         {
             id: "gpt-4o-mini",
             name: "GPT 4o mini",
+            provider: "openai"
+        },
+        {
+            id: "o3-mini",
+            name: "o3 mini",
             provider: "openai"
         },
         {
@@ -50,9 +55,10 @@ export const getAllModels = (): Model[] => {
 }
 
 export function getProviderFromModelId(modelId: string): Provider | null {
-    const providerMap: Record<string, Provider> = {
+    const providerMap: Record<ReturnType<typeof getAllModels>[number]["id"], Provider> = {
         "gpt-4o": "openai",
         "gpt-4o-mini": "openai",
+        "o3-mini": "openai",
         "claude-3-5-sonnet": "anthropic",
         "gemini-2.0-flash-lite": "google",
         "gemini-2.5-flash-preview-05-20": "google"

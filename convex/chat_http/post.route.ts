@@ -27,7 +27,8 @@ import type { HTTPAIMessage } from "../schema/message"
 import type { ErrorUIPart } from "../schema/parts"
 import { manualStreamTransform } from "./manual_stream_transform"
 import { RESPONSE_OPTS } from "./shared"
-import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
 import { generateThreadName } from "./generate_thread_name"
 import { getToolkit, ToolId } from "../lib/toolkit"
 
@@ -94,7 +95,11 @@ export const chatPOST = httpAction(async (ctx, req) => {
 
             let nameGenerationPromise: Promise<string> | undefined
             if (!body.id) {
-                nameGenerationPromise = generateThreadName(ctx, mutationResult.threadId, mapped_messages)
+                nameGenerationPromise = generateThreadName(
+                    ctx,
+                    mutationResult.threadId,
+                    mapped_messages
+                )
             }
 
             dataStream.writeData({
@@ -124,10 +129,13 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 providerOptions: {
                     google: {
                         thinkingConfig: {
-                            includeThoughts: true,
-                        },
+                            includeThoughts: true
+                        }
                     } satisfies GoogleGenerativeAIProviderOptions,
-                },
+                    openai: {
+                        reasoningEffort: "low",
+                    } satisfies OpenAIResponsesProviderOptions
+                }
             })
 
             dataStream.merge(
@@ -146,15 +154,15 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     parts.length > 0
                         ? parts
                         : [
-                            {
-                                type: "error",
-                                error: {
-                                    code: "no-response",
-                                    message:
-                                        "The model did not generate a response. Please try again."
-                                }
-                            }
-                        ],
+                              {
+                                  type: "error",
+                                  error: {
+                                      code: "no-response",
+                                      message:
+                                          "The model did not generate a response. Please try again."
+                                  }
+                              }
+                          ],
                 metadata: {
                     modelId: "gpt-4.1-mini",
                     serverDurationMs: Date.now() - streamStartTime
