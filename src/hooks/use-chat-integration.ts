@@ -18,15 +18,14 @@ interface UseChatIntegrationProps {
 export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
     const tokenData = useToken()
     const queryClient = useQueryClient()
-    const { selectedModel } = useModelStore()
+    const { selectedModel, enabledTools } = useModelStore()
     const {
         rerenderTrigger,
         shouldUpdateQuery,
         setShouldUpdateQuery,
         generateIdSeeded,
         setSeedNextId,
-        triggerRerender,
-        enabledTools
+        triggerRerender
     } = useChatStore()
 
     const threadMessages = useConvexQuery(

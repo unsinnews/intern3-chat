@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid"
 import { create } from "zustand"
+import { saveUserInput, clearUserInput, loadUserInput } from "@/lib/persistence"
 
 interface ChatState {
     threadId: string | undefined
@@ -12,7 +13,6 @@ interface ChatState {
     skipNextDataCheck: boolean
     attachedStreamIds: Record<string, string>
     pendingStreams: Record<string, boolean>
-    enabledTools: string[]
 }
 
 interface ChatActions {
@@ -28,12 +28,14 @@ interface ChatActions {
     triggerRerender: () => void
     setAttachedStreamId: (threadId: string, streamId: string) => void
     setPendingStream: (threadId: string, pending: boolean) => void
-    setEnabledTools: (tools: string[]) => void
 }
+
+// Load initial input from localStorage
+const initialInput = loadUserInput()
 
 const initialState: ChatState = {
     threadId: undefined,
-    input: "",
+    input: initialInput,
     files: [],
     rerenderTrigger: nanoid(),
     seedNextId: null,
@@ -41,15 +43,31 @@ const initialState: ChatState = {
     shouldUpdateQuery: false,
     skipNextDataCheck: true,
     attachedStreamIds: {},
-    pendingStreams: {},
-    enabledTools: ["web_search"]
+    pendingStreams: {}
+}
+
+// Debounced persistence for user input
+let inputPersistTimeout: NodeJS.Timeout | null = null
+const debouncedPersistInput = (input: string) => {
+    if (inputPersistTimeout) {
+        clearTimeout(inputPersistTimeout)
+    }
+    inputPersistTimeout = setTimeout(() => {
+        saveUserInput(input)
+    }, 300) // 300ms debounce for better UX while typing
 }
 
 export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     ...initialState,
 
     setThreadId: (threadId) => set({ threadId }),
-    setInput: (input) => set({ input }),
+    
+    setInput: (input) => {
+        set({ input })
+        // Use debounced persistence for user input
+        debouncedPersistInput(input)
+    },
+    
     setFiles: (files) => set({ files }),
     setSeedNextId: (seedNextId) => set({ seedNextId }),
     setLastProcessedDataIndex: (lastProcessedDataIndex) => set({ lastProcessedDataIndex }),
@@ -66,10 +84,18 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     },
 
     resetChat: () => {
+        // Clear any pending input persistence
+        if (inputPersistTimeout) {
+            clearTimeout(inputPersistTimeout)
+            inputPersistTimeout = null
+        }
+        // Immediately clear persisted input when resetting chat
+        clearUserInput()
         set({
             ...initialState,
             rerenderTrigger: nanoid(),
-            attachedStreamIds: {}
+            attachedStreamIds: {},
+            input: "" // Reset to empty since we cleared localStorage
         })
     },
 
@@ -95,9 +121,16 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
                 [threadId]: pending
             }
         }))
-    },
-
-    setEnabledTools: (tools) => {
-        set({ enabledTools: tools })
     }
 }))
+
+// Ensure input is persisted when the page is about to unload
+if (typeof window !== "undefined") {
+    window.addEventListener("beforeunload", () => {
+        if (inputPersistTimeout) {
+            clearTimeout(inputPersistTimeout)
+            const currentInput = useChatStore.getState().input
+            saveUserInput(currentInput)
+        }
+    })
+}

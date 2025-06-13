@@ -7,30 +7,34 @@ import { useChatIntegration } from "@/hooks/use-chat-integration";
 import { useThreadSync } from "@/hooks/use-thread-sync";
 import { useModelStore } from "@/lib/model-store";
 import { useQuery as useConvexQuery } from "convex/react";
+import { useMemo } from "react";
 
 interface ChatProps {
   threadId: string | undefined;
 }
 
-export function Chat({ threadId: routeThreadId }: ChatProps) {
+export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
   const { selectedModel, setSelectedModel } = useModelStore();
   const { threadId } = useThreadSync({ routeThreadId });
 
   const models = useConvexQuery(api.models.getModels, {}) ?? [];
-  if (!selectedModel && models.length > 0) {
-    setSelectedModel(models[0].id);
-  }
+  
+  // Memoize model selection to avoid unnecessary re-renders
+  useMemo(() => {
+    if (!selectedModel && models.length > 0) {
+      setSelectedModel(models[0].id);
+    }
+  }, [selectedModel, models, setSelectedModel]);
 
   const { status, append, stop, data, messages } = useChatIntegration({
     threadId,
   });
 
-  const { handleInputSubmit } =
-    useChatActions({
-      append,
-      stop,
-      status,
-    });
+  const { handleInputSubmit } = useChatActions({
+    append,
+    stop,
+    status,
+  });
 
   useChatDataProcessor({ data, messages });
 
@@ -43,4 +47,4 @@ export function Chat({ threadId: routeThreadId }: ChatProps) {
       />
     </div>
   );
-}
+};

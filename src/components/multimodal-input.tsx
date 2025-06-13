@@ -25,8 +25,8 @@ export function MultimodalInput({
   onSubmit: (input?: string, files?: File[]) => void;
   status: ReturnType<typeof useChat>["status"];
 }) {
-  const { selectedModel, setSelectedModel } = useModelStore();
-  const { files, setFiles, enabledTools } = useChatStore();
+  const { selectedModel, setSelectedModel, enabledTools } = useModelStore();
+  const { files, setFiles } = useChatStore();
   const isLoading = status === "streaming";
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const promptInputRef = useRef<PromptInputRef>(null);
