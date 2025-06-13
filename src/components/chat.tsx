@@ -1,4 +1,3 @@
-import { ChatInput } from "@/components/chat-input";
 import { Messages } from "@/components/messages";
 import { api } from "@/convex/_generated/api";
 import { MODELS_SHARED } from "@/convex/lib/models";
@@ -8,7 +7,8 @@ import { useChatIntegration } from "@/hooks/use-chat-integration";
 import { useThreadSync } from "@/hooks/use-thread-sync";
 import { useModelStore } from "@/lib/model-store";
 import { useQuery as useConvexQuery } from "convex/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { MultimodalInput } from "./multimodal-input";
 
 interface ChatProps {
   threadId: string | undefined;
@@ -40,7 +40,9 @@ export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
   return (
     <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
       <Messages messages={messages} />
-      <ChatInput onSubmit={handleInputSubmit} status={status} />
+      <div className="absolute right-0 bottom-2 left-0">
+        <MultimodalInput onSubmit={handleInputSubmit} status={status} />
+      </div>
     </div>
   );
 };

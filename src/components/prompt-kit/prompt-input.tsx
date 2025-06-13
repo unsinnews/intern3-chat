@@ -13,6 +13,7 @@ import {
   useRef,
   forwardRef,
   useImperativeHandle,
+  useCallback,
 } from "react";
 
 type PromptInputContextType = {
@@ -120,26 +121,32 @@ function PromptInputTextarea({
 }: PromptInputTextareaProps) {
   const { maxHeight, onSubmit, disabled, textareaRef } = usePromptInput();
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      onSubmit?.();
-    }
-    onKeyDown?.(e);
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        onSubmit?.();
+      }
+      onKeyDown?.(e);
+    },
+    [onSubmit, onKeyDown]
+  );
 
-  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    if (disableAutosize) return;
+  const handleInput = useCallback(
+    (e: React.FormEvent<HTMLTextAreaElement>) => {
+      if (disableAutosize) return;
 
-    const target = e.target as HTMLTextAreaElement;
-    target.style.height = "auto";
-    target.style.height =
-      typeof maxHeight === "number"
-        ? `${Math.min(target.scrollHeight, maxHeight)}px`
-        : `min(${target.scrollHeight}px, ${maxHeight})`;
+      const target = e.target as HTMLTextAreaElement;
+      target.style.height = "auto";
+      target.style.height =
+        typeof maxHeight === "number"
+          ? `${Math.min(target.scrollHeight, maxHeight)}px`
+          : `min(${target.scrollHeight}px, ${maxHeight})`;
 
-    localStorage.setItem("user-input", target.value);
-  };
+      localStorage.setItem("user-input", target.value);
+    },
+    [disableAutosize, maxHeight]
+  );
 
   return (
     <Textarea

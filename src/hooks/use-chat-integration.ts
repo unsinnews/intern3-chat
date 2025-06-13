@@ -9,7 +9,8 @@ import { useModelStore } from "@/lib/model-store"
 import { type Message, useChat } from "@ai-sdk/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useQuery as useConvexQuery } from "convex/react"
-import { useMemo } from "react"
+import { nanoid } from "nanoid"
+import { useMemo, useRef, useEffect, useCallback } from "react"
 
 interface UseChatIntegrationProps {
     threadId: string | undefined
@@ -19,14 +20,9 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
     const tokenData = useToken()
     const queryClient = useQueryClient()
     const { selectedModel, enabledTools } = useModelStore()
-    const {
-        rerenderTrigger,
-        shouldUpdateQuery,
-        setShouldUpdateQuery,
-        generateIdSeeded,
-        setSeedNextId,
-        triggerRerender
-    } = useChatStore()
+    const { rerenderTrigger, shouldUpdateQuery, setShouldUpdateQuery, triggerRerender } =
+        useChatStore()
+    const seededNextId = useRef<string | null>(null)
 
     const threadMessages = useConvexQuery(
         api.threads.getThreadMessages,
@@ -53,8 +49,8 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
             if (threadId) {
                 useChatStore.getState().setPendingStream(threadId, true)
             }
-            const proposedNewAssistantId = generateIdSeeded()
-            setSeedNextId(proposedNewAssistantId)
+            const proposedNewAssistantId = nanoid()
+            seededNextId.current = proposedNewAssistantId
 
             const messages = body.messages as Message[]
             const message = messages[messages.length - 1]
@@ -78,16 +74,47 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
             }
         },
         api: `${browserEnv("VITE_CONVEX_API_URL")}/chat`,
-        generateId: generateIdSeeded
+        generateId: () => {
+            if (seededNextId.current) {
+                const id = seededNextId.current
+                seededNextId.current = null
+                return id
+            }
+            return nanoid()
+        }
     })
+
+    const customResume = useCallback(() => {
+        console.log("[UCI:custom_resume]", {
+            threadId: threadId?.slice(0, 8),
+            backendMsgs: threadMessages && !("error" in threadMessages) ? threadMessages.length : 0,
+            currentUIMsgs: chatHelpers.messages.length,
+            initialMsgs: initialMessages.length
+        })
+
+        if (initialMessages.length > 0) {
+            chatHelpers.setMessages(initialMessages)
+            console.log("[UCI:messages_restored]", { count: initialMessages.length })
+        }
+
+        chatHelpers.experimental_resume()
+    }, [
+        chatHelpers.setMessages,
+        chatHelpers.experimental_resume,
+        initialMessages,
+        threadMessages,
+        threadId,
+        chatHelpers.messages.length
+    ])
 
     useAutoResume({
         autoResume: true,
         thread: thread || undefined,
         threadId,
-        experimental_resume: chatHelpers.experimental_resume,
-        status: chatHelpers.status
+        experimental_resume: customResume,
+        status: chatHelpers.status,
+        threadMessages
     })
 
-    return chatHelpers
+    return { ...chatHelpers, seededNextId }
 }

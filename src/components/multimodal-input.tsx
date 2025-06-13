@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import type { modelSchema } from "@/convex/lib/models";
 import { useChatStore } from "@/lib/chat-store";
 import { useModelStore } from "@/lib/model-store";
+import { cn } from "@/lib/utils";
 import type { useChat } from "@ai-sdk/react";
 import { ArrowUp, Loader2, Paperclip, Search, Square, X } from "lucide-react";
 import { useRef } from "react";
@@ -22,7 +23,8 @@ export function MultimodalInput({
   onSubmit: (input?: string, files?: File[]) => void;
   status: ReturnType<typeof useChat>["status"];
 }) {
-  const { selectedModel, setSelectedModel, enabledTools } = useModelStore();
+  const { selectedModel, setSelectedModel, enabledTools, setEnabledTools } =
+    useModelStore();
   const { files, setFiles } = useChatStore();
   const isLoading = status === "streaming";
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -111,16 +113,27 @@ export function MultimodalInput({
             />
           )}
 
-          {enabledTools.includes("web_search") && (
+          {
             <PromptInputAction tooltip="Search the web">
-              <label
-                htmlFor="web-search"
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10"
+              <button
+                type="button"
+                onClick={() => {
+                  setEnabledTools(
+                    enabledTools.includes("web_search")
+                      ? enabledTools.filter((tool) => tool !== "web_search")
+                      : [...enabledTools, "web_search"]
+                  );
+                }}
+                className={cn(
+                  "flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10",
+                  enabledTools.includes("web_search") &&
+                    "bg-secondary-foreground/10"
+                )}
               >
                 <Search className="size-5 text-primary" />
-              </label>
+              </button>
             </PromptInputAction>
-          )}
+          }
         </div>
 
         <PromptInputAction

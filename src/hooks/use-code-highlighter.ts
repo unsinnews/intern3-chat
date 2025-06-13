@@ -100,7 +100,7 @@ export const useCodeHighlighter = ({
                         {
                             pre(node) {
                                 // Remove default styling to use our custom styles
-                                delete node.properties.style
+                                node.properties.style = undefined
                                 node.properties.class = cn(
                                     "relative my-0 max-w-full resize-none overflow-x-auto overflow-y-auto text-wrap rounded-t-none rounded-b-lg bg-[#0d1117] py-3 ps-[0.75rem] pe-[0.75rem] text-[#e6edf3] text-[0.8125rem] leading-4",
                                     !expanded && "max-h-72"
