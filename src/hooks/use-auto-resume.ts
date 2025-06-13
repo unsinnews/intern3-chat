@@ -28,12 +28,12 @@ export function useAutoResume({
 
     useEffect(() => {
         // Debug: log state each time effect runs (concise)
-        console.log("[AR:evaluate]", {
-            t: threadId,
-            live: !!thread?.isLive,
-            cur: thread?.currentStreamId?.slice(0, 5),
-            att: attachedStreamId?.slice(0, 5)
-        })
+        // console.log("[AR:evaluate]", {
+        //     t: threadId,
+        //     live: !!thread?.isLive,
+        //     cur: thread?.currentStreamId?.slice(0, 5),
+        //     att: attachedStreamId?.slice(0, 5)
+        // })
 
         if (!autoResume) return
         if (!threadId) return

@@ -37,8 +37,8 @@ export function Messages({ messages }: { messages: UIMessage[] }) {
                             "ml-auto w-fit max-w-md rounded-xl bg-primary px-2.5 py-1.5 text-primary-foreground"
                         )}
                     >
-                        {message.parts.map((part) => (
-                            <PartsRenderer part={part} markdown={message.role === "assistant"} id={message.id} />
+                        {message.parts.map((part, index) => (
+                            <PartsRenderer key={`${message.id}-${index}`} part={part} markdown={message.role === "assistant"} id={`${message.id}-${index}`} />
                         ))}
                     </div>
                 ))}
