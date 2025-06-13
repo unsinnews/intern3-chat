@@ -7,7 +7,8 @@ export const Thread = v.object({
     createdAt: v.number(),
     updatedAt: v.number(),
     streamStartedAt: v.optional(v.number()),
-    isLive: v.optional(v.boolean())
+    isLive: v.optional(v.boolean()),
+    currentStreamId: v.optional(v.string())
 })
 
 export const SharedThread = v.object({

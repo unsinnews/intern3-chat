@@ -84,12 +84,18 @@ export const chatPOST = httpAction(async (ctx, req) => {
             await ctx.runMutation(internal.threads.updateThreadStreamingState, {
                 threadId: mutationResult.threadId,
                 isLive: true,
-                streamStartedAt: streamStartTime
+                streamStartedAt: streamStartTime,
+                currentStreamId: streamId
             })
 
             dataStream.writeData({
                 type: "thread_id",
                 content: mutationResult.threadId
+            })
+
+            dataStream.writeData({
+                type: "stream_id",
+                content: streamId
             })
 
             const result = streamText({
@@ -136,10 +142,13 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 }
             })
 
-            await ctx.runMutation(internal.threads.updateThreadStreamingState, {
-                threadId: mutationResult.threadId,
-                isLive: false
-            })
+            await ctx
+                .runMutation(internal.threads.updateThreadStreamingState, {
+                    threadId: mutationResult.threadId,
+                    isLive: false,
+                    currentStreamId: undefined
+                })
+                .catch((err) => console.error("Failed to update thread state:", err))
         },
         onError: (error) => {
             console.error("[cvx][chat][stream] Fatal error:", error)
