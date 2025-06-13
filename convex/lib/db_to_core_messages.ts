@@ -112,5 +112,6 @@ export const dbMessagesToCore = async (
         mapped_messages.push(...to_commit_messages)
     }
 
+    mapped_messages.reverse()
     return mapped_messages
 }

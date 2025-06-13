@@ -191,3 +191,15 @@ export const updateThreadStreamingState = internalMutation({
         })
     }
 })
+
+export const updateThreadName = internalMutation({
+    args: {
+        threadId: v.id("threads"),
+        name: v.string()
+    },
+    handler: async ({ db }, { threadId, name }) => {
+        await db.patch(threadId, {
+            title: name
+        })
+    }
+})

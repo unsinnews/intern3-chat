@@ -28,6 +28,7 @@ import type { ErrorUIPart } from "../schema/parts"
 import { manualStreamTransform } from "./manual_stream_transform"
 import { RESPONSE_OPTS } from "./shared"
 import { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import { generateThreadName } from "./generate_thread_name"
 
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
@@ -89,6 +90,11 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 currentStreamId: streamId
             })
 
+            let nameGenerationPromise: Promise<string> | undefined
+            if (!body.id) {
+                nameGenerationPromise = generateThreadName(ctx, mutationResult.threadId, mapped_messages)
+            }
+
             dataStream.writeData({
                 type: "thread_id",
                 content: mutationResult.threadId
@@ -108,7 +114,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         role: "system",
                         content: "You are a helpful assistant."
                     },
-                    ...mapped_messages.reverse()
+                    ...mapped_messages
                 ],
 
                 providerOptions: {
@@ -150,6 +156,10 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     serverDurationMs: Date.now() - streamStartTime
                 }
             })
+
+            if (nameGenerationPromise) {
+                await nameGenerationPromise
+            }
 
             await ctx
                 .runMutation(internal.threads.updateThreadStreamingState, {
