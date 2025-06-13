@@ -1,5 +1,5 @@
 {
-    "name": "tanstack-start",
+    "name": "intern3-chat",
     "version": "1.0.0",
     "type": "module",
     "scripts": {
@@ -19,7 +19,7 @@
         "vite",
         "react"
     ],
-    "author": "daveycodez",
+    "author": "intern3chat",
     "license": "MIT",
     "dependencies": {
         "@ai-sdk/anthropic": "^1.2.12",
