@@ -3,6 +3,7 @@ import { createRootRouteWithContext } from "@tanstack/react-router"
 import { HeadContent, Outlet, Scripts } from "@tanstack/react-router"
 import type { ReactNode } from "react"
 
+import { ThemeScript } from "@/components/theme-script"
 import { auth } from "@/lib/auth"
 import globals_css from "@/styles/globals.css?url"
 import { createServerFn } from "@tanstack/react-start"
@@ -80,6 +81,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
+                <ThemeScript />
                 <meta
                     name="viewport"
                     content="initial-scale=1, viewport-fit=cover, width=device-width"
