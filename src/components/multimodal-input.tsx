@@ -41,9 +41,9 @@ export function MultimodalInput({
             return
         }
 
-        onSubmit(inputValue, uploadedFiles)
         promptInputRef.current?.clear()
         localStorage.setItem("user-input", inputValue)
+        onSubmit(inputValue, uploadedFiles)
     }
 
     const uploadFile = useCallback(async (file: File): Promise<UploadedFile> => {
