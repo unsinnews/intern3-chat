@@ -68,7 +68,7 @@ export function ModelSelector({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "gap-2 rounded-full bg-background font-normal",
+            "gap-2 rounded-full bg-background font-normal border border-accent",
             className
           )}
         >

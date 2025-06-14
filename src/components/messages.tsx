@@ -84,32 +84,30 @@ const EditableMessage = memo(
     };
 
     return (
-      <div className="space-y-2">
+      <div className="rounded-2xl bg-primary">
         <Textarea
           value={editedContent}
           onChange={(e) => setEditedContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="min-h-[80px] resize-none"
+          className="w-full bg-transparent placeholder:text-muted-foreground text-primary-foreground resize-none border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none p-4 pb-2"
           autoFocus
         />
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end px-4 pb-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={onCancel}
-            className="h-7 px-2"
+            className="rounded-full text-background hover:bg-background/10 hover:text-background"
           >
-            <X className="h-3.5 w-3.5 mr-1" />
             Cancel
           </Button>
           <Button
-            variant="default"
+            variant="secondary"
             size="sm"
             onClick={handleSave}
-            className="h-7 px-2"
+            className="bg-primary-foreground text-primary rounded-full"
           >
-            <Check className="h-3.5 w-3.5 mr-1" />
-            Save
+            Send
           </Button>
         </div>
       </div>
@@ -153,7 +151,7 @@ export function Messages({
   };
 
   return (
-    <ScrollArea className="h-full p-4">
+    <ScrollArea className="h-full p-4 pt-0">
       <div className="mx-auto max-w-2xl space-y-3 pb-40">
         {messages.map((message) => (
           <div
@@ -163,7 +161,8 @@ export function Messages({
               "group prose-code:before:hidden prose-code:after:hidden",
               "mb-8",
               message.role === "user" &&
-                "ml-auto w-fit max-w-md rounded-xl bg-primary px-2.5 py-1.5 text-primary-foreground mb-12"
+                targetFromMessageId !== message.id &&
+                "ml-auto w-fit max-w-md rounded-full bg-primary px-4 py-2 text-primary-foreground my-12"
             )}
           >
             {targetFromMessageId === message.id && targetMode === "edit" ? (

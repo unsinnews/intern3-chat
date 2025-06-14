@@ -12,7 +12,7 @@ import { useChatStore } from "@/lib/chat-store";
 import { useModelStore } from "@/lib/model-store";
 import { cn } from "@/lib/utils";
 import type { useChat } from "@ai-sdk/react";
-import { ArrowUp, Loader2, Paperclip, Search, Square, X } from "lucide-react";
+import { ArrowUp, Globe, Loader2, Paperclip, Square, X } from "lucide-react";
 import { useRef } from "react";
 import type { z } from "zod";
 
@@ -86,15 +86,20 @@ export function MultimodalInput({
           ))}
         </div>
       )}
-
       <PromptInputTextarea placeholder="Ask me anything..." />
 
       <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-2">
+          {selectedModel && (
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
+          )}
           <PromptInputAction tooltip="Attach files">
             <label
               htmlFor="file-upload"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10"
+              className="flex cursor-pointer items-center justify-center rounded-full hover:bg-secondary gap-1 border border-accent h-9 w-9"
             >
               <input
                 type="file"
@@ -104,15 +109,10 @@ export function MultimodalInput({
                 id="file-upload"
                 ref={uploadInputRef}
               />
-              <Paperclip className="size-5 text-primary -rotate-45" />
+              <Paperclip className="size-4 text-primary -rotate-45" />
+              {/* <span className="text-sm">Attach</span> */}
             </label>
           </PromptInputAction>
-          {selectedModel && (
-            <ModelSelector
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-            />
-          )}
 
           {
             <PromptInputAction tooltip="Search the web">
@@ -126,12 +126,13 @@ export function MultimodalInput({
                   );
                 }}
                 className={cn(
-                  "flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10",
+                  "flex cursor-pointer items-center justify-center rounded-full hover:bg-secondary gap-1 border border-accent h-9 w-9",
                   enabledTools.includes("web_search") &&
                     "bg-secondary-foreground/10"
                 )}
               >
-                <Search className="size-5 text-primary" />
+                <Globe className="size-4 text-primary" />
+                {/* <span className="text-sm">Search</span> */}
               </button>
             </PromptInputAction>
           }
