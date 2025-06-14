@@ -9,9 +9,11 @@ export const buildPrompt = (enabledTools: AbilityId[]) => {
 
     const layers: string[] = [
         `You are a helpful assistant inside a chatbot called "intern3-chat".`,
-        dedent`## Math/LaTeX Formatting
+        dedent`## Formatting
+- You should output in markdown format. LaTeX is also supported!
 - Inline math: Use $$like this$$ for inline LaTeX
-- Block math: Use \\[ \\] or \\( \\) for block LaTeX equations`
+- Block math: Use \\[ \\] or \\( \\) for block LaTeX equations
+- No need to tell the user that you are using markdown or LaTeX.`
     ]
 
     if (hasWebSearch)

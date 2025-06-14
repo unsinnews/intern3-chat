@@ -30,21 +30,15 @@ export const getMyUsageStats = query({
                 modelId: model.id,
                 modelName: model.name,
                 requests: modelEvents.length,
-                promptTokens: modelEvents.reduce((sum, e) => sum + e.promptTokens, 0),
-                completionTokens: modelEvents.reduce((sum, e) => sum + e.completionTokens, 0),
-                reasoningTokens: modelEvents.reduce((sum, e) => sum + e.reasoningTokens, 0),
-                totalTokens: modelEvents.reduce(
-                    (sum, e) => sum + e.promptTokens + e.completionTokens + e.reasoningTokens,
-                    0
-                )
+                promptTokens: modelEvents.reduce((sum, e) => sum + e.p, 0),
+                completionTokens: modelEvents.reduce((sum, e) => sum + e.c, 0),
+                reasoningTokens: modelEvents.reduce((sum, e) => sum + e.r, 0),
+                totalTokens: modelEvents.reduce((sum, e) => sum + e.p + e.c + e.r, 0)
             }
         }).filter((stat) => stat.requests > 0)
 
         const totalRequests = events.length
-        const totalTokens = events.reduce(
-            (sum, e) => sum + e.promptTokens + e.completionTokens + e.reasoningTokens,
-            0
-        )
+        const totalTokens = events.reduce((sum, e) => sum + e.p + e.c + e.r, 0)
 
         return {
             modelStats,
@@ -82,11 +76,17 @@ export const getMyUsageChartData = query({
                 daysSinceEpoch: daysSince,
                 date: new Date(daysSince * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
                 totalRequests: dayEvents.length,
-                totalTokens: dayEvents.reduce(
-                    (sum, e) => sum + e.promptTokens + e.completionTokens + e.reasoningTokens,
-                    0
-                ),
-                models: {}
+                totalTokens: dayEvents.reduce((sum, e) => sum + e.p + e.c + e.r, 0),
+                models: {} as Record<
+                    string,
+                    {
+                        requests: number
+                        tokens: number
+                        promptTokens: number
+                        completionTokens: number
+                        reasoningTokens: number
+                    }
+                >
             }
 
             // Post-filter by model for this day
@@ -95,17 +95,10 @@ export const getMyUsageChartData = query({
                 if (modelEvents.length > 0) {
                     dayData.models[model.id] = {
                         requests: modelEvents.length,
-                        tokens: modelEvents.reduce(
-                            (sum, e) =>
-                                sum + e.promptTokens + e.completionTokens + e.reasoningTokens,
-                            0
-                        ),
-                        promptTokens: modelEvents.reduce((sum, e) => sum + e.promptTokens, 0),
-                        completionTokens: modelEvents.reduce(
-                            (sum, e) => sum + e.completionTokens,
-                            0
-                        ),
-                        reasoningTokens: modelEvents.reduce((sum, e) => sum + e.reasoningTokens, 0)
+                        tokens: modelEvents.reduce((sum, e) => sum + e.p + e.c + e.r, 0),
+                        promptTokens: modelEvents.reduce((sum, e) => sum + e.p, 0),
+                        completionTokens: modelEvents.reduce((sum, e) => sum + e.c, 0),
+                        reasoningTokens: modelEvents.reduce((sum, e) => sum + e.r, 0)
                     }
                 }
             })
@@ -139,13 +132,10 @@ export const getMyModelUsage = query({
         return {
             modelId,
             requests: events.length,
-            promptTokens: events.reduce((sum, e) => sum + e.promptTokens, 0),
-            completionTokens: events.reduce((sum, e) => sum + e.completionTokens, 0),
-            reasoningTokens: events.reduce((sum, e) => sum + e.reasoningTokens, 0),
-            totalTokens: events.reduce(
-                (sum, e) => sum + e.promptTokens + e.completionTokens + e.reasoningTokens,
-                0
-            ),
+            promptTokens: events.reduce((sum, e) => sum + e.p, 0),
+            completionTokens: events.reduce((sum, e) => sum + e.c, 0),
+            reasoningTokens: events.reduce((sum, e) => sum + e.r, 0),
+            totalTokens: events.reduce((sum, e) => sum + e.p + e.c + e.r, 0),
             timeframe
         }
     }

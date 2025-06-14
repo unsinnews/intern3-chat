@@ -53,9 +53,9 @@ export const patchMessage = internalMutation({
                 await db.insert("usageEvents", {
                     userId: thread.authorId,
                     modelId: metadata.modelId,
-                    promptTokens: metadata.promptTokens || 0,
-                    completionTokens: metadata.completionTokens || 0,
-                    reasoningTokens: metadata.reasoningTokens || 0,
+                    p: metadata.promptTokens ?? 0,
+                    c: metadata.completionTokens ?? 0,
+                    r: metadata.reasoningTokens ?? 0,
                     daysSinceEpoch: Math.floor(Date.now() / (24 * 60 * 60 * 1000))
                 })
             }

@@ -144,18 +144,11 @@ export const chatPOST = httpAction(async (ctx, req) => {
 
             dataStream.merge(
                 result.fullStream.pipeThrough(
-                    manualStreamTransform(parts, mutationResult.assistantMessageId)
+                    manualStreamTransform(parts, totalTokenUsage, mutationResult.assistantMessageId)
                 )
             )
 
-            // Consume the stream and collect usage info
-            for await (const chunk of result.fullStream) {
-                if (chunk.type === "step-finish" && chunk.usage) {
-                    totalTokenUsage.promptTokens += chunk.usage.promptTokens || 0
-                    totalTokenUsage.completionTokens += chunk.usage.completionTokens || 0
-                    totalTokenUsage.reasoningTokens += chunk.usage.reasoningTokens || 0
-                }
-            }
+            await result.consumeStream()
 
             remoteCancel.abort()
 
