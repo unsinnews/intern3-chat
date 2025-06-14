@@ -99,7 +99,7 @@ const EditableMessage = memo(
                     value={editedContent}
                     onChange={(e) => setEditedContent(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="w-full resize-none border-none bg-transparent p-4 pb-2 text-primary-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="mt-12 w-full resize-none border-none bg-transparent p-4 pb-2 text-primary-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                 />
                 <div className="flex justify-end gap-2 px-4 pb-3">
@@ -168,7 +168,7 @@ export function Messages({
                             "mb-8",
                             message.role === "user" &&
                                 targetFromMessageId !== message.id &&
-                                "my-12 ml-auto w-fit max-w-md rounded-full bg-primary px-4 py-2 text-primary-foreground"
+                                "my-12 ml-auto w-fit max-w-md rounded-sm bg-primary px-4 py-2 text-primary-foreground"
                         )}
                     >
                         {targetFromMessageId === message.id && targetMode === "edit" ? (

@@ -105,7 +105,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
-                    forcePathStyle: string
+                    forcePathStyle: boolean
                     key: string
                     secretAccessKey: string
                 },
@@ -118,7 +118,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
-                    forcePathStyle: string
+                    forcePathStyle: boolean
                     key: string
                     secretAccessKey: string
                 },
@@ -131,7 +131,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
-                    forcePathStyle: string
+                    forcePathStyle: boolean
                     key: string
                     secretAccessKey: string
                 },
@@ -155,7 +155,7 @@ export declare const components: {
                     bucket: string
                     cursor?: string
                     endpoint: string
-                    forcePathStyle: string
+                    forcePathStyle: boolean
                     limit?: number
                     secretAccessKey: string
                 },
@@ -184,7 +184,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
-                    forcePathStyle: string
+                    forcePathStyle: boolean
                     secretAccessKey: string
                     url: string
                 },
@@ -197,7 +197,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
-                    forcePathStyle: string
+                    forcePathStyle: boolean
                     key: string
                     onComplete?: string
                     secretAccessKey: string
