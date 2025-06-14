@@ -55,7 +55,7 @@ function SettingsLayout() {
 
                                 <nav className="space-y-1">
                                     <Link
-                                        to="/settings/api-keys"
+                                        to="/settings/apikeys"
                                         className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                         activeProps={{
                                             className:

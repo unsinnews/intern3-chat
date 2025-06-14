@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SettingsLayout } from "@/components/settings/settings-layout";
 
@@ -14,12 +12,6 @@ function ProfileSettings() {
     <SettingsLayout
       title="Profile Settings"
       description="Manage your account settings and profile information."
-      action={
-        <Button variant="outline">
-          <Camera className="h-4 w-4 mr-2" />
-          Change Photo
-        </Button>
-      }
     >
       <div
         className={cn(

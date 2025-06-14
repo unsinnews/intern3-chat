@@ -5,6 +5,8 @@ import { openai } from "@ai-sdk/openai"
 import { internal } from "../_generated/api"
 import { Id } from "../_generated/dataModel"
 import { google } from "@ai-sdk/google"
+import { createLanguageModel } from "../lib/models"
+import { ChatError } from "@/lib/errors"
 
 const contentToText = (content: CoreMessage["content"]): string => {
     if (typeof content === "string") {
@@ -12,32 +14,42 @@ const contentToText = (content: CoreMessage["content"]): string => {
     }
 
     if (Array.isArray(content)) {
-        return content.map(part => {
-            if (part.type === "text") {
-                return part.text
-            } else if (part.type === "image") {
-                return "[image]"
-            } else if (part.type === "file") {
-                return `[file: ${part.filename || "unknown"}]`
-            } else if (part.type === "tool-call") {
-                return `[tool: ${part.toolName}]`
-            } else if (part.type === "tool-result") {
-                return `[tool result: ${part.toolName}]`
-            } else if (part.type === "reasoning") {
-                return `[reasoning: ${part.text}]`
-            }
-            return ""
-        }).join(" ")
+        return content
+            .map((part) => {
+                if (part.type === "text") {
+                    return part.text
+                } else if (part.type === "image") {
+                    return "[image]"
+                } else if (part.type === "file") {
+                    return `[file: ${part.filename || "unknown"}]`
+                } else if (part.type === "tool-call") {
+                    return `[tool: ${part.toolName}]`
+                } else if (part.type === "tool-result") {
+                    return `[tool result: ${part.toolName}]`
+                } else if (part.type === "reasoning") {
+                    return `[reasoning: ${part.text}]`
+                }
+                return ""
+            })
+            .join(" ")
     }
 
     return ""
 }
 
-export const generateThreadName = async (ctx: GenericActionCtx<any>, threadId: Id<"threads">, messages: CoreMessage[]) => {
-    const relevant_messages = messages.filter((message) => message.role != "system").slice(0, 5);
+export const generateThreadName = async (
+    ctx: GenericActionCtx<any>,
+    threadId: Id<"threads">,
+    messages: CoreMessage[],
+    userApiKey: string | null
+) => {
+    const relevant_messages = messages.filter((message) => message.role != "system").slice(0, 5)
+
+    const modelResult = createLanguageModel("gemini-2.0-flash-lite", "google", userApiKey)
+    if (modelResult instanceof ChatError) return modelResult
 
     const result = await generateText({
-        model: google("gemini-2.0-flash-lite"),
+        model: modelResult,
         messages: [
             {
                 role: "system",

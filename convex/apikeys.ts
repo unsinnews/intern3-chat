@@ -91,7 +91,7 @@ export const listApiKeys = query({
     handler: async (ctx) => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
         if ("error" in user) {
-            throw new Error("Unauthorized")
+            return { error: user.error }
         }
 
         const apiKeys = await ctx.db

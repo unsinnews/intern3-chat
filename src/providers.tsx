@@ -38,7 +38,7 @@ export function Providers({
 
   useEffect(() => {
     queryClient.setQueryData(["auth_token"], initialToken);
-  }, []);
+  }, [initialToken]);
 
   return (
     <QueryClientProvider client={queryClient}>

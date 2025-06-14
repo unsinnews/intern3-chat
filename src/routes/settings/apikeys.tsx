@@ -9,6 +9,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { Provider } from "@/convex/schema/apikey";
+import { useSession } from "@/hooks/auth-hooks";
 
 export const Route = createFileRoute("/settings/apikeys")({
   component: ApiKeysSettings,
@@ -23,9 +24,25 @@ function ApiKeysSettings() {
   });
   const [addingKey, setAddingKey] = useState(false);
 
-  const apiKeys = useQuery(api.apikeys.listApiKeys) ?? [];
+  const session = useSession();
+  const apiKeys =
+    useQuery(
+      api.apikeys.listApiKeys,
+      session.user?.id ? {} : "skip"
+    ) ?? [];
   const storeApiKey = useMutation(api.apikeys.storeApiKey);
   const deleteApiKey = useMutation(api.apikeys.deleteApiKey);
+
+  if (!session.user?.id) {
+    return (
+      <SettingsLayout
+        title="Model Providers"
+        description="Add your own API keys to unlock access to models. Your keys are stored securely with end-to-end encryption."
+      >
+        <p className="text-muted-foreground text-sm">Sign in to manage your API keys.</p>
+      </SettingsLayout>
+    );
+  }
 
   const handleAddKey = async () => {
     if (!newKey.key) return;
@@ -40,6 +57,17 @@ function ApiKeysSettings() {
   const handleDeleteKey = async (keyId: Id<"apiKeys">) => {
     await deleteApiKey({ keyId });
   };
+
+  if ("error" in apiKeys) {
+    return (
+      <SettingsLayout
+        title="Model Providers"
+        description="Add your own API keys to unlock access to models. Your keys are stored securely with end-to-end encryption."
+      >
+        <p className="text-muted-foreground text-sm">Error loading API keys.</p>
+      </SettingsLayout>
+    );
+  }
 
   return (
     <SettingsLayout
