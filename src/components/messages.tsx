@@ -163,7 +163,7 @@ export function Messages({
               "group prose-code:before:hidden prose-code:after:hidden",
               "mb-8",
               message.role === "user" &&
-                "ml-auto w-fit max-w-md rounded-xl bg-primary px-2.5 py-1.5 text-primary-foreground"
+                "ml-auto w-fit max-w-md rounded-xl bg-primary px-2.5 py-1.5 text-primary-foreground mb-12"
             )}
           >
             {targetFromMessageId === message.id && targetMode === "edit" ? (
