@@ -1,3 +1,4 @@
+import { browserEnv } from "@/lib/browser-env"
 import { useChatStore } from "@/lib/chat-store"
 import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
@@ -46,6 +47,16 @@ const PartsRenderer = memo(
                 if (part.toolInvocation.toolName === "web_search")
                     return <WebSearchToolRenderer toolInvocation={part.toolInvocation} />
                 return null
+            case "file":
+                if (part.mimeType?.startsWith("image/")) {
+                    return (
+                        <img
+                            src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${part.data}`}
+                            alt="Uploaded attachment"
+                        />
+                    )
+                }
+                return <div>{part.data}</div>
         }
     }
 )

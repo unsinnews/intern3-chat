@@ -30,7 +30,7 @@ export const ReasoningPart = v.object({
 
 export const FilePart = v.object({
     type: v.literal("file"),
-    assetUrl: v.string(),
+    data: v.string(),
     filename: v.optional(v.string()),
     mimeType: v.optional(v.string())
 })
