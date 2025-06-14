@@ -1,13 +1,9 @@
-import type { GenericActionCtx } from "convex/server"
-import { internalMutation } from "../_generated/server"
-import type { CoreMessage } from "ai"
-import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
-import { api, internal } from "../_generated/api"
-import type { Id } from "../_generated/dataModel"
-import { google } from "@ai-sdk/google"
-import { getLanguageModel, type APIKeyConfig } from "../lib/models"
 import { ChatError } from "@/lib/errors"
+import { type CoreMessage, generateText } from "ai"
+import type { GenericActionCtx } from "convex/server"
+import { internal } from "../_generated/api"
+import type { DataModel, Id } from "../_generated/dataModel"
+import { getLanguageModel, type APIKeyConfig } from "../lib/models"
 
 const contentToText = (content: CoreMessage["content"]): string => {
     if (typeof content === "string") {
@@ -44,12 +40,12 @@ const contentToText = (content: CoreMessage["content"]): string => {
 }
 
 export const generateThreadName = async (
-    ctx: GenericActionCtx<any>,
+    ctx: GenericActionCtx<DataModel>,
     threadId: Id<"threads">,
     messages: CoreMessage[],
     userId: string
 ) => {
-    const relevant_messages = messages.filter((message) => message.role != "system").slice(0, 5)
+    const relevant_messages = messages.filter((message) => message.role !== "system").slice(0, 5)
 
     const userGoogleApiKey = await ctx.runQuery(internal.apikeys.getDecryptedApiKey, {
         userId,

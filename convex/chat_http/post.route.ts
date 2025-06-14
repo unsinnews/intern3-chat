@@ -1,5 +1,4 @@
 import type {
-    DataStreamString,
     FileUIPart,
     ReasoningUIPart,
     TextUIPart,
@@ -7,14 +6,8 @@ import type {
 } from "@ai-sdk/ui-utils"
 
 import { ChatError } from "@/lib/errors"
-import {
-    type TextStreamPart,
-    type ToolCall,
-    createDataStream,
-    formatDataStreamPart,
-    smoothStream,
-    streamText
-} from "ai"
+import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import { createDataStream, smoothStream, streamText } from "ai"
 import type { Infer } from "convex/values"
 import { internal } from "../_generated/api"
 import type { Id } from "../_generated/dataModel"
@@ -23,15 +16,13 @@ import { dbMessagesToCore } from "../lib/db_to_core_messages"
 import { getUserIdentity } from "../lib/identity"
 import { getLanguageModel, MODELS_SHARED, type APIKeyConfig } from "../lib/models"
 import { getResumableStreamContext } from "../lib/resumable_stream_context"
+import { type AbilityId, getToolkit } from "../lib/toolkit"
 import type { HTTPAIMessage } from "../schema/message"
 import type { ErrorUIPart } from "../schema/parts"
-import { manualStreamTransform } from "./manual_stream_transform"
-import { RESPONSE_OPTS } from "./shared"
-import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
-import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
 import { generateThreadName } from "./generate_thread_name"
-import { getToolkit, type AbilityId } from "../lib/toolkit"
+import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
+import { RESPONSE_OPTS } from "./shared"
 
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {

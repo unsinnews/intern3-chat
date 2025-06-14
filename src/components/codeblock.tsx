@@ -157,6 +157,7 @@ export const Codeblock = memo(
                     </div>
                 ) : (
                     <div
+                        // biome-ignore lint/security/noDangerouslySetInnerHtml: shiki!!
                         dangerouslySetInnerHTML={{ __html: highlightedCode }}
                         className="shiki-container pl-2 font-mono"
                     />

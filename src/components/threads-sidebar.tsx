@@ -3,7 +3,7 @@ import { useQuery as useConvexQuery } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { Pin, Plus, Search } from "lucide-react"
 
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
     Sidebar,
@@ -19,8 +19,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import { useSession } from "@/hooks/auth-hooks"
-import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 interface Thread {
     _id: string
@@ -197,8 +197,8 @@ export function ThreadsSidebar() {
 
     const filteredThreads = searchQuery
         ? threads.filter((thread: Thread) =>
-            thread.title.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+              thread.title.toLowerCase().includes(searchQuery.toLowerCase())
+          )
         : threads
 
     const groupedThreads = groupThreadsByTime(filteredThreads)
@@ -211,10 +211,7 @@ export function ThreadsSidebar() {
                 </div>
                 <Link
                     to="/"
-                    className={cn(
-                        buttonVariants({ variant: "default" }),
-                        "w-full justify-start"
-                    )}
+                    className={cn(buttonVariants({ variant: "default" }), "w-full justify-start")}
                 >
                     <Plus />
                     New Chat

@@ -9,7 +9,6 @@ import type {
 import { type TextStreamPart, type ToolCall, formatDataStreamPart } from "ai"
 import type { Infer } from "convex/values"
 import type { ErrorUIPart } from "../schema/parts"
-import type { Id } from "../_generated/dataModel"
 
 export const manualStreamTransform = (
     parts: Array<
