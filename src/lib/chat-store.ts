@@ -1,9 +1,16 @@
 import { nanoid } from "nanoid"
 import { create } from "zustand"
+export interface UploadedFile {
+    key: string
+    fileName: string
+    fileType: string
+    fileSize: number
+    uploadedAt: number
+}
 
 interface ChatState {
     threadId: string | undefined
-    files: File[]
+    uploadedFiles: UploadedFile[]
     input: string
     rerenderTrigger: string
     lastProcessedDataIndex: number
@@ -13,11 +20,14 @@ interface ChatState {
     pendingStreams: Record<string, boolean>
     targetFromMessageId: string | undefined
     targetMode: "normal" | "edit" | "retry"
+    uploading: boolean
 }
 
 interface ChatActions {
     setThreadId: (threadId: string | undefined) => void
-    setFiles: (files: File[]) => void
+    setUploadedFiles: (files: UploadedFile[]) => void
+    addUploadedFile: (file: UploadedFile) => void
+    removeUploadedFile: (key: string) => void
     setLastProcessedDataIndex: (index: number) => void
     setShouldUpdateQuery: (should: boolean) => void
     setSkipNextDataCheck: (skip: boolean) => void
@@ -28,11 +38,12 @@ interface ChatActions {
     setTargetFromMessageId: (messageId: string | undefined) => void
     setTargetMode: (mode: "normal" | "edit" | "retry") => void
     setInput: (input: string) => void
+    setUploading: (uploading: boolean) => void
 }
 
 const initialState: ChatState = {
     threadId: undefined,
-    files: [],
+    uploadedFiles: [],
     input: "",
     rerenderTrigger: nanoid(),
     lastProcessedDataIndex: -1,
@@ -41,18 +52,28 @@ const initialState: ChatState = {
     attachedStreamIds: {},
     pendingStreams: {},
     targetFromMessageId: undefined,
-    targetMode: "normal"
+    targetMode: "normal",
+    uploading: false
 }
 
 export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     ...initialState,
 
     setThreadId: (threadId) => set({ threadId }),
-    setFiles: (files) => set({ files }),
+    setUploadedFiles: (uploadedFiles) => set({ uploadedFiles }),
+    addUploadedFile: (file) =>
+        set((state) => ({
+            uploadedFiles: [...state.uploadedFiles, file]
+        })),
+    removeUploadedFile: (key) =>
+        set((state) => ({
+            uploadedFiles: state.uploadedFiles.filter((f) => f.key !== key)
+        })),
     setLastProcessedDataIndex: (lastProcessedDataIndex) => set({ lastProcessedDataIndex }),
     setShouldUpdateQuery: (shouldUpdateQuery) => set({ shouldUpdateQuery }),
     setSkipNextDataCheck: (skipNextDataCheck) => set({ skipNextDataCheck }),
     setInput: (input) => set({ input }),
+    setUploading: (uploading) => set({ uploading }),
 
     resetChat: () => {
         set({

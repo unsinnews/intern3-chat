@@ -70,7 +70,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         | TextUIPart
         | (ReasoningUIPart & { duration?: number })
         | ToolInvocationUIPart
-        | (Omit<FileUIPart, "data"> & { assetUrl: string })
+        | FileUIPart
         | Infer<typeof ErrorUIPart>
     > = []
 

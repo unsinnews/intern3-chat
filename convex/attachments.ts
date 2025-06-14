@@ -2,59 +2,29 @@
 import { R2 } from "@convex-dev/r2"
 import { v } from "convex/values"
 import { components } from "./_generated/api"
-import { action, httpAction, mutation, query } from "./_generated/server"
+import { httpAction, mutation, query } from "./_generated/server"
 
 export const r2 = new R2(components.r2)
-
-// HTTP action to generate upload URL
-export const generateUploadUrl = httpAction(async (ctx, request) => {
+// Direct file upload HTTP action for files under 5MB
+export const uploadFile = httpAction(async (ctx, request) => {
     try {
-        const { searchParams } = new URL(request.url)
-        const fileName = searchParams.get("fileName")
-        const fileType = searchParams.get("fileType")
+        const formData = await request.formData()
+        const file = formData.get("file") as File
 
-        if (!fileName || !fileType) {
-            return new Response(JSON.stringify({ error: "fileName and fileType are required" }), {
+        if (!file) {
+            return new Response(JSON.stringify({ error: "No file provided" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
             })
         }
 
-        // Generate a unique key for the file
-        const key = `attachments/${Date.now()}-${crypto.randomUUID()}-${fileName}`
-
-        // For now, return a placeholder structure that matches what the frontend expects
-        // You'll need to implement the actual R2 signed URL generation based on your R2 setup
-        return new Response(
-            JSON.stringify({
-                uploadUrl: `https://your-r2-bucket.your-account.r2.cloudflarestorage.com/${key}`,
-                key,
-                fileName,
-                fileType
-            }),
-            {
-                status: 200,
-                headers: { "Content-Type": "application/json" }
-            }
-        )
-    } catch (error) {
-        console.error("Error generating upload URL:", error)
-        return new Response(JSON.stringify({ error: "Failed to generate upload URL" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-        })
-    }
-})
-
-// HTTP action to handle file upload completion
-export const uploadComplete = httpAction(async (ctx, request) => {
-    try {
-        const body = await request.json()
-        const { key, fileName, fileType, fileSize } = body
-
-        if (!key || !fileName || !fileType) {
+        // Validate file size (5MB limit)
+        const maxSize = 5 * 1024 * 1024 // 5MB
+        if (file.size > maxSize) {
             return new Response(
-                JSON.stringify({ error: "key, fileName, and fileType are required" }),
+                JSON.stringify({
+                    error: `File size exceeds 5MB limit. Current size: ${file.size} bytes`
+                }),
                 {
                     status: 400,
                     headers: { "Content-Type": "application/json" }
@@ -62,18 +32,27 @@ export const uploadComplete = httpAction(async (ctx, request) => {
             )
         }
 
-        // Store file metadata in your database
-        // You can add this to your existing schema or create a new table for attachments
+        // Generate unique key for the file
+        const key = `attachments/${Date.now()}-${crypto.randomUUID()}-${file.name}`
+
+        // Convert file to ArrayBuffer then to Uint8Array
+        const arrayBuffer = await file.arrayBuffer()
+        const uint8Array = new Uint8Array(arrayBuffer)
+
+        // Store file directly in R2
+        const storedKey = await r2.store(ctx, uint8Array, {
+            key,
+            type: file.type
+        })
+
         return new Response(
             JSON.stringify({
-                success: true,
-                attachment: {
-                    key,
-                    fileName,
-                    fileType,
-                    fileSize: fileSize || 0,
-                    uploadedAt: Date.now()
-                }
+                key: storedKey,
+                fileName: file.name,
+                fileType: file.type,
+                fileSize: file.size,
+                uploadedAt: Date.now(),
+                success: true
             }),
             {
                 status: 200,
@@ -81,45 +60,16 @@ export const uploadComplete = httpAction(async (ctx, request) => {
             }
         )
     } catch (error) {
-        console.error("Error handling upload completion:", error)
-        return new Response(JSON.stringify({ error: "Failed to process upload completion" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-        })
-    }
-})
-
-// Action to store file from server side (for programmatic uploads)
-export const storeFile = action({
-    args: {
-        fileUrl: v.string(),
-        fileName: v.string(),
-        fileType: v.string()
-    },
-    handler: async (ctx, args) => {
-        try {
-            // Download the file
-            const response = await fetch(args.fileUrl)
-            if (!response.ok) {
-                throw new Error(`Failed to fetch file: ${response.statusText}`)
+        console.error("Error uploading file:", error)
+        return new Response(
+            JSON.stringify({
+                error: `Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`
+            }),
+            {
+                status: 500,
+                headers: { "Content-Type": "application/json" }
             }
-
-            const blob = await response.blob()
-            const key = `attachments/${Date.now()}-${crypto.randomUUID()}-${args.fileName}`
-
-            // Store in R2 - this is a placeholder for the actual R2 store implementation
-            // await r2.store(ctx, blob, { key, type: args.fileType })
-
-            return {
-                key,
-                fileName: args.fileName,
-                fileType: args.fileType,
-                size: blob.size
-            }
-        } catch (error) {
-            console.error("Error storing file:", error)
-            throw new Error("Failed to store file")
-        }
+        )
     }
 })
 
@@ -128,11 +78,24 @@ export const getFileUrl = query({
     args: { key: v.string() },
     handler: async (ctx, args) => {
         try {
-            // For now, construct URL directly - replace with actual R2 URL generation
-            const url = `https://your-r2-bucket.your-account.r2.cloudflarestorage.com/${args.key}`
+            const url = await r2.getUrl(args.key)
             return { url, key: args.key }
         } catch (error) {
             console.error("Error getting file URL:", error)
+            return null
+        }
+    }
+})
+
+// Get file metadata
+export const getFileMetadata = query({
+    args: { key: v.string() },
+    handler: async (ctx, args) => {
+        try {
+            const metadata = await r2.getMetadata(ctx, args.key)
+            return metadata
+        } catch (error) {
+            console.error("Error getting file metadata:", error)
             return null
         }
     }
@@ -142,16 +105,31 @@ export const getFileUrl = query({
 export const deleteFile = mutation({
     args: { key: v.string() },
     handler: async (ctx, args) => {
+        // TODO: Implement file deletion once R2 delete method is confirmed
+        console.log("Delete file requested for key:", args.key)
+        return { success: false, error: "Delete functionality not yet implemented" }
+    }
+})
+
+// List all files with pagination
+export const listFiles = query({
+    args: {
+        limit: v.optional(v.number())
+    },
+    handler: async (ctx, args) => {
         try {
-            // Delete from R2 - placeholder implementation
-            // await r2.delete(args.key)
-
-            // Also delete from your database if you're storing metadata there
-
-            return { success: true }
+            return await r2.listMetadata(ctx, args.limit || 50)
         } catch (error) {
-            console.error("Error deleting file:", error)
-            throw new Error("Failed to delete file")
+            console.error("Error listing files:", error)
+            return []
         }
     }
+})
+
+export const getFile = httpAction(async (ctx, req) => {
+    const { searchParams } = new URL(req.url)
+    const key = searchParams.get("key")
+    if (!key) return new Response(null, { status: 400 })
+    const file = await r2.getUrl(key)
+    return Response.redirect(file)
 })

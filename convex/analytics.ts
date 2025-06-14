@@ -53,9 +53,29 @@ export const getMyUsageChartData = query({
     args: {
         timeframe: v.union(v.literal("1d"), v.literal("7d"), v.literal("30d"))
     },
-    handler: async (ctx, { timeframe }) => {
+    handler: async (
+        ctx,
+        { timeframe }
+    ): Promise<
+        {
+            daysSinceEpoch: number
+            date: string
+            totalRequests: number
+            totalTokens: number
+            models: Record<
+                string,
+                {
+                    requests: number
+                    tokens: number
+                    promptTokens: number
+                    completionTokens: number
+                    reasoningTokens: number
+                }
+            >
+        }[]
+    > => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
-        if ("error" in user) throw new Error("Unauthorized")
+        if ("error" in user) return []
 
         const days = timeframe === "1d" ? 1 : timeframe === "7d" ? 7 : 30
         const startDay = getDaysSinceEpoch(days)

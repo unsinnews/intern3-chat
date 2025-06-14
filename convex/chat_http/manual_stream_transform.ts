@@ -15,7 +15,7 @@ export const manualStreamTransform = (
         | TextUIPart
         | (ReasoningUIPart & { duration?: number })
         | ToolInvocationUIPart
-        | (Omit<FileUIPart, "data"> & { assetUrl: string })
+        | FileUIPart
         | Infer<typeof ErrorUIPart>
     >,
     totalTokenUsage: {

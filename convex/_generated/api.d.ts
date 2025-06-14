@@ -10,6 +10,7 @@
 
 import type * as analytics from "../analytics.js"
 import type * as apikeys from "../apikeys.js"
+import type * as attachments from "../attachments.js"
 import type * as chat_http_generate_thread_name from "../chat_http/generate_thread_name.js"
 import type * as chat_http_manual_stream_transform from "../chat_http/manual_stream_transform.js"
 import type * as chat_http_prompt from "../chat_http/prompt.js"
@@ -51,6 +52,7 @@ import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server
 declare const fullApi: ApiFromModules<{
     analytics: typeof analytics
     apikeys: typeof apikeys
+    attachments: typeof attachments
     "chat_http/generate_thread_name": typeof chat_http_generate_thread_name
     "chat_http/manual_stream_transform": typeof chat_http_manual_stream_transform
     "chat_http/prompt": typeof chat_http_prompt
@@ -103,6 +105,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
+                    forcePathStyle: string
                     key: string
                     secretAccessKey: string
                 },
@@ -115,6 +118,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
+                    forcePathStyle: string
                     key: string
                     secretAccessKey: string
                 },
@@ -127,6 +131,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
+                    forcePathStyle: string
                     key: string
                     secretAccessKey: string
                 },
@@ -150,6 +155,7 @@ export declare const components: {
                     bucket: string
                     cursor?: string
                     endpoint: string
+                    forcePathStyle: string
                     limit?: number
                     secretAccessKey: string
                 },
@@ -178,6 +184,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
+                    forcePathStyle: string
                     secretAccessKey: string
                     url: string
                 },
@@ -190,6 +197,7 @@ export declare const components: {
                     accessKeyId: string
                     bucket: string
                     endpoint: string
+                    forcePathStyle: string
                     key: string
                     onComplete?: string
                     secretAccessKey: string

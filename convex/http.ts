@@ -1,6 +1,6 @@
 import { corsRouter } from "convex-helpers/server/cors"
 import { httpRouter } from "convex/server"
-import { generateUploadUrl, uploadComplete } from "./attachments"
+import { getFile, uploadFile } from "./attachments"
 import { chatGET } from "./chat_http/get.route"
 import { chatPOST } from "./chat_http/post.route"
 
@@ -23,17 +23,17 @@ cors.route({
     handler: chatGET
 })
 
-// Attachment upload routes
+// File upload route
 cors.route({
-    path: "/attachments/upload-url",
-    method: "GET",
-    handler: generateUploadUrl
+    path: "/upload",
+    method: "POST",
+    handler: uploadFile
 })
 
-cors.route({
-    path: "/attachments/upload-complete",
-    method: "POST",
-    handler: uploadComplete
+http.route({
+    path: "/r2",
+    method: "GET",
+    handler: getFile
 })
 
 export default http

@@ -3,6 +3,15 @@ import r2 from "@convex-dev/r2/convex.config"
 import { defineApp } from "convex/server"
 
 const app = defineApp()
-app.use(r2)
+
+// Configure R2 component with environment variables
+app.use(r2, {
+    // R2 configuration will read from these environment variables:
+    // R2_TOKEN
+    // R2_ACCESS_KEY_ID
+    // R2_SECRET_ACCESS_KEY
+    // R2_ENDPOINT
+    // R2_BUCKET
+})
 
 export default app

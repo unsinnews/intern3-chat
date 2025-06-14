@@ -1,17 +1,19 @@
-import { useChatStore } from "@/lib/chat-store"
+import { type UploadedFile, useChatStore } from "@/lib/chat-store"
+import type { FileUIPart } from "@ai-sdk/ui-utils"
 import type { UIMessage } from "ai"
 import { nanoid } from "nanoid"
 import { useCallback } from "react"
 import { useChatIntegration } from "./use-chat-integration"
 
 export function useChatActions({ threadId }: { threadId: string | undefined }) {
-    const { files, setFiles, setTargetFromMessageId, setTargetMode, setInput } = useChatStore()
+    const { uploadedFiles, setUploadedFiles, setTargetFromMessageId, setTargetMode, setInput } =
+        useChatStore()
     const { status, append, stop, data, messages, setMessages, reload } = useChatIntegration({
         threadId
     })
 
     const handleInputSubmit = useCallback(
-        (inputValue?: string, fileValues?: File[]) => {
+        (inputValue?: string, fileValues?: UploadedFile[]) => {
             if (status === "streaming") {
                 stop()
                 return
@@ -26,24 +28,32 @@ export function useChatActions({ threadId }: { threadId: string | undefined }) {
             }
 
             const finalInput = inputValue
-            const finalFiles = fileValues ?? files
+            const finalFiles = fileValues ?? uploadedFiles
 
             if (finalInput?.trim() || (finalFiles && finalFiles.length > 0)) {
                 setInput("")
-                setFiles([])
             }
 
             append({
                 id: nanoid(),
                 role: "user",
                 content: inputValue,
-                parts: [{ type: "text", text: inputValue }],
+                parts: [
+                    ...finalFiles.map((file) => {
+                        return {
+                            type: "file",
+                            data: file.key,
+                            mimeType: file.fileType
+                        } satisfies FileUIPart
+                    }),
+                    { type: "text", text: inputValue }
+                ],
                 createdAt: new Date()
             })
 
-            setFiles([])
+            setUploadedFiles([])
         },
-        [append, stop, status, files, setFiles, setInput]
+        [append, stop, status, uploadedFiles, setUploadedFiles, setInput]
     )
 
     const handleRetry = useCallback(

@@ -1,3 +1,4 @@
+import { R2 } from "@convex-dev/r2"
 import type {
     AssistantContent,
     CoreAssistantMessage,
@@ -8,11 +9,13 @@ import type {
     UserContent
 } from "ai"
 import type { Infer } from "convex/values"
+import { components } from "../_generated/api"
 import type { Message } from "../schema/message"
 
 export type CoreMessage = (CoreAssistantMessage | CoreToolMessage | CoreUserMessage) & {
     messageId: string
 }
+const r2 = new R2(components.r2)
 
 export const dbMessagesToCore = async (
     messages: Infer<typeof Message>[]
@@ -28,6 +31,17 @@ export const dbMessagesToCore = async (
             for (const p of message.parts) {
                 if (p.type === "text") {
                     mapped_content.push({ type: "text", text: p.text })
+                }
+                if (p.type === "file") {
+                    if (p.mimeType?.startsWith("image/")) {
+                        const fileUrl = await r2.getUrl(p.data)
+                        const data = await fetch(fileUrl)
+                        const blob = await data.blob()
+                        mapped_content.push({
+                            type: "image",
+                            image: await blob.arrayBuffer()
+                        })
+                    }
                 }
                 //  todo: handle images,files
             }
@@ -65,7 +79,7 @@ export const dbMessagesToCore = async (
                         type: "file",
                         mimeType: p.mimeType || "application/octet-stream",
                         filename: p.filename || "",
-                        data: p.assetUrl || ""
+                        data: p.data || ""
                     })
                 } else if (p.type === "tool-invocation") {
                     tool_calls.push({

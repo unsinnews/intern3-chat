@@ -7,25 +7,36 @@ import {
     PromptInputTextarea
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
-import { useChatStore } from "@/lib/chat-store"
+import { browserEnv } from "@/lib/browser-env"
+import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
-import { ArrowUp, Loader2, Paperclip, Search, Square, X } from "lucide-react"
-import { useRef } from "react"
+import { ArrowUp, Loader2, Paperclip, Search, Square, Upload, X } from "lucide-react"
+import { useCallback, useRef, useState } from "react"
 
 export function MultimodalInput({
     onSubmit,
     status
 }: {
-    onSubmit: (input?: string, files?: File[]) => void
+    onSubmit: (input?: string, files?: UploadedFile[]) => void
     status: ReturnType<typeof useChat>["status"]
 }) {
     const { selectedModel, setSelectedModel, enabledTools, setEnabledTools } = useModelStore()
-    const { files, setFiles, input, setInput } = useChatStore()
+    const {
+        uploadedFiles,
+        addUploadedFile,
+        removeUploadedFile,
+        input,
+        setInput,
+        uploading,
+        setUploading
+    } = useChatStore()
+
     const isLoading = status === "streaming"
     const uploadInputRef = useRef<HTMLInputElement>(null)
     const promptInputRef = useRef<PromptInputRef>(null)
+    const [dragActive, setDragActive] = useState(false)
 
     const handleSubmit = async () => {
         const inputValue = promptInputRef.current?.getValue() || ""
@@ -37,85 +48,196 @@ export function MultimodalInput({
             return
         }
 
-        onSubmit(inputValue, files)
+        onSubmit(inputValue, uploadedFiles)
         promptInputRef.current?.clear()
         localStorage.setItem("user-input", inputValue)
     }
 
+    const uploadFile = useCallback(async (file: File): Promise<UploadedFile> => {
+        const formData = new FormData()
+        formData.append("file", file)
+
+        const response = await fetch(`${browserEnv("VITE_CONVEX_API_URL")}/upload`, {
+            method: "POST",
+            body: formData
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || "Upload failed")
+        }
+
+        const result = await response.json()
+        return {
+            ...result,
+            file // Keep original file for display
+        }
+    }, [])
+
+    const handleFileUpload = useCallback(
+        async (filesToUpload: File[]) => {
+            if (filesToUpload.length === 0) return
+
+            setUploading(true)
+            try {
+                const uploadPromises = filesToUpload.map((file) => uploadFile(file))
+                const uploadedResults = await Promise.all(uploadPromises)
+
+                uploadedResults.forEach((result) => addUploadedFile(result))
+
+                // Clear the file input
+                if (uploadInputRef.current) {
+                    uploadInputRef.current.value = ""
+                }
+            } catch (error) {
+                console.error("Upload failed:", error)
+                // You might want to show a toast notification here
+            } finally {
+                setUploading(false)
+            }
+        },
+        [uploadFile, addUploadedFile, setUploading]
+    )
+
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
             const newFiles = Array.from(event.target.files)
-            setFiles([...files, ...newFiles])
+            handleFileUpload(newFiles)
         }
     }
 
-    const handleRemoveFile = (index: number) => {
-        setFiles(files.filter((_, i) => i !== index))
-        if (uploadInputRef?.current) {
-            uploadInputRef.current.value = ""
-        }
+    const handleRemoveFile = (key: string) => {
+        removeUploadedFile(key)
+    }
+
+    const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setDragActive(false)
+
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                const newFiles = Array.from(e.dataTransfer.files)
+                handleFileUpload(newFiles)
+            }
+        },
+        [handleFileUpload]
+    )
+
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDragActive(true)
+    }, [])
+
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDragActive(false)
+    }, [])
+
+    const formatFileSize = (bytes: number): string => {
+        if (bytes === 0) return "0 Bytes"
+        const k = 1024
+        const sizes = ["Bytes", "KB", "MB", "GB"]
+        const i = Math.floor(Math.log(bytes) / Math.log(k))
+        return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
     }
 
     return (
-        <PromptInput
-            ref={promptInputRef}
-            isLoading={isLoading}
-            onSubmit={handleSubmit}
-            className="mx-auto w-full max-w-2xl"
-        >
-            {files.length > 0 && (
-                <div className="flex flex-wrap gap-2 pb-2">
-                    {files.map((file, index) => (
-                        <div
-                            key={index}
-                            className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm"
-                        >
-                            <Paperclip className="size-4" />
-                            <span className="max-w-[120px] truncate">{file.name}</span>
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveFile(index)}
-                                className="rounded-full p-1 hover:bg-secondary/50"
-                            >
-                                <X className="size-4" />
-                            </button>
-                        </div>
-                    ))}
-                </div>
+        <div
+            className={cn(
+                "mx-auto w-full max-w-2xl",
+                dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
             )}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+        >
+            <PromptInput
+                ref={promptInputRef}
+                isLoading={isLoading}
+                onSubmit={handleSubmit}
+                className="w-full"
+            >
+                {uploadedFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pb-2">
+                        {uploadedFiles.map((uploadedFile) => (
+                            <div
+                                key={uploadedFile.key}
+                                className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm"
+                            >
+                                <Paperclip className="size-4" />
+                                <div className="flex flex-col">
+                                    <span className="max-w-[120px] truncate">
+                                        {uploadedFile.fileName}
+                                    </span>
+                                    <span className="text-muted-foreground text-xs">
+                                        {formatFileSize(uploadedFile.fileSize)}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveFile(uploadedFile.key)}
+                                    className="rounded-full p-1 hover:bg-secondary/50"
+                                >
+                                    <X className="size-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-            <PromptInputTextarea
-                placeholder="Ask me anything..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-            />
+                {dragActive && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
+                        <div className="text-center">
+                            <Upload className="mx-auto mb-2 h-8 w-8 text-primary" />
+                            <p className="font-medium text-primary text-sm">
+                                Drop files here to upload
+                            </p>
+                        </div>
+                    </div>
+                )}
 
-            <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
-                <div className="flex items-center gap-0.5">
-                    <PromptInputAction tooltip="Attach files">
-                        <label
-                            htmlFor="file-upload"
-                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10"
-                        >
-                            <input
-                                type="file"
-                                multiple
-                                onChange={handleFileChange}
-                                className="hidden"
-                                id="file-upload"
-                                ref={uploadInputRef}
+                <PromptInputTextarea
+                    placeholder="Ask me anything..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                />
+
+                <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
+                    <div className="flex items-center gap-0.5">
+                        <PromptInputAction tooltip="Attach files">
+                            <label
+                                htmlFor="file-upload"
+                                className={cn(
+                                    "flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10",
+                                    uploading && "cursor-not-allowed opacity-50"
+                                )}
+                            >
+                                <input
+                                    type="file"
+                                    multiple
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    id="file-upload"
+                                    ref={uploadInputRef}
+                                    disabled={uploading}
+                                />
+                                {uploading ? (
+                                    <Loader2 className="size-5 animate-spin text-primary" />
+                                ) : (
+                                    <Paperclip className="-rotate-45 size-5 text-primary" />
+                                )}
+                            </label>
+                        </PromptInputAction>
+                        {selectedModel && (
+                            <ModelSelector
+                                selectedModel={selectedModel}
+                                onModelChange={setSelectedModel}
                             />
-                            <Paperclip className="-rotate-45 size-5 text-primary" />
-                        </label>
-                    </PromptInputAction>
-                    {selectedModel && (
-                        <ModelSelector
-                            selectedModel={selectedModel}
-                            onModelChange={setSelectedModel}
-                        />
-                    )}
+                        )}
 
-                    {
                         <PromptInputAction tooltip="Search the web">
                             <button
                                 type="button"
@@ -135,28 +257,28 @@ export function MultimodalInput({
                                 <Search className="size-5 text-primary" />
                             </button>
                         </PromptInputAction>
-                    }
-                </div>
+                    </div>
 
-                <PromptInputAction tooltip={isLoading ? "Stop generation" : "Send message"}>
-                    <Button
-                        variant="default"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                        disabled={status === "submitted"}
-                        onClick={handleSubmit}
-                        type="submit"
-                    >
-                        {isLoading ? (
-                            <Square className="size-5 fill-current" />
-                        ) : status === "submitted" ? (
-                            <Loader2 className="size-5 animate-spin" />
-                        ) : (
-                            <ArrowUp className="size-5" />
-                        )}
-                    </Button>
-                </PromptInputAction>
-            </PromptInputActions>
-        </PromptInput>
+                    <PromptInputAction tooltip={isLoading ? "Stop generation" : "Send message"}>
+                        <Button
+                            variant="default"
+                            size="icon"
+                            className="h-8 w-8 rounded-full"
+                            disabled={status === "submitted" || uploading}
+                            onClick={handleSubmit}
+                            type="submit"
+                        >
+                            {isLoading ? (
+                                <Square className="size-5 fill-current" />
+                            ) : status === "submitted" ? (
+                                <Loader2 className="size-5 animate-spin" />
+                            ) : (
+                                <ArrowUp className="size-5" />
+                            )}
+                        </Button>
+                    </PromptInputAction>
+                </PromptInputActions>
+            </PromptInput>
+        </div>
     )
 }
