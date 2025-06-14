@@ -1,8 +1,8 @@
 import type {
     SearchAdapter,
-    SearchResult,
+    SearchAdapterConfig,
     SearchOptions,
-    SearchAdapterConfig
+    SearchResult
 } from "./search_adapter"
 
 interface BraveSearchResponse {

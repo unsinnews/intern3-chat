@@ -95,10 +95,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
                     content="oklch(0.145 0 0)"
                 />
 
-                {/* <script
-          crossOrigin="anonymous"
-          src="//unpkg.com/react-scan/dist/auto.global.js"
-        /> */}
+                <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
 
                 <HeadContent />
             </head>

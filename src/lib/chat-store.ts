@@ -4,6 +4,7 @@ import { create } from "zustand"
 interface ChatState {
     threadId: string | undefined
     files: File[]
+    input: string
     rerenderTrigger: string
     lastProcessedDataIndex: number
     shouldUpdateQuery: boolean
@@ -26,11 +27,13 @@ interface ChatActions {
     setPendingStream: (threadId: string, pending: boolean) => void
     setTargetFromMessageId: (messageId: string | undefined) => void
     setTargetMode: (mode: "normal" | "edit" | "retry") => void
+    setInput: (input: string) => void
 }
 
 const initialState: ChatState = {
     threadId: undefined,
     files: [],
+    input: "",
     rerenderTrigger: nanoid(),
     lastProcessedDataIndex: -1,
     shouldUpdateQuery: false,
@@ -49,6 +52,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     setLastProcessedDataIndex: (lastProcessedDataIndex) => set({ lastProcessedDataIndex }),
     setShouldUpdateQuery: (shouldUpdateQuery) => set({ shouldUpdateQuery }),
     setSkipNextDataCheck: (skipNextDataCheck) => set({ skipNextDataCheck }),
+    setInput: (input) => set({ input }),
 
     resetChat: () => {
         set({

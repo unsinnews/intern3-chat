@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, Key, User } from "lucide-react"
+import { ArrowLeft, BarChart3, Key, User } from "lucide-react"
 import type { ReactNode } from "react"
 
 interface SettingsLayoutProps {
@@ -21,6 +22,11 @@ const settingsNavItems = [
         title: "API Keys",
         href: "/settings/apikeys",
         icon: Key
+    },
+    {
+        title: "Usage Analytics",
+        href: "/settings/usage",
+        icon: BarChart3
     }
 ]
 
@@ -40,8 +46,8 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
     const location = useLocation()
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="container mx-auto max-w-6xl p-6">
+        <div className="flex h-screen flex-col bg-background">
+            <div className="container mx-auto flex max-w-6xl flex-1 flex-col overflow-hidden p-6">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="mb-6 flex items-center gap-4">
@@ -67,7 +73,7 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
                     {/* Navigation */}
-                    <div className="lg:col-span-1">
+                    <div className="flex-shrink-0 lg:w-64">
                         <nav className="space-y-1">
                             {settingsNavItems.map((item) => {
                                 const isActive = location.pathname === item.href
@@ -93,11 +99,11 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
 
                     {/* Main Content */}
-                    <div className="max-h-[calc(100vh-12rem)] overflow-y-auto lg:col-span-3">
-                        <div className="space-y-6">
+                    <ScrollArea className="flex-1">
+                        <div className="space-y-6 pr-4">
                             <Outlet />
                         </div>
-                    </div>
+                    </ScrollArea>
                 </div>
             </div>
         </div>

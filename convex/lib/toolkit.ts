@@ -1,7 +1,7 @@
 import type { Tool } from "ai"
 import type { GenericActionCtx } from "convex/server"
-import { WebSearchTool } from "./tools/web_search"
 import type { DataModel } from "../_generated/dataModel"
+import { WebSearchTool } from "./tools/web_search"
 
 export const TOOL_ADAPTERS = [WebSearchTool]
 export const ABILITIES = ["web_search"]

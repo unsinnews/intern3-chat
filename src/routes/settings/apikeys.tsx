@@ -36,7 +36,7 @@ const PROVIDERS: {
     },
     {
         id: "google",
-        name: "Google AI",
+        name: "Google",
         description: "Access Gemini and other Google AI models",
         placeholder: "AIza..."
     }
@@ -80,7 +80,7 @@ function ApiKeysSettings() {
                 apiKey: newKey.key
             })
 
-            setNewKey({ provider: "openai", key: "" })
+            setNewKey({ provider: newKey.provider, key: "" })
             setAddingKey(null)
 
             toast.success(
@@ -217,30 +217,15 @@ function ApiKeysSettings() {
 
                                     <div className="flex gap-2">
                                         {existingKey && !isAdding && (
-                                            <>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setAddingKey(provider.id)
-                                                        setNewKey({
-                                                            provider: provider.id,
-                                                            key: ""
-                                                        })
-                                                    }}
-                                                >
-                                                    Update
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleDeleteKey(existingKey.id)}
-                                                    className="text-destructive hover:text-destructive"
-                                                >
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete
-                                                </Button>
-                                            </>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleDeleteKey(existingKey.id)}
+                                                className="text-destructive hover:text-destructive"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                Delete
+                                            </Button>
                                         )}
                                         {!existingKey && !isAdding && (
                                             <Button
@@ -252,7 +237,7 @@ function ApiKeysSettings() {
                                                 }}
                                                 disabled={isAdding}
                                             >
-                                                <Plus className="mr-2 h-4 w-4" />
+                                                <Plus className="h-4 w-4" />
                                                 Add Key
                                             </Button>
                                         )}

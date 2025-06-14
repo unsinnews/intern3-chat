@@ -9,7 +9,6 @@ import type {
 import { type TextStreamPart, type ToolCall, formatDataStreamPart } from "ai"
 import type { Infer } from "convex/values"
 import type { ErrorUIPart } from "../schema/parts"
-import type { Id } from "../_generated/dataModel"
 
 export const manualStreamTransform = (
     parts: Array<
@@ -19,6 +18,11 @@ export const manualStreamTransform = (
         | (Omit<FileUIPart, "data"> & { assetUrl: string })
         | Infer<typeof ErrorUIPart>
     >,
+    totalTokenUsage: {
+        promptTokens: number
+        completionTokens: number
+        reasoningTokens: number
+    },
     assistantMessageId: string
 ) => {
     let reasoningStartedAt = -1
@@ -215,6 +219,16 @@ export const manualStreamTransform = (
                             isContinued: chunk.isContinued
                         })
                     )
+                    totalTokenUsage.promptTokens += chunk.usage.promptTokens || 0
+                    totalTokenUsage.completionTokens += chunk.usage.completionTokens || 0
+
+                    if (
+                        chunk.providerMetadata?.openai?.reasoningTokens &&
+                        typeof chunk.providerMetadata.openai.reasoningTokens === "number"
+                    ) {
+                        totalTokenUsage.reasoningTokens +=
+                            chunk.providerMetadata.openai.reasoningTokens
+                    }
                     break
                 }
 

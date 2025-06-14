@@ -1,12 +1,9 @@
-import { GenericActionCtx } from "convex/server"
-import { internalMutation } from "../_generated/server"
-import { CoreMessage, generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
-import { api, internal } from "../_generated/api"
-import { Id } from "../_generated/dataModel"
-import { google } from "@ai-sdk/google"
-import { createLanguageModel } from "../lib/models"
 import { ChatError } from "@/lib/errors"
+import { type CoreMessage, generateText } from "ai"
+import type { GenericActionCtx } from "convex/server"
+import { internal } from "../_generated/api"
+import type { DataModel, Id } from "../_generated/dataModel"
+import { type APIKeyConfig, getLanguageModel } from "../lib/models"
 
 const contentToText = (content: CoreMessage["content"]): string => {
     if (typeof content === "string") {
@@ -18,15 +15,20 @@ const contentToText = (content: CoreMessage["content"]): string => {
             .map((part) => {
                 if (part.type === "text") {
                     return part.text
-                } else if (part.type === "image") {
+                }
+                if (part.type === "image") {
                     return "[image]"
-                } else if (part.type === "file") {
+                }
+                if (part.type === "file") {
                     return `[file: ${part.filename || "unknown"}]`
-                } else if (part.type === "tool-call") {
+                }
+                if (part.type === "tool-call") {
                     return `[tool: ${part.toolName}]`
-                } else if (part.type === "tool-result") {
+                }
+                if (part.type === "tool-result") {
                     return `[tool result: ${part.toolName}]`
-                } else if (part.type === "reasoning") {
+                }
+                if (part.type === "reasoning") {
                     return `[reasoning: ${part.text}]`
                 }
                 return ""
@@ -38,19 +40,24 @@ const contentToText = (content: CoreMessage["content"]): string => {
 }
 
 export const generateThreadName = async (
-    ctx: GenericActionCtx<any>,
+    ctx: GenericActionCtx<DataModel>,
     threadId: Id<"threads">,
     messages: CoreMessage[],
     userId: string
 ) => {
-    const relevant_messages = messages.filter((message) => message.role != "system").slice(0, 5)
+    const relevant_messages = messages.filter((message) => message.role !== "system").slice(0, 5)
 
     const userGoogleApiKey = await ctx.runQuery(internal.apikeys.getDecryptedApiKey, {
         userId,
         provider: "google"
     })
 
-    const modelResult = createLanguageModel("gemini-2.0-flash-lite", "google", userGoogleApiKey)
+    // Create API key configuration for the registry
+    const apiKeys: APIKeyConfig = {
+        google: userGoogleApiKey
+    }
+
+    const modelResult = getLanguageModel("google:gemini-2.0-flash-lite", apiKeys)
     if (modelResult instanceof ChatError) return modelResult
 
     const result = await generateText({

@@ -1,5 +1,4 @@
 import type {
-    DataStreamString,
     FileUIPart,
     ReasoningUIPart,
     TextUIPart,
@@ -7,31 +6,23 @@ import type {
 } from "@ai-sdk/ui-utils"
 
 import { ChatError } from "@/lib/errors"
-import {
-    type TextStreamPart,
-    type ToolCall,
-    createDataStream,
-    formatDataStreamPart,
-    smoothStream,
-    streamText
-} from "ai"
+import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import { createDataStream, smoothStream, streamText } from "ai"
 import type { Infer } from "convex/values"
 import { internal } from "../_generated/api"
 import type { Id } from "../_generated/dataModel"
 import { httpAction } from "../_generated/server"
 import { dbMessagesToCore } from "../lib/db_to_core_messages"
 import { getUserIdentity } from "../lib/identity"
-import { createLanguageModel, getProviderFromModelId } from "../lib/models"
+import { MODELS_SHARED, getLanguageModel } from "../lib/models"
 import { getResumableStreamContext } from "../lib/resumable_stream_context"
+import { type AbilityId, getToolkit } from "../lib/toolkit"
 import type { HTTPAIMessage } from "../schema/message"
 import type { ErrorUIPart } from "../schema/parts"
-import { manualStreamTransform } from "./manual_stream_transform"
-import { RESPONSE_OPTS } from "./shared"
-import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
-import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
 import { generateThreadName } from "./generate_thread_name"
-import { getToolkit, type AbilityId } from "../lib/toolkit"
+import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
+import { RESPONSE_OPTS } from "./shared"
 
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
@@ -83,16 +74,21 @@ export const chatPOST = httpAction(async (ctx, req) => {
         | Infer<typeof ErrorUIPart>
     > = []
 
-    const provider = getProviderFromModelId(body.model)
-    if (!provider) return new ChatError("bad_request:api", "Unsupported model").toResponse()
+    const model = MODELS_SHARED.find((m) => m.id === body.model)
+    if (!model) return new ChatError("bad_request:api", "Unsupported model").toResponse()
 
-    const userApiKey = await ctx.runQuery(internal.apikeys.getDecryptedApiKey, {
-        userId: user.id,
-        provider
-    })
+    const userApiKeys = await ctx.runQuery(internal.apikeys.getAllApiKeys)
+    if ("error" in userApiKeys) return new ChatError("unauthorized:chat").toResponse()
 
-    const modelResult = createLanguageModel(body.model, provider, userApiKey)
+    const modelResult = getLanguageModel(model.id, userApiKeys)
     if (modelResult instanceof ChatError) return modelResult.toResponse()
+
+    // Track token usage
+    const totalTokenUsage = {
+        promptTokens: 0,
+        completionTokens: 0,
+        reasoningTokens: 0
+    }
 
     const stream = createDataStream({
         execute: async (dataStream) => {
@@ -148,11 +144,12 @@ export const chatPOST = httpAction(async (ctx, req) => {
 
             dataStream.merge(
                 result.fullStream.pipeThrough(
-                    manualStreamTransform(parts, mutationResult.assistantMessageId)
+                    manualStreamTransform(parts, totalTokenUsage, mutationResult.assistantMessageId)
                 )
             )
 
             await result.consumeStream()
+
             remoteCancel.abort()
 
             await ctx.runMutation(internal.messages.patchMessage, {
@@ -172,7 +169,10 @@ export const chatPOST = httpAction(async (ctx, req) => {
                               }
                           ],
                 metadata: {
-                    modelId: "gpt-4.1-mini",
+                    modelId: body.model, // Use the actual selected model
+                    promptTokens: totalTokenUsage.promptTokens,
+                    completionTokens: totalTokenUsage.completionTokens,
+                    reasoningTokens: totalTokenUsage.reasoningTokens,
                     serverDurationMs: Date.now() - streamStartTime
                 }
             })

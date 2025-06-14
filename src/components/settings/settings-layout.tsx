@@ -9,7 +9,7 @@ interface SettingsLayoutProps {
 
 export function SettingsLayout({ title, description, action, children }: SettingsLayoutProps) {
     return (
-        <div className="mx-auto max-w-4xl space-y-8 pb-8">
+        <div className="mx-auto max-w-4xl space-y-8">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="font-semibold text-lg">{title}</h1>

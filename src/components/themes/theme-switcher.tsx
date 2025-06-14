@@ -1,5 +1,6 @@
 import { useEditorStore } from "@/lib/editor-store"
 import { toggleThemeMode } from "@/lib/toggle-theme-mode"
+import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 import {
     ExternalLinkIcon,
@@ -323,18 +324,25 @@ export function ThemeSwitcher() {
                                                   : []
 
                                         return (
-                                            <div
+                                            <button
+                                                type="button"
                                                 key={theme.url}
                                                 onClick={() => handleThemeSelect(theme)}
-                                                className={`cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:shadow-md ${
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" || e.key === " ") {
+                                                        e.preventDefault()
+                                                        handleThemeSelect(theme)
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    "cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:shadow-md",
                                                     isSelected
                                                         ? "border-2 border-primary"
-                                                        : "border-border"
-                                                } ${
-                                                    "error" in theme && theme.error
-                                                        ? "cursor-not-allowed opacity-50"
-                                                        : ""
-                                                }`}
+                                                        : "border-border",
+                                                    "error" in theme &&
+                                                        theme.error &&
+                                                        "cursor-not-allowed opacity-50"
+                                                )}
                                             >
                                                 <div className="flex items-center justify-between p-2">
                                                     <div>
@@ -366,7 +374,7 @@ export function ThemeSwitcher() {
                                                         {theme.error}
                                                     </div>
                                                 )}
-                                            </div>
+                                            </button>
                                         )
                                     })}
                                 </div>

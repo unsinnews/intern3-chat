@@ -12,13 +12,10 @@ import {
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MODELS_SHARED, type modelSchema } from "@/convex/lib/models"
+import { MODELS_SHARED, type SharedModel } from "@/convex/lib/models"
 import { cn } from "@/lib/utils"
 import { Check, ChevronDown } from "lucide-react"
 import * as React from "react"
-import type { z } from "zod"
-
-type Model = z.infer<typeof modelSchema>
 
 export function ModelSelector({
     selectedModel,
@@ -33,11 +30,12 @@ export function ModelSelector({
     const selectedModelData = MODELS_SHARED.find((model) => model.id === selectedModel)
 
     const groupedModels = Object.entries(
-        MODELS_SHARED.reduce<Record<string, Model[]>>((acc, model) => {
-            if (!acc[model.provider]) {
-                acc[model.provider] = []
+        MODELS_SHARED.reduce<Record<string, SharedModel[]>>((acc, model) => {
+            const provider = model.id.split(":")[0]
+            if (!acc[provider]) {
+                acc[provider] = []
             }
-            acc[model.provider].push(model)
+            acc[provider].push(model)
             return acc
         }, {})
     )
@@ -59,7 +57,6 @@ export function ModelSelector({
             <PopoverTrigger asChild>
                 <Button
                     variant="ghost"
-                    role="combobox"
                     aria-expanded={open}
                     className={cn(
                         "gap-2 rounded-full border border-accent bg-background font-normal",
@@ -78,24 +75,27 @@ export function ModelSelector({
                         <ScrollArea className="h-[300px]">
                             {groupedModels.map(([provider, providerModels]) => (
                                 <CommandGroup key={provider} heading={provider}>
-                                    {providerModels.map((model) => (
-                                        <CommandItem
-                                            key={model.id}
-                                            onSelect={() => {
-                                                onModelChange(model.id)
-                                                setOpen(false)
-                                            }}
-                                            className="flex items-center gap-2"
-                                        >
-                                            {model.provider === "openai" && <OpenAI />}
-                                            {model.provider === "anthropic" && <Claude />}
-                                            {model.provider === "google" && <Gemini />}
-                                            <span>{model.name}</span>
-                                            {model.id === selectedModel && (
-                                                <Check className="ml-auto h-4 w-4" />
-                                            )}
-                                        </CommandItem>
-                                    ))}
+                                    {providerModels.map((model) => {
+                                        const provider = model.id.split(":")[0]
+                                        return (
+                                            <CommandItem
+                                                key={model.id}
+                                                onSelect={() => {
+                                                    onModelChange(model.id)
+                                                    setOpen(false)
+                                                }}
+                                                className="flex items-center gap-2"
+                                            >
+                                                {provider === "openai" && <OpenAI />}
+                                                {provider === "anthropic" && <Claude />}
+                                                {provider === "google" && <Gemini />}
+                                                <span>{model.name}</span>
+                                                {model.id === selectedModel && (
+                                                    <Check className="ml-auto h-4 w-4" />
+                                                )}
+                                            </CommandItem>
+                                        )
+                                    })}
                                 </CommandGroup>
                             ))}
                         </ScrollArea>

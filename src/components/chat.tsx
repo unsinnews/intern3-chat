@@ -4,7 +4,6 @@ import { useChatActions } from "@/hooks/use-chat-actions"
 import { useChatDataProcessor } from "@/hooks/use-chat-data-processor"
 import { useChatIntegration } from "@/hooks/use-chat-integration"
 import { useThreadSync } from "@/hooks/use-thread-sync"
-// import type { UIMessage } from "ai";
 import { useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { useMemo } from "react"
