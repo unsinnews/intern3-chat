@@ -3,7 +3,7 @@ import { type CoreMessage, generateText } from "ai"
 import type { GenericActionCtx } from "convex/server"
 import { internal } from "../_generated/api"
 import type { DataModel, Id } from "../_generated/dataModel"
-import { getLanguageModel, type APIKeyConfig } from "../lib/models"
+import { type APIKeyConfig, getLanguageModel } from "../lib/models"
 
 const contentToText = (content: CoreMessage["content"]): string => {
     if (typeof content === "string") {

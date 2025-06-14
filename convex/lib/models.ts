@@ -1,8 +1,8 @@
 import { ChatError } from "@/lib/errors"
 import { anthropic, createAnthropic } from "@ai-sdk/anthropic"
 import { createGoogleGenerativeAI, google } from "@ai-sdk/google"
-import { openai, createOpenAI } from "@ai-sdk/openai"
-import { customProvider, createProviderRegistry } from "ai"
+import { createOpenAI, openai } from "@ai-sdk/openai"
+import { createProviderRegistry, customProvider } from "ai"
 import type { LanguageModelV1 } from "ai"
 
 type Registry = ReturnType<typeof createModelRegistry>
