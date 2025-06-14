@@ -2,7 +2,7 @@ import { GenericActionCtx } from "convex/server"
 import { internalMutation } from "../_generated/server"
 import { CoreMessage, generateText } from "ai"
 import { openai } from "@ai-sdk/openai"
-import { internal } from "../_generated/api"
+import { api, internal } from "../_generated/api"
 import { Id } from "../_generated/dataModel"
 import { google } from "@ai-sdk/google"
 import { createLanguageModel } from "../lib/models"
@@ -41,11 +41,16 @@ export const generateThreadName = async (
     ctx: GenericActionCtx<any>,
     threadId: Id<"threads">,
     messages: CoreMessage[],
-    userApiKey: string | null
+    userId: string
 ) => {
     const relevant_messages = messages.filter((message) => message.role != "system").slice(0, 5)
 
-    const modelResult = createLanguageModel("gemini-2.0-flash-lite", "google", userApiKey)
+    const userGoogleApiKey = await ctx.runQuery(internal.apikeys.getDecryptedApiKey, {
+        userId,
+        provider: "google"
+    })
+
+    const modelResult = createLanguageModel("gemini-2.0-flash-lite", "google", userGoogleApiKey)
     if (modelResult instanceof ChatError) return modelResult
 
     const result = await generateText({

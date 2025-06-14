@@ -109,7 +109,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     ctx,
                     mutationResult.threadId,
                     mapped_messages,
-                    userApiKey
+                    user.id
                 )
             }
 
@@ -142,10 +142,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         thinkingConfig: {
                             includeThoughts: true
                         }
-                    } satisfies GoogleGenerativeAIProviderOptions,
-                    openai: {
-                        reasoningEffort: "low"
-                    } satisfies OpenAIResponsesProviderOptions
+                    } satisfies GoogleGenerativeAIProviderOptions
                 }
             })
 
