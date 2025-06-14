@@ -14,7 +14,7 @@ import type { Id } from "../_generated/dataModel"
 import { httpAction } from "../_generated/server"
 import { dbMessagesToCore } from "../lib/db_to_core_messages"
 import { getUserIdentity } from "../lib/identity"
-import { getLanguageModel, MODELS_SHARED, type APIKeyConfig } from "../lib/models"
+import { MODELS_SHARED, getLanguageModel } from "../lib/models"
 import { getResumableStreamContext } from "../lib/resumable_stream_context"
 import { type AbilityId, getToolkit } from "../lib/toolkit"
 import type { HTTPAIMessage } from "../schema/message"
@@ -83,6 +83,13 @@ export const chatPOST = httpAction(async (ctx, req) => {
     const modelResult = getLanguageModel(model.id, userApiKeys)
     if (modelResult instanceof ChatError) return modelResult.toResponse()
 
+    // Track token usage
+    const totalTokenUsage = {
+        promptTokens: 0,
+        completionTokens: 0,
+        reasoningTokens: 0
+    }
+
     const stream = createDataStream({
         execute: async (dataStream) => {
             await ctx.runMutation(internal.threads.updateThreadStreamingState, {
@@ -137,11 +144,12 @@ export const chatPOST = httpAction(async (ctx, req) => {
 
             dataStream.merge(
                 result.fullStream.pipeThrough(
-                    manualStreamTransform(parts, mutationResult.assistantMessageId)
+                    manualStreamTransform(parts, totalTokenUsage, mutationResult.assistantMessageId)
                 )
             )
 
             await result.consumeStream()
+
             remoteCancel.abort()
 
             await ctx.runMutation(internal.messages.patchMessage, {
@@ -161,7 +169,10 @@ export const chatPOST = httpAction(async (ctx, req) => {
                               }
                           ],
                 metadata: {
-                    modelId: "gpt-4.1-mini",
+                    modelId: body.model, // Use the actual selected model
+                    promptTokens: totalTokenUsage.promptTokens,
+                    completionTokens: totalTokenUsage.completionTokens,
+                    reasoningTokens: totalTokenUsage.reasoningTokens,
                     serverDurationMs: Date.now() - streamStartTime
                 }
             })
