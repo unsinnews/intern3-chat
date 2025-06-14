@@ -185,7 +185,7 @@ export function Messages({
                             "mb-8",
                             message.role === "user" &&
                                 targetFromMessageId !== message.id &&
-                                "my-12 ml-auto w-fit max-w-md rounded-sm bg-primary px-4 py-2 text-primary-foreground"
+                                "my-12 ml-auto w-fit max-w-md rounded-md border border-border bg-secondary/50 px-4 py-2 text-foreground"
                         )}
                     >
                         {targetFromMessageId === message.id && targetMode === "edit" ? (

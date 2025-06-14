@@ -21,7 +21,14 @@ function ChatLayout() {
         <SidebarProvider>
             <ThreadsSidebar />
             <SidebarInset>
-                <div className="flex min-h-svh flex-col">
+                <div
+                    className="flex min-h-svh flex-col"
+                    style={{
+                        backgroundImage: "url(https://t3.chat/images/noise.png)",
+                        backgroundRepeat: "repeat",
+                        backgroundSize: "auto"
+                    }}
+                >
                     <Header threadId={threadId} />
                     <Outlet />
                 </div>
