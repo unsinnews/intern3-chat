@@ -26,7 +26,7 @@ index 8837863..cbbdf07 100644
      endpoint: v.string(),
      accessKeyId: v.string(),
      secretAccessKey: v.string(),
-+    forcePathStyle: v.boolean(),
++    forcePathStyle: v.string(),
  });
  export const createR2Client = (args) => {
      return new S3Client({
@@ -34,7 +34,7 @@ index 8837863..cbbdf07 100644
              accessKeyId: args.accessKeyId,
              secretAccessKey: args.secretAccessKey,
          },
-+        ...(args.forcePathStyle ? { forcePathStyle: true } : {}),
++        ...(args.forcePathStyle === "true" ? { forcePathStyle: true } : {}),
      });
  };
  export const withoutSystemFields = (fields) => {
