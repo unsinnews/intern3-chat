@@ -1,8 +1,10 @@
 import { Chat } from "@/components/chat"
 import { createFileRoute } from "@tanstack/react-router"
+import { ChatErrorBoundary } from "./_chat"
 
 export const Route = createFileRoute("/_chat/thread/$threadId")({
-    component: RouteComponent
+    component: RouteComponent,
+    errorComponent: ChatErrorBoundary
 })
 
 function RouteComponent() {

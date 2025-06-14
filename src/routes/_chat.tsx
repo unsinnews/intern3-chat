@@ -1,4 +1,9 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router"
+import {
+    type ErrorComponentProps,
+    Outlet,
+    createFileRoute,
+    useParams
+} from "@tanstack/react-router"
 
 import { Header } from "@/components/header"
 import { ThreadsSidebar } from "@/components/threads-sidebar"
@@ -9,15 +14,47 @@ export const Route = createFileRoute("/_chat")({
 })
 
 function ChatLayout() {
+    const params = useParams({ strict: false })
+    const threadId = params.threadId
+
     return (
         <SidebarProvider>
             <ThreadsSidebar />
             <SidebarInset>
                 <div className="flex min-h-svh flex-col">
-                    <Header />
+                    <Header threadId={threadId} />
                     <Outlet />
                 </div>
             </SidebarInset>
         </SidebarProvider>
+    )
+}
+
+export const ChatErrorBoundary = ({ error, info, reset }: ErrorComponentProps) => {
+    const isNotFound = error.message.includes("ArgumentValidationError")
+
+    return (
+        <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col items-center justify-center">
+            <div className="text-center">
+                {isNotFound ? (
+                    <>
+                        <h1 className="mb-4 font-bold text-4xl text-muted-foreground">404</h1>
+                        <p className="mb-6 text-lg text-muted-foreground">Thread not found</p>
+                        <p className="text-muted-foreground text-sm">
+                            The thread you're looking for doesn't exist or has been deleted.
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <h1 className="mb-4 font-bold text-2xl text-muted-foreground">
+                            Something went wrong
+                        </h1>
+                        <p className="text-muted-foreground text-sm">
+                            An error occurred while loading this page.
+                        </p>
+                    </>
+                )}
+            </div>
+        </div>
     )
 }

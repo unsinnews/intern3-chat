@@ -29,8 +29,7 @@ export const AIMessage = v.object({
         promptTokens: v.optional(v.number()),
         completionTokens: v.optional(v.number()),
         serverDurationMs: v.optional(v.number())
-    }),
-    parentId: v.string()
+    })
 })
 
 export const Message = v.object({

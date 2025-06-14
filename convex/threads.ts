@@ -1,10 +1,12 @@
 import { ChatError } from "@/lib/errors"
-import { v } from "convex/values"
+import { type Infer, v } from "convex/values"
 import { nanoid } from "nanoid"
+import { api, internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
-import { internalMutation, internalQuery, query } from "./_generated/server"
+import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server"
 import { getUserIdentity } from "./lib/identity"
-import { HTTPAIMessage } from "./schema/message"
+import type { Thread } from "./schema"
+import { HTTPAIMessage, type Message } from "./schema/message"
 
 export const getThreadById = internalQuery({
     args: { threadId: v.id("threads") },
@@ -269,5 +271,133 @@ export const updateThreadName = internalMutation({
         await db.patch(threadId, {
             title: name
         })
+    }
+})
+
+// Internal mutations for shared thread operations
+export const createSharedThread = internalMutation({
+    args: {
+        originalThreadId: v.id("threads"),
+        authorId: v.string(),
+        title: v.string(),
+        messages: v.array(v.any()),
+        includeAttachments: v.boolean()
+    },
+    handler: async (
+        { db },
+        { originalThreadId, authorId, title, messages, includeAttachments }
+    ) => {
+        const sharedThreadId = await db.insert("sharedThreads", {
+            originalThreadId,
+            authorId,
+            title,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            messages,
+            includeAttachments
+        })
+        return { sharedThreadId }
+    }
+})
+
+export const getSharedThread = query({
+    args: { sharedThreadId: v.id("sharedThreads") },
+    handler: async ({ db }, { sharedThreadId }) => {
+        const sharedThread = await db.get(sharedThreadId)
+        if (!sharedThread) return null
+
+        return sharedThread
+    }
+})
+
+// Shared Thread Functions
+export const shareThread = action({
+    args: {
+        threadId: v.id("threads"),
+        includeAttachments: v.optional(v.boolean())
+    },
+    handler: async (ctx, { threadId, includeAttachments = false }) => {
+        const user = await getUserIdentity(ctx.auth, {
+            allowAnons: true
+        })
+
+        if ("error" in user) return { error: user.error }
+
+        // Get the original thread
+        const thread: Infer<typeof Thread> | null = await ctx.runQuery(
+            internal.threads.getThreadById,
+            { threadId }
+        )
+        if (!thread || thread.authorId !== user.id) {
+            return { error: "Unauthorized" }
+        }
+
+        // Get all messages for the thread
+        const messages: Infer<typeof Message>[] = await ctx.runQuery(
+            internal.messages.getMessagesByThreadId,
+            { threadId }
+        )
+
+        // Convert messages to AIMessage format for shared thread
+        const aiMessages = messages.map((msg) => ({
+            messageId: msg.messageId,
+            role: msg.role,
+            parts: msg.parts,
+            createdAt: msg.createdAt,
+            updatedAt: msg.updatedAt,
+            metadata: msg.metadata
+        }))
+
+        aiMessages.reverse()
+
+        // Create shared thread
+        const result: {
+            sharedThreadId: Id<"sharedThreads">
+        } = await ctx.runMutation(internal.threads.createSharedThread, {
+            originalThreadId: threadId,
+            authorId: user.id,
+            title: thread.title,
+            messages: aiMessages,
+            includeAttachments
+        })
+
+        return result
+    }
+})
+
+export const forkSharedThread = mutation({
+    args: { sharedThreadId: v.id("sharedThreads") },
+    handler: async (ctx, { sharedThreadId }) => {
+        const user = await getUserIdentity(ctx.auth, {
+            allowAnons: true
+        })
+
+        if ("error" in user) return { error: user.error }
+
+        const sharedThread = await ctx.runQuery(api.threads.getSharedThread, { sharedThreadId })
+        if (!sharedThread) return { error: "Shared thread not found" }
+
+        // Create new thread for the user
+        const newThreadId: Id<"threads"> = await ctx.db.insert("threads", {
+            authorId: user.id,
+            title: sharedThread.title,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        })
+
+        // Copy messages to new thread
+        for (const message of sharedThread.messages) {
+            await ctx.db.insert("messages", {
+                threadId: newThreadId,
+                messageId: message.messageId,
+                role: message.role,
+                parts: message.parts,
+                createdAt: message.createdAt,
+                updatedAt: message.updatedAt,
+                metadata: message.metadata
+            })
+        }
+
+        return { threadId: newThreadId }
     }
 })

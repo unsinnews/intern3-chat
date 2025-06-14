@@ -1,6 +1,7 @@
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { backendToUiMessages } from "@/convex/lib/backend_to_ui_messages"
+import type { SharedThread, Thread } from "@/convex/schema"
 import { useToken } from "@/hooks/auth-hooks"
 import { useAutoResume } from "@/hooks/use-auto-resume"
 import { browserEnv } from "@/lib/browser-env"
@@ -9,14 +10,19 @@ import { useModelStore } from "@/lib/model-store"
 import { type Message, useChat } from "@ai-sdk/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useQuery as useConvexQuery } from "convex/react"
+import type { Infer } from "convex/values"
 import { nanoid } from "nanoid"
 import { useCallback, useMemo, useRef } from "react"
 
-interface UseChatIntegrationProps {
+export function useChatIntegration<IsShared extends boolean>({
+    threadId,
+    sharedThreadId,
+    isShared
+}: {
     threadId: string | undefined
-}
-
-export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
+    sharedThreadId?: string | undefined
+    isShared?: IsShared
+}) {
     const tokenData = useToken()
     const queryClient = useQueryClient()
     const { selectedModel, enabledTools } = useModelStore()
@@ -24,28 +30,57 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
         useChatStore()
     const seededNextId = useRef<string | null>(null)
 
+    // For regular threads, use getThreadMessages
     const threadMessages = useConvexQuery(
         api.threads.getThreadMessages,
-        threadId ? { threadId: threadId as Id<"threads"> } : "skip"
+        !isShared && threadId ? { threadId: threadId as Id<"threads"> } : "skip"
+    )
+
+    // For shared threads, get the shared thread data
+    const sharedThread = useConvexQuery(
+        api.threads.getSharedThread,
+        isShared && sharedThreadId
+            ? { sharedThreadId: sharedThreadId as Id<"sharedThreads"> }
+            : "skip"
     )
 
     const thread = useConvexQuery(
         api.threads.getThread,
-        threadId ? { threadId: threadId as Id<"threads"> } : "skip"
+        !isShared && threadId ? { threadId: threadId as Id<"threads"> } : "skip"
     )
 
     const initialMessages = useMemo(() => {
+        if (isShared) {
+            if (!sharedThread?.messages) return []
+            // Shared thread messages need threadId for compatibility
+            return backendToUiMessages(
+                sharedThread.messages.map((msg) => ({
+                    ...msg,
+                    threadId: sharedThreadId as Id<"threads">
+                }))
+            )
+        }
+
         if (!threadMessages || "error" in threadMessages) return []
         return backendToUiMessages(threadMessages)
-    }, [threadMessages])
+    }, [threadMessages, sharedThread, isShared, sharedThreadId])
 
     const chatHelpers = useChat({
-        id: threadId === undefined ? `new_chat_${rerenderTrigger}` : threadId,
-        headers: {
-            authorization: `Bearer ${tokenData.token}`
-        },
+        id: isShared
+            ? `shared_${sharedThreadId}`
+            : threadId === undefined
+              ? `new_chat_${rerenderTrigger}`
+              : threadId,
+        headers: isShared
+            ? {}
+            : {
+                  authorization: `Bearer ${tokenData.token}`
+              },
         experimental_throttle: 50,
         experimental_prepareRequestBody(body) {
+            // Skip request preparation for shared threads since they're read-only
+            if (isShared) return null
+
             if (threadId) {
                 useChatStore.getState().setPendingStream(threadId, true)
             }
@@ -69,12 +104,12 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
         },
         initialMessages,
         onFinish: () => {
-            if (shouldUpdateQuery) {
+            if (!isShared && shouldUpdateQuery) {
                 setShouldUpdateQuery(false)
                 triggerRerender()
             }
         },
-        api: `${browserEnv("VITE_CONVEX_API_URL")}/chat`,
+        api: isShared ? undefined : `${browserEnv("VITE_CONVEX_API_URL")}/chat`,
         generateId: () => {
             if (seededNextId.current) {
                 const id = seededNextId.current
@@ -109,7 +144,7 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
     ])
 
     useAutoResume({
-        autoResume: true,
+        autoResume: !isShared, // Skip auto resume for shared threads
         thread: thread || undefined,
         threadId,
         experimental_resume: customResume,
@@ -117,5 +152,11 @@ export function useChatIntegration({ threadId }: UseChatIntegrationProps) {
         threadMessages
     })
 
-    return { ...chatHelpers, seededNextId }
+    return {
+        ...chatHelpers,
+        seededNextId,
+        thread: (thread || sharedThread) as unknown as IsShared extends true
+            ? Infer<typeof SharedThread>
+            : Infer<typeof Thread>
+    }
 }
