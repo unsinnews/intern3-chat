@@ -46,7 +46,7 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
     const location = useLocation()
 
     return (
-        <div className="flex h-screen flex-col bg-background">
+        <div className="flex h-screen flex-col bg-background overflow-hidden">
             <div className="container mx-auto flex max-w-6xl flex-1 flex-col overflow-hidden p-6">
                 {/* Header */}
                 <div className="mb-8">
@@ -71,7 +71,7 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 overflow-hidden">
                     {/* Navigation */}
                     <div className="flex-shrink-0 lg:w-64">
                         <nav className="space-y-1">
@@ -99,7 +99,7 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
 
                     {/* Main Content */}
-                    <ScrollArea className="flex-1">
+                    <ScrollArea className="flex-1 col-span-3 overflow-hidden">
                         <div className="space-y-6 pr-4">
                             <Outlet />
                         </div>
