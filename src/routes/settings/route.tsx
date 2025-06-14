@@ -1,13 +1,33 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
-import { Card } from "@/components/ui/card"
+import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router"
+import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
-import { User, Key, X } from "lucide-react"
+import { User, Key, ArrowLeft } from "lucide-react"
 import { Link } from "@tanstack/react-router"
+import { cn } from "@/lib/utils"
+
+interface SettingsLayoutProps {
+    children?: ReactNode
+    title?: string
+    description?: string
+}
+
+const settingsNavItems = [
+    {
+        title: "Profile",
+        href: "/settings/profile",
+        icon: User,
+    },
+    {
+        title: "API Keys", 
+        href: "/settings/apikeys",
+        icon: Key,
+    }
+]
 
 export const Route = createFileRoute("/settings")({
     beforeLoad: ({ location }) => {
         // Redirect to profile page if we're at /settings exactly
-        if (location.pathname === "/settings") {
+        if (location.pathname === "/settings/") {
             throw redirect({
                 to: "/settings/profile"
             })
@@ -16,62 +36,63 @@ export const Route = createFileRoute("/settings")({
     component: SettingsLayout
 })
 
-function SettingsLayout() {
+function SettingsLayout({ title, description }: SettingsLayoutProps) {
+    const location = useLocation()
+
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex">
-                    <div className="w-64 bg-gray-50 dark:bg-gray-900 p-6 border-r border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                Settings
-                            </h2>
-                            <Link to="/">
-                                <Button variant="ghost" size="sm">
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </div>
+        <div className="min-h-screen bg-background">
+            <div className="container mx-auto max-w-6xl p-6">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex items-center gap-4 mb-6">
+                        <Link to="/">
+                            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                                <ArrowLeft className="h-4 w-4" />
+                                Back
+                            </Button>
+                        </Link>
+                    </div>
+                    
+                    <div className="space-y-1">
+                        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+                        <p className="text-muted-foreground">
+                            Manage your account preferences and configuration.
+                        </p>
+                    </div>
+                </div>
 
-                        <div className="space-y-1">
-                            <div className="mb-6">
-                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-                                    Settings
-                                </p>
-                                <nav className="space-y-1">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    {/* Navigation */}
+                    <div className="lg:col-span-1">
+                        <nav className="space-y-1">
+                            {settingsNavItems.map((item) => {
+                                const isActive = location.pathname === item.href
+                                const Icon = item.icon
+                                
+                                return (
                                     <Link
-                                        to="/settings/profile"
-                                        className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                        activeProps={{
-                                            className:
-                                                "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                        }}
+                                        key={item.href}
+                                        to={item.href}
+                                        className={cn(
+                                            "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                            isActive 
+                                                ? "bg-muted text-foreground" 
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                        )}
                                     >
-                                        <User className="mr-3 h-4 w-4" />
-                                        Profile
+                                        <Icon className="h-4 w-4" />
+                                        {item.title}
                                     </Link>
-                                </nav>
-
-
-                                <nav className="space-y-1">
-                                    <Link
-                                        to="/settings/apikeys"
-                                        className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                        activeProps={{
-                                            className:
-                                                "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                        }}
-                                    >
-                                        <Key className="mr-3 h-4 w-4" />
-                                        API Keys
-                                    </Link>
-                                </nav>
-                            </div>
-                        </div>
+                                )
+                            })}
+                        </nav>
                     </div>
 
-                    <div className="flex-1 p-8">
-                        <Outlet />
+                    {/* Main Content */}
+                    <div className="lg:col-span-3 overflow-y-auto max-h-[calc(100vh-12rem)]">
+                        <div className="space-y-6">
+                            <Outlet />
+                        </div>
                     </div>
                 </div>
             </div>
