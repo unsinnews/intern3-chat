@@ -30,7 +30,7 @@ export const getResumableStreamContext = () => {
             globalStreamContext = createResumableStreamContext({
                 waitUntil: (promise) => promise,
                 subscriber: {
-                    connect: async () => { },
+                    connect: async () => {},
                     subscribe: (async (channel: string, callback: (message: string) => void) => {
                         console.debug(`[Redis] Subscribing to channel: ${channel}`)
                         const subscriber = redis.subscribe(channel)
@@ -92,7 +92,7 @@ export const getResumableStreamContext = () => {
                     }) satisfies Subscriber["unsubscribe"]
                 },
                 publisher: {
-                    connect: async () => { },
+                    connect: async () => {},
                     publish: async (channel: string, message: string) => {
                         if (debugMode)
                             console.debug(`[Redis] Publishing to channel: ${channel} ${message}`)

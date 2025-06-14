@@ -1,7 +1,7 @@
 import { tool } from "ai"
 import { z } from "zod"
 import type { ConditionalToolParams } from "../toolkit"
-import { SearchProvider, type SearchProviderType } from "./adapters"
+import { SearchProvider } from "./adapters"
 
 export const WebSearchTool = {
     id: "web_search" as const,

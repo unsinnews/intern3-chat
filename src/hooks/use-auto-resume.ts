@@ -1,9 +1,9 @@
 "use client"
 
 import type { Thread } from "@/convex/schema/thread"
+import { useChatStore } from "@/lib/chat-store"
 import type { Infer } from "convex/values"
 import { useEffect } from "react"
-import { useChatStore } from "@/lib/chat-store"
 
 export interface AutoResumeProps {
     autoResume: boolean
