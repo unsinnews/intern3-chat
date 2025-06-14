@@ -131,6 +131,8 @@
         "onlyBuiltDependencies": ["@parcel/watcher", "esbuild", "sharp"]
     },
     "lint-staged": {
-        "*.{js,jsx,ts,tsx,json}": ["biome check --write --files-ignore-unknown=true"]
+        "*.{js,jsx,ts,tsx,json}": [
+            "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched"
+        ]
     }
 }
