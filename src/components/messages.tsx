@@ -7,6 +7,7 @@ import { ChatActions } from "./chat-actions"
 import { MemoizedMarkdown } from "./memoized-markdown"
 import { WebSearchToolRenderer } from "./renderers/web-search-ui"
 import { Button } from "./ui/button"
+import { Loader } from "./ui/loader"
 import { ScrollArea } from "./ui/scroll-area"
 import { Textarea } from "./ui/textarea"
 
@@ -129,11 +130,13 @@ EditableMessage.displayName = "EditableMessage"
 export function Messages({
     messages,
     onRetry,
-    onEditAndRetry
+    onEditAndRetry,
+    status
 }: {
     messages: UIMessage[]
     onRetry?: (message: UIMessage) => void
     onEditAndRetry?: (messageId: string, newContent: string) => void
+    status?: "idle" | "streaming" | "submitted" | string
 }) {
     const { setTargetFromMessageId, targetFromMessageId, setTargetMode, targetMode } =
         useChatStore()
@@ -155,6 +158,20 @@ export function Messages({
         setTargetFromMessageId(undefined)
         setTargetMode("normal")
     }
+
+    const lastMessage = messages[messages.length - 1]
+    const isStreamingWithoutContent =
+        status === "streaming" &&
+        lastMessage?.role === "assistant" &&
+        (!lastMessage.parts ||
+            lastMessage.parts.length === 0 ||
+            lastMessage.parts.every(
+                (part) =>
+                    (part.type === "text" && (!part.text || part.text.trim() === "")) ||
+                    (part.type === "reasoning" && (!part.reasoning || part.reasoning.trim() === ""))
+            ))
+
+    const showTypingLoader = status === "submitted" || isStreamingWithoutContent
 
     return (
         <ScrollArea className="h-full p-4 pt-0">
@@ -208,6 +225,12 @@ export function Messages({
                         )}
                     </div>
                 ))}
+
+                {showTypingLoader && (
+                    <div className="flex items-center gap-2 py-4">
+                        <Loader variant="typing" size="md" />
+                    </div>
+                )}
             </div>
         </ScrollArea>
     )

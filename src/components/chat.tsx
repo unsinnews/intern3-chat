@@ -18,7 +18,6 @@ export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
     const { threadId } = useThreadSync({ routeThreadId })
     const { setTargetFromMessageId } = useChatStore()
 
-    // Memoize model selection to avoid unnecessary re-renders
     useMemo(() => {
         if (!selectedModel && MODELS_SHARED.length > 0) {
             setSelectedModel(MODELS_SHARED[0].id)
@@ -41,6 +40,7 @@ export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
                 messages={messages}
                 onRetry={handleRetry}
                 onEditAndRetry={handleEditAndRetry}
+                status={status}
             />
             <div className="-bottom-10 absolute right-0 left-0 z-[10] flex justify-center">
                 <MultimodalInput onSubmit={handleInputSubmit} status={status} />
