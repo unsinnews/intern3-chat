@@ -21,7 +21,7 @@ import type { Id } from "../_generated/dataModel"
 import { httpAction } from "../_generated/server"
 import { dbMessagesToCore } from "../lib/db_to_core_messages"
 import { getUserIdentity } from "../lib/identity"
-import { createLanguageModel, getProviderFromModelId } from "../lib/models"
+import { getLanguageModel, MODELS_SHARED, type APIKeyConfig } from "../lib/models"
 import { getResumableStreamContext } from "../lib/resumable_stream_context"
 import type { HTTPAIMessage } from "../schema/message"
 import type { ErrorUIPart } from "../schema/parts"
@@ -83,15 +83,13 @@ export const chatPOST = httpAction(async (ctx, req) => {
         | Infer<typeof ErrorUIPart>
     > = []
 
-    const provider = getProviderFromModelId(body.model)
-    if (!provider) return new ChatError("bad_request:api", "Unsupported model").toResponse()
+    const model = MODELS_SHARED.find((m) => m.id === body.model)
+    if (!model) return new ChatError("bad_request:api", "Unsupported model").toResponse()
 
-    const userApiKey = await ctx.runQuery(internal.apikeys.getDecryptedApiKey, {
-        userId: user.id,
-        provider
-    })
+    const userApiKeys = await ctx.runQuery(internal.apikeys.getAllApiKeys)
+    if ("error" in userApiKeys) return new ChatError("unauthorized:chat").toResponse()
 
-    const modelResult = createLanguageModel(body.model, provider, userApiKey)
+    const modelResult = getLanguageModel(model.id, userApiKeys)
     if (modelResult instanceof ChatError) return modelResult.toResponse()
 
     const stream = createDataStream({

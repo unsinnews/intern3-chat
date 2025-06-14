@@ -113,3 +113,30 @@ export const listApiKeys = query({
         })
     }
 })
+
+export const getAllApiKeys = internalQuery({
+    handler: async (ctx) => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) {
+            return { error: user.error }
+        }
+
+        const apiKeys = await ctx.db
+            .query("apiKeys")
+            .withIndex("byUserProvider", (q) => q.eq("userId", user.id))
+            .collect()
+
+        const result: Record<string, string> = {}
+
+        for (const key of apiKeys) {
+            try {
+                const decryptedKey = await decryptKey(key.encryptedKey)
+                result[key.provider] = decryptedKey
+            } catch (error) {
+                console.error(`Failed to decrypt API key for provider ${key.provider}:`, error)
+            }
+        }
+
+        return result
+    }
+})
