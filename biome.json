@@ -7,7 +7,12 @@
         "defaultBranch": "main"
     },
     "files": {
-        "ignore": ["./components/ui/**", "./migrations/**", "routeTree.gen.ts"]
+        "ignore": [
+            "./components/ui/**",
+            "./migrations/**",
+            "routeTree.gen.ts",
+            "./convex/_generated/**"
+        ]
     },
     "formatter": {
         "indentStyle": "space",
