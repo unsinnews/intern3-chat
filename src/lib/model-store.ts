@@ -1,7 +1,7 @@
-import { create } from "zustand"
-import { loadAIConfig, saveAIConfig, type AIConfig } from "@/lib/persistence"
-import type { Model, MODELS_SHARED } from "@/convex/lib/models"
+import type { Model } from "@/convex/lib/models"
 import type { AbilityId } from "@/convex/lib/toolkit"
+import { type AIConfig, loadAIConfig, saveAIConfig } from "@/lib/persistence"
+import { create } from "zustand"
 
 export type ModelStore = {
     selectedModel: Model["id"] | null
