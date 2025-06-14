@@ -1,9 +1,26 @@
 import { Link } from "@tanstack/react-router"
-import { useQuery as useConvexQuery } from "convex/react"
+import { useQuery as useConvexQuery, useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { Pin, Plus, Search } from "lucide-react"
+import { MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 import { buttonVariants } from "@/components/ui/button"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
     Sidebar,
@@ -18,26 +35,111 @@ import {
 } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { useSession } from "@/hooks/auth-hooks"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 
 interface Thread {
-    _id: string
+    _id: Id<"threads">
     title: string
     createdAt: number
     authorId: string
+    pinned?: boolean
 }
 
 function ThreadItem({ thread }: { thread: Thread }) {
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const deleteThreadMutation = useMutation(api.threads.deleteThread)
+    const togglePinMutation = useMutation(api.threads.togglePinThread)
+
+    const handleDelete = async () => {
+        try {
+            await deleteThreadMutation({ threadId: thread._id })
+            setShowDeleteDialog(false)
+        } catch (error) {
+            console.error("Failed to delete thread:", error)
+            toast.error("Failed to delete thread")
+        }
+    }
+
+    const handleTogglePin = async () => {
+        const pinned = thread.pinned
+        try {
+            await togglePinMutation({ threadId: thread._id })
+        } catch (error) {
+            console.error("Failed to toggle pin:", error)
+            toast.error(`Failed to ${pinned ? "unpin" : "pin"} thread`)
+        }
+    }
+
     return (
-        <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-                <Link to="/thread/$threadId" params={{ threadId: thread._id }}>
-                    <span className="truncate">{thread.title}</span>
-                </Link>
-            </SidebarMenuButton>
-        </SidebarMenuItem>
+        <>
+            <SidebarMenuItem>
+                <div
+                    className={cn(
+                        "group/item flex w-full items-center rounded-sm hover:bg-accent/50",
+                        isMenuOpen && "bg-accent/50"
+                    )}
+                >
+                    <SidebarMenuButton asChild className="flex-1 hover:bg-transparent">
+                        <Link to="/thread/$threadId" params={{ threadId: thread._id }}>
+                            <span className="truncate">{thread.title}</span>
+                        </Link>
+                    </SidebarMenuButton>
+
+                    <DropdownMenu onOpenChange={setIsMenuOpen}>
+                        <DropdownMenuTrigger asChild>
+                            <button
+                                type="button"
+                                className={cn(
+                                    "rounded p-1 transition-opacity",
+                                    isMenuOpen || "opacity-0 group-hover/item:opacity-100"
+                                )}
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={handleTogglePin}>
+                                <Pin className="h-4 w-4" />
+                                {thread.pinned ? "Unpin" : "Pin"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setShowDeleteDialog(true)}
+                                variant="destructive"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </SidebarMenuItem>
+
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Thread</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete{" "}
+                            <span className="font-bold">{thread.title?.trim()}</span>? <br /> This
+                            action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     )
 }
 
@@ -71,7 +173,6 @@ function ThreadsGroup({
 
 function groupThreadsByTime(threads: Thread[]) {
     const now = new Date()
-    const yesterday = subDays(now, 1)
     const lastWeek = subDays(now, 7)
     const lastMonth = subDays(now, 30)
 
@@ -83,6 +184,10 @@ function groupThreadsByTime(threads: Thread[]) {
 
     threads.forEach((thread) => {
         const threadDate = new Date(thread.createdAt)
+        if (thread.pinned) {
+            pinned.push(thread)
+            return
+        }
 
         if (isToday(threadDate)) {
             today.push(thread)

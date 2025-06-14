@@ -218,7 +218,15 @@ export const getAllUserThreads = query({
             .order("desc")
             .collect()
 
-        return threads
+        // Sort threads: pinned threads first, then by updatedAt descending
+        return threads.sort((a, b) => {
+            // First, sort by pinned status (pinned threads first)
+            if (a.pinned && !b.pinned) return -1
+            if (!a.pinned && b.pinned) return 1
+
+            // If both have same pinned status, sort by updatedAt descending
+            return b.updatedAt - a.updatedAt
+        })
     }
 })
 
@@ -399,5 +407,41 @@ export const forkSharedThread = mutation({
         }
 
         return { threadId: newThreadId }
+    }
+})
+
+export const togglePinThread = mutation({
+    args: { threadId: v.id("threads") },
+    handler: async (ctx, { threadId }) => {
+        const user = await getUserIdentity(ctx.auth, {
+            allowAnons: false
+        })
+
+        if ("error" in user) return { error: user.error }
+
+        const thread = await ctx.db.get(threadId)
+        if (!thread || thread.authorId !== user.id) return { error: "Unauthorized" }
+
+        await ctx.db.patch(threadId, {
+            pinned: !thread.pinned
+        })
+
+        return { pinned: !thread.pinned }
+    }
+})
+
+export const deleteThread = mutation({
+    args: { threadId: v.id("threads") },
+    handler: async (ctx, { threadId }) => {
+        const user = await getUserIdentity(ctx.auth, {
+            allowAnons: false
+        })
+
+        if ("error" in user) return { error: user.error }
+
+        const thread = await ctx.db.get(threadId)
+        if (!thread || thread.authorId !== user.id) return { error: "Unauthorized" }
+
+        await ctx.db.delete(threadId)
     }
 })
