@@ -14,7 +14,7 @@ export function SettingsLayout({
   children,
 }: SettingsLayoutProps) {
   return (
-    <div className="max-w-4xl mx-auto pb-8 space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">{title}</h1>

@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router"
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { User, Key, ArrowLeft } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { cn } from "@/lib/utils"
@@ -40,10 +41,10 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
     const location = useLocation()
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="container mx-auto max-w-6xl p-6">
+        <div className="h-screen bg-background flex flex-col">
+            <div className="container mx-auto max-w-6xl p-6 flex flex-col flex-1 overflow-hidden">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-8 flex-shrink-0">
                     <div className="flex items-center gap-4 mb-6">
                         <Link to="/">
                             <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
@@ -61,9 +62,9 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="flex flex-col lg:flex-row gap-8 overflow-hidden">
                     {/* Navigation */}
-                    <div className="lg:col-span-1">
+                    <div className="lg:w-64 flex-shrink-0">
                         <nav className="space-y-1">
                             {settingsNavItems.map((item) => {
                                 const isActive = location.pathname === item.href
@@ -89,11 +90,11 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
 
                     {/* Main Content */}
-                    <div className="lg:col-span-3 overflow-y-auto max-h-[calc(100vh-12rem)]">
-                        <div className="space-y-6">
-                            <Outlet />
-                        </div>
-                    </div>
+                        <ScrollArea className="flex-1">
+                            <div className="space-y-6 pr-4">
+                                <Outlet />
+                            </div>
+                        </ScrollArea>
                 </div>
             </div>
         </div>

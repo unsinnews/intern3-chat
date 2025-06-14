@@ -48,7 +48,7 @@ export const deleteApiKey = mutation({
     handler: async (ctx, args) => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
         if ("error" in user) {
-            throw new Error("Unauthorized")
+            return { error: user.error }
         }
 
         const apiKey = await ctx.db.get(args.keyId)
