@@ -1,34 +1,34 @@
 import { GitHubIcon, UserButton } from "@daveyplate/better-auth-ui"
-import { ShareButton } from "./share-button"
+import { SettingsIcon } from "lucide-react"
 import { ThemeSwitcher } from "./themes/theme-switcher"
-import { Button } from "./ui/button"
 import { SidebarTrigger } from "./ui/sidebar"
+import { ShareButton } from "./share-button"
 
-interface HeaderProps {
-    threadId?: string
-}
-
-export function Header({ threadId }: HeaderProps) {
+export function Header({ threadId }: { threadId?: string }) {
     return (
-        <header className="sticky top-0 z-50 border-b bg-background/60 px-4 py-3 backdrop-blur">
-            <div className="container mx-auto flex items-center justify-between">
-                <SidebarTrigger />
-
-                <div className="flex items-center gap-2">
+        <header className="pointer-events-none absolute top-0 z-50 w-full">
+            <div className="flex w-full items-center justify-between">
+                <div className="pointer-events-auto p-4">
+                    <SidebarTrigger />
+                </div>
+                <div className="pointer-events-auto flex items-center gap-2 p-4">
                     {threadId && <ShareButton threadId={threadId} />}
-
-                    <a
-                        href="https://github.com/daveyplate/better-auth-tanstack-starter"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <Button variant="outline" size="icon" className="size-8 rounded-full">
-                            <GitHubIcon />
-                        </Button>
-                    </a>
-
                     <ThemeSwitcher />
-                    <UserButton />
+                    <UserButton
+                        additionalLinks={[
+                            {
+                                label: "Settings",
+                                href: "/settings",
+                                icon: <SettingsIcon className="size-4" />
+                            },
+                            {
+                                label: "GitHub",
+                                href: "https://github.com/intern3-chat/intern3-chat",
+                                icon: <GitHubIcon className="size-4" />
+                            }
+                        ]}
+                        disableDefaultLinks={true}
+                    />
                 </div>
             </div>
         </header>

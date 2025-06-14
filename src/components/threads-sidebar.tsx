@@ -3,7 +3,7 @@ import { useQuery as useConvexQuery, useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
 import { toast } from "sonner"
-
+import { buttonVariants } from "@/components/ui/button"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -14,7 +14,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { buttonVariants } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -221,7 +220,9 @@ export function ThreadsSidebar() {
             <Sidebar variant="inset">
                 <SidebarHeader className="gap-3">
                     <div className="flex items-center justify-between">
-                        <div className="font-medium text-base text-sidebar-foreground">T3.chat</div>
+                        <div className="font-medium text-base text-sidebar-foreground">
+                            Intern3.chat
+                        </div>
                     </div>
                     <Link
                         to="/"
@@ -248,7 +249,9 @@ export function ThreadsSidebar() {
             <Sidebar variant="inset">
                 <SidebarHeader className="gap-3">
                     <div className="flex items-center justify-between">
-                        <div className="font-medium text-base text-sidebar-foreground">T3.chat</div>
+                        <div className="font-medium text-base text-sidebar-foreground tracking-tight">
+                            Intern3.chat
+                        </div>
                     </div>
                     <Link
                         to="/"
@@ -289,7 +292,9 @@ export function ThreadsSidebar() {
         return (
             <Sidebar variant="inset">
                 <SidebarHeader>
-                    <div className="font-medium text-base text-sidebar-foreground">T3.chat</div>
+                    <div className="font-medium text-base text-sidebar-foreground tracking-tight">
+                        Intern3.chat
+                    </div>
                 </SidebarHeader>
                 <SidebarContent>
                     <div className="p-4 text-center text-muted-foreground">
@@ -312,7 +317,9 @@ export function ThreadsSidebar() {
         <Sidebar variant="inset">
             <SidebarHeader className="gap-3">
                 <div className="flex items-center justify-between">
-                    <div className="font-medium text-base text-sidebar-foreground">T3.chat</div>
+                    <div className="font-medium text-base text-sidebar-foreground tracking-tight">
+                        Intern3.chat
+                    </div>
                 </div>
                 <Link
                     to="/"

@@ -12,7 +12,7 @@ import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
-import { ArrowUp, Loader2, Paperclip, Search, Square, Upload, X } from "lucide-react"
+import { ArrowUp, Globe, Loader2, Paperclip, Square, Upload, X } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
 
 export function MultimodalInput({
@@ -145,60 +145,13 @@ export function MultimodalInput({
     }
 
     return (
-        <div
-            className={cn(
-                "mx-auto w-full max-w-2xl",
-                dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
-            )}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-        >
+        <div>
             <PromptInput
-                ref={promptInputRef}
-                isLoading={isLoading}
-                onSubmit={handleSubmit}
-                className="w-full"
+                className={cn(
+                    "mx-auto w-full max-w-2xl",
+                    dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
+                )}
             >
-                {uploadedFiles.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pb-2">
-                        {uploadedFiles.map((uploadedFile) => (
-                            <div
-                                key={uploadedFile.key}
-                                className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm"
-                            >
-                                <Paperclip className="size-4" />
-                                <div className="flex flex-col">
-                                    <span className="max-w-[120px] truncate">
-                                        {uploadedFile.fileName}
-                                    </span>
-                                    <span className="text-muted-foreground text-xs">
-                                        {formatFileSize(uploadedFile.fileSize)}
-                                    </span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveFile(uploadedFile.key)}
-                                    className="rounded-full p-1 hover:bg-secondary/50"
-                                >
-                                    <X className="size-4" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {dragActive && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
-                        <div className="text-center">
-                            <Upload className="mx-auto mb-2 h-8 w-8 text-primary" />
-                            <p className="font-medium text-primary text-sm">
-                                Drop files here to upload
-                            </p>
-                        </div>
-                    </div>
-                )}
-
                 <PromptInputTextarea
                     placeholder="Ask me anything..."
                     value={input}
@@ -206,14 +159,56 @@ export function MultimodalInput({
                 />
 
                 <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex items-center gap-2">
+                        {selectedModel && (
+                            <ModelSelector
+                                selectedModel={selectedModel}
+                                onModelChange={setSelectedModel}
+                            />
+                        )}
+
+                        {uploadedFiles.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pb-2">
+                                {uploadedFiles.map((uploadedFile) => (
+                                    <div
+                                        key={uploadedFile.key}
+                                        className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm"
+                                    >
+                                        <Paperclip className="size-4" />
+                                        <div className="flex flex-col">
+                                            <span className="max-w-[120px] truncate">
+                                                {uploadedFile.fileName}
+                                            </span>
+                                            <span className="text-muted-foreground text-xs">
+                                                {formatFileSize(uploadedFile.fileSize)}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveFile(uploadedFile.key)}
+                                            className="rounded-full p-1 hover:bg-secondary/50"
+                                        >
+                                            <X className="size-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {dragActive && (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
+                                <div className="text-center">
+                                    <Upload className="mx-auto mb-2 h-8 w-8 text-primary" />
+                                    <p className="font-medium text-primary text-sm">
+                                        Drop files here to upload
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         <PromptInputAction tooltip="Attach files">
                             <label
                                 htmlFor="file-upload"
-                                className={cn(
-                                    "flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10",
-                                    uploading && "cursor-not-allowed opacity-50"
-                                )}
+                                className="flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-full border border-accent hover:bg-secondary"
                             >
                                 <input
                                     type="file"
@@ -222,21 +217,15 @@ export function MultimodalInput({
                                     className="hidden"
                                     id="file-upload"
                                     ref={uploadInputRef}
-                                    disabled={uploading}
                                 />
                                 {uploading ? (
                                     <Loader2 className="size-5 animate-spin text-primary" />
                                 ) : (
                                     <Paperclip className="-rotate-45 size-5 text-primary" />
                                 )}
+                                {/* <span className="text-sm">Attach</span> */}
                             </label>
                         </PromptInputAction>
-                        {selectedModel && (
-                            <ModelSelector
-                                selectedModel={selectedModel}
-                                onModelChange={setSelectedModel}
-                            />
-                        )}
 
                         <PromptInputAction tooltip="Search the web">
                             <button
@@ -249,12 +238,13 @@ export function MultimodalInput({
                                     )
                                 }}
                                 className={cn(
-                                    "flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl hover:bg-secondary-foreground/10",
+                                    "flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-full border border-accent hover:bg-secondary",
                                     enabledTools.includes("web_search") &&
                                         "bg-secondary-foreground/10"
                                 )}
                             >
-                                <Search className="size-5 text-primary" />
+                                <Globe className="size-4 text-primary" />
+                                {/* <span className="text-sm">Search</span> */}
                             </button>
                         </PromptInputAction>
                     </div>

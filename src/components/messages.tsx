@@ -2,7 +2,6 @@ import { browserEnv } from "@/lib/browser-env"
 import { useChatStore } from "@/lib/chat-store"
 import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
-import { Check, X } from "lucide-react"
 import { memo, useState } from "react"
 import { ChatActions } from "./chat-actions"
 import { MemoizedMarkdown } from "./memoized-markdown"
@@ -95,22 +94,30 @@ const EditableMessage = memo(
         }
 
         return (
-            <div className="space-y-2">
+            <div className="rounded-2xl bg-primary">
                 <Textarea
                     value={editedContent}
                     onChange={(e) => setEditedContent(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="min-h-[80px] resize-none"
+                    className="w-full resize-none border-none bg-transparent p-4 pb-2 text-primary-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                 />
-                <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={onCancel} className="h-7 px-2">
-                        <X className="mr-1 h-3.5 w-3.5" />
+                <div className="flex justify-end gap-2 px-4 pb-3">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onCancel}
+                        className="rounded-full text-background hover:bg-background/10 hover:text-background"
+                    >
                         Cancel
                     </Button>
-                    <Button variant="default" size="sm" onClick={handleSave} className="h-7 px-2">
-                        <Check className="mr-1 h-3.5 w-3.5" />
-                        Save
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleSave}
+                        className="rounded-full bg-primary-foreground text-primary"
+                    >
+                        Send
                     </Button>
                 </div>
             </div>
@@ -150,7 +157,7 @@ export function Messages({
     }
 
     return (
-        <ScrollArea className="h-full p-4">
+        <ScrollArea className="h-full p-4 pt-0">
             <div className="mx-auto max-w-2xl space-y-3 pb-40">
                 {messages.map((message) => (
                     <div
@@ -160,7 +167,8 @@ export function Messages({
                             "group prose-code:before:hidden prose-code:after:hidden",
                             "mb-8",
                             message.role === "user" &&
-                                "ml-auto w-fit max-w-md rounded-xl bg-primary px-2.5 py-1.5 text-primary-foreground"
+                                targetFromMessageId !== message.id &&
+                                "my-12 ml-auto w-fit max-w-md rounded-full bg-primary px-4 py-2 text-primary-foreground"
                         )}
                     >
                         {targetFromMessageId === message.id && targetMode === "edit" ? (

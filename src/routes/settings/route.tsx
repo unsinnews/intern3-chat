@@ -49,7 +49,7 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
         <div className="flex h-screen flex-col bg-background">
             <div className="container mx-auto flex max-w-6xl flex-1 flex-col overflow-hidden p-6">
                 {/* Header */}
-                <div className="mb-8 flex-shrink-0">
+                <div className="mb-8">
                     <div className="mb-6 flex items-center gap-4">
                         <Link to="/">
                             <Button
@@ -71,7 +71,7 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-8 overflow-hidden lg:flex-row">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
                     {/* Navigation */}
                     <div className="flex-shrink-0 lg:w-64">
                         <nav className="space-y-1">

@@ -58,7 +58,10 @@ export function ModelSelector({
                 <Button
                     variant="ghost"
                     aria-expanded={open}
-                    className={cn("gap-2 rounded-full bg-background font-normal", className)}
+                    className={cn(
+                        "gap-2 rounded-full border border-accent bg-background font-normal",
+                        className
+                    )}
                 >
                     <span>{selectedModelData?.name}</span>
                     <ChevronDown className="ml-auto h-4 w-4" />
