@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as analytics from "../analytics.js";
 import type * as apikeys from "../apikeys.js";
 import type * as chat_http_generate_thread_name from "../chat_http/generate_thread_name.js";
 import type * as chat_http_manual_stream_transform from "../chat_http/manual_stream_transform.js";
@@ -38,6 +39,7 @@ import type * as schema_message from "../schema/message.js";
 import type * as schema_parts from "../schema/parts.js";
 import type * as schema_streams from "../schema/streams.js";
 import type * as schema_thread from "../schema/thread.js";
+import type * as schema_usage from "../schema/usage.js";
 import type * as streams from "../streams.js";
 import type * as threads from "../threads.js";
 
@@ -50,6 +52,7 @@ import type * as threads from "../threads.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  analytics: typeof analytics;
   apikeys: typeof apikeys;
   "chat_http/generate_thread_name": typeof chat_http_generate_thread_name;
   "chat_http/manual_stream_transform": typeof chat_http_manual_stream_transform;
@@ -75,6 +78,7 @@ declare const fullApi: ApiFromModules<{
   "schema/parts": typeof schema_parts;
   "schema/streams": typeof schema_streams;
   "schema/thread": typeof schema_thread;
+  "schema/usage": typeof schema_usage;
   streams: typeof streams;
   threads: typeof threads;
 }>;

@@ -15,7 +15,6 @@ export const WebSearchTool = {
                 query: z.string().describe("The search query"),
                 scrapeContent: z
                     .boolean()
-                    .optional()
                     .default(false)
                     .describe("Whether to scrape and include content from search results")
             }),

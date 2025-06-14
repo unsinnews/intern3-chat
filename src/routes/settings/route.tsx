@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, Key, User } from "lucide-react"
+import { ArrowLeft, BarChart3, Key, User } from "lucide-react"
 import type { ReactNode } from "react"
 
 interface SettingsLayoutProps {
@@ -22,6 +22,11 @@ const settingsNavItems = [
         title: "API Keys",
         href: "/settings/apikeys",
         icon: Key
+    },
+    {
+        title: "Usage Analytics",
+        href: "/settings/usage",
+        icon: BarChart3
     }
 ]
 

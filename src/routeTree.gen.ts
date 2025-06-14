@@ -14,6 +14,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ChatRouteImport } from './routes/_chat'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as ChatIndexRouteImport } from './routes/_chat.index'
+import { Route as SettingsUsageRouteImport } from './routes/settings/usage'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsApikeysRouteImport } from './routes/settings/apikeys'
 import { Route as AuthPathnameRouteImport } from './routes/auth/$pathname'
@@ -36,6 +37,11 @@ const ChatIndexRoute = ChatIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ChatRoute,
+} as any)
+const SettingsUsageRoute = SettingsUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/profile',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/auth/$pathname': typeof AuthPathnameRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/profile': typeof SettingsProfileRoute
+  '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
   '/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/auth/$pathname': typeof AuthPathnameRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/profile': typeof SettingsProfileRoute
+  '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
   '/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/auth/$pathname': typeof AuthPathnameRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/profile': typeof SettingsProfileRoute
+  '/settings/usage': typeof SettingsUsageRoute
   '/_chat/': typeof ChatIndexRoute
   '/_chat/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/_chat/thread/$threadId': typeof ChatThreadThreadIdRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/auth/$pathname'
     | '/settings/apikeys'
     | '/settings/profile'
+    | '/settings/usage'
     | '/'
     | '/s/$sharedThreadId'
     | '/thread/$threadId'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/auth/$pathname'
     | '/settings/apikeys'
     | '/settings/profile'
+    | '/settings/usage'
     | '/'
     | '/s/$sharedThreadId'
     | '/thread/$threadId'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/auth/$pathname'
     | '/settings/apikeys'
     | '/settings/profile'
+    | '/settings/usage'
     | '/_chat/'
     | '/_chat/s/$sharedThreadId'
     | '/_chat/thread/$threadId'
@@ -180,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatIndexRouteImport
       parentRoute: typeof ChatRoute
     }
+    '/settings/usage': {
+      id: '/settings/usage'
+      path: '/usage'
+      fullPath: '/settings/usage'
+      preLoaderRoute: typeof SettingsUsageRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/profile': {
       id: '/settings/profile'
       path: '/profile'
@@ -232,11 +251,13 @@ declare module '@tanstack/react-start/server' {
 interface SettingsRouteRouteChildren {
   SettingsApikeysRoute: typeof SettingsApikeysRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
+  SettingsUsageRoute: typeof SettingsUsageRoute
 }
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsApikeysRoute: SettingsApikeysRoute,
   SettingsProfileRoute: SettingsProfileRoute,
+  SettingsUsageRoute: SettingsUsageRoute,
 }
 
 const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
