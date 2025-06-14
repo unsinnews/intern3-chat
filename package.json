@@ -11,7 +11,8 @@
         "postinstall": "patch-package",
         "auth:generate": "npx @better-auth/cli generate --output src/database/auth-schema.ts",
         "auth:migrate": "npx drizzle-kit migrate",
-        "auth:push": "npx drizzle-kit push"
+        "auth:push": "npx drizzle-kit push",
+        "prepare": "husky"
     },
     "keywords": ["better-auth", "tanstack", "vite", "react"],
     "author": "intern3chat",
@@ -114,6 +115,8 @@
         "@types/react-dom": "^19.1.2",
         "@vitejs/plugin-react": "^4.4.1",
         "drizzle-kit": "^0.31.0",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.1.1",
         "tsx": "^4.19.3",
         "turbo": "^2.5.0",
         "tw-animate-css": "^1.2.8",
@@ -124,5 +127,8 @@
     "packageManager": "pnpm@10.6.4",
     "pnpm": {
         "onlyBuiltDependencies": ["@parcel/watcher", "esbuild", "sharp"]
+    },
+    "lint-staged": {
+        "*.{js,jsx,ts,tsx,json}": ["biome check --write --files-ignore-unknown=true"]
     }
 }
