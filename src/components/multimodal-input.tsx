@@ -145,10 +145,10 @@ export function MultimodalInput({
     }
 
     return (
-        <div>
+        <div className="@container w-full">
             <PromptInput
                 className={cn(
-                    "mx-auto w-full max-w-2xl",
+                    "mx-auto w-full @md:min-w-2xl max-w-2xl",
                     dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
                 )}
             >
