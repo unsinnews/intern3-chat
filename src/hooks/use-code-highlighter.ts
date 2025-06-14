@@ -1,4 +1,4 @@
-import { useEditorStore } from "@/lib/editor-store"
+import { useThemeStore } from "@/lib/theme-store"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { type Highlighter, createHighlighter } from "shiki"
@@ -76,7 +76,7 @@ export const useCodeHighlighter = ({
 }: UseCodeHighlighterOptions) => {
     const [highlightedCode, setHighlightedCode] = useState<string>("")
     const [isHighlighting, setIsHighlighting] = useState(true)
-    const { themeState } = useEditorStore()
+    const { themeState } = useThemeStore()
 
     useEffect(() => {
         const highlightCode = async () => {

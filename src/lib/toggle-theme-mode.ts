@@ -1,7 +1,7 @@
-import { useEditorStore } from "./editor-store"
+import { useThemeStore } from "./theme-store"
 
 export const toggleThemeMode = () => {
-    const themeState = useEditorStore.getState().themeState
+    const themeState = useThemeStore.getState().themeState
     const newMode = themeState.currentMode === "light" ? "dark" : "light"
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -9,7 +9,7 @@ export const toggleThemeMode = () => {
     console.log("prefersReducedMotion", prefersReducedMotion)
 
     if (!document.startViewTransition || prefersReducedMotion) {
-        useEditorStore.getState().setThemeState({
+        useThemeStore.getState().setThemeState({
             ...themeState,
             currentMode: newMode
         })
@@ -17,7 +17,7 @@ export const toggleThemeMode = () => {
     }
 
     document.startViewTransition(() => {
-        useEditorStore.getState().setThemeState({
+        useThemeStore.getState().setThemeState({
             ...themeState,
             currentMode: newMode
         })

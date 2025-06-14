@@ -1,5 +1,5 @@
 import { applyThemeToElement } from "@/lib/apply-theme"
-import { useEditorStore } from "@/lib/editor-store"
+import { useThemeStore } from "@/lib/theme-store"
 import { useEffect, useState } from "react"
 
 type ThemeProviderProps = {
@@ -7,7 +7,7 @@ type ThemeProviderProps = {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-    const { themeState } = useEditorStore()
+    const { themeState } = useThemeStore()
     const [isClient, setIsClient] = useState(false)
 
     // Handle hydration and initialize CSS transitions

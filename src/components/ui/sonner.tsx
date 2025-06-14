@@ -1,10 +1,10 @@
 "use client";
 
-import { useEditorStore } from "@/lib/editor-store";
+import { useThemeStore } from "@/lib/theme-store";
 import { Toaster as Sonner, ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { themeState } = useEditorStore();
+  const { themeState } = useThemeStore();
 
   return (
     <Sonner

@@ -1,4 +1,4 @@
-import { useEditorStore } from "@/lib/editor-store"
+import { useThemeStore } from "@/lib/theme-store"
 import { toggleThemeMode } from "@/lib/toggle-theme-mode"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
@@ -154,7 +154,7 @@ function extractThemeColors(preset: ThemePreset, mode: "light" | "dark"): string
 }
 
 export function ThemeSwitcher() {
-    const { themeState, setThemeState } = useEditorStore()
+    const { themeState, setThemeState } = useThemeStore()
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedThemeUrl, setSelectedThemeUrl] = useState<string | null>(null)
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
