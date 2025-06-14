@@ -6,7 +6,7 @@ import { useCallback } from "react"
 import { useChatIntegration } from "./use-chat-integration"
 
 export function useChatActions({ threadId }: { threadId: string | undefined }) {
-    const { uploadedFiles, setUploadedFiles, setTargetFromMessageId, setTargetMode, setInput } =
+    const { uploadedFiles, setUploadedFiles, setTargetFromMessageId, setTargetMode } =
         useChatStore()
     const { status, append, stop, data, messages, setMessages, reload } = useChatIntegration({
         threadId
