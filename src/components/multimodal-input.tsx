@@ -23,15 +23,8 @@ export function MultimodalInput({
     status: ReturnType<typeof useChat>["status"]
 }) {
     const { selectedModel, setSelectedModel, enabledTools, setEnabledTools } = useModelStore()
-    const {
-        uploadedFiles,
-        addUploadedFile,
-        removeUploadedFile,
-        input,
-        setInput,
-        uploading,
-        setUploading
-    } = useChatStore()
+    const { uploadedFiles, addUploadedFile, removeUploadedFile, uploading, setUploading } =
+        useChatStore()
 
     const isLoading = status === "streaming"
     const uploadInputRef = useRef<HTMLInputElement>(null)
@@ -147,16 +140,14 @@ export function MultimodalInput({
     return (
         <div className="@container w-full">
             <PromptInput
+                ref={promptInputRef}
+                onSubmit={handleSubmit}
                 className={cn(
                     "mx-auto w-full @md:min-w-2xl max-w-2xl",
                     dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
                 )}
             >
-                <PromptInputTextarea
-                    placeholder="Ask me anything..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                />
+                <PromptInputTextarea placeholder="Ask me anything..." />
 
                 <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
                     <div className="flex items-center gap-2">

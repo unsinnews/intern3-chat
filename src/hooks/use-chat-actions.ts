@@ -6,9 +6,9 @@ import { useCallback } from "react"
 import { useChatIntegration } from "./use-chat-integration"
 
 export function useChatActions({ threadId }: { threadId: string | undefined }) {
-    const { uploadedFiles, setUploadedFiles, setTargetFromMessageId, setTargetMode, setInput } =
+    const { uploadedFiles, setUploadedFiles, setTargetFromMessageId, setTargetMode } =
         useChatStore()
-    const { status, append, stop, data, messages, setMessages, reload } = useChatIntegration({
+    const { status, append, stop, messages, setMessages, reload } = useChatIntegration({
         threadId
     })
 
@@ -30,8 +30,8 @@ export function useChatActions({ threadId }: { threadId: string | undefined }) {
             const finalInput = inputValue
             const finalFiles = fileValues ?? uploadedFiles
 
-            if (finalInput?.trim() || (finalFiles && finalFiles.length > 0)) {
-                setInput("")
+            if (!finalInput?.trim() && finalFiles && finalFiles.length === 0) {
+                return
             }
 
             append({
@@ -53,7 +53,7 @@ export function useChatActions({ threadId }: { threadId: string | undefined }) {
 
             setUploadedFiles([])
         },
-        [append, stop, status, uploadedFiles, setUploadedFiles, setInput]
+        [append, stop, status, uploadedFiles, setUploadedFiles]
     )
 
     const handleRetry = useCallback(

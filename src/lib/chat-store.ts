@@ -11,7 +11,6 @@ export interface UploadedFile {
 interface ChatState {
     threadId: string | undefined
     uploadedFiles: UploadedFile[]
-    input: string
     rerenderTrigger: string
     lastProcessedDataIndex: number
     shouldUpdateQuery: boolean
@@ -37,14 +36,12 @@ interface ChatActions {
     setPendingStream: (threadId: string, pending: boolean) => void
     setTargetFromMessageId: (messageId: string | undefined) => void
     setTargetMode: (mode: "normal" | "edit" | "retry") => void
-    setInput: (input: string) => void
     setUploading: (uploading: boolean) => void
 }
 
 const initialState: ChatState = {
     threadId: undefined,
     uploadedFiles: [],
-    input: "",
     rerenderTrigger: nanoid(),
     lastProcessedDataIndex: -1,
     shouldUpdateQuery: false,
@@ -72,7 +69,6 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     setLastProcessedDataIndex: (lastProcessedDataIndex) => set({ lastProcessedDataIndex }),
     setShouldUpdateQuery: (shouldUpdateQuery) => set({ shouldUpdateQuery }),
     setSkipNextDataCheck: (skipNextDataCheck) => set({ skipNextDataCheck }),
-    setInput: (input) => set({ input }),
     setUploading: (uploading) => set({ uploading }),
 
     resetChat: () => {
