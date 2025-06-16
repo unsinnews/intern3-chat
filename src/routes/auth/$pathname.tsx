@@ -1,5 +1,6 @@
-import { cn } from "@/lib/utils"
-import { AuthCard } from "@daveyplate/better-auth-ui"
+import { BetterAuthCard } from "@/components/auth/better-auth-card"
+import { ShaderBackground } from "@/components/auth/shader-background"
+import { ThemeSwitcher } from "@/components/themes/theme-switcher"
 import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/auth/$pathname")({
@@ -10,10 +11,17 @@ function RouteComponent() {
     const { pathname } = Route.useParams()
 
     return (
-        <main className="flex grow flex-col items-center justify-center gap-4 p-4">
-            <AuthCard pathname={pathname} />
+        <main className="relative flex min-h-screen flex-col items-center justify-center gap-4 p-4">
+            <ShaderBackground />
+            <div className="absolute top-4 right-4">
+                <ThemeSwitcher />
+            </div>
+            <div className="flex w-full max-w-lg items-center justify-center gap-4">
+                <BetterAuthCard />
+                {/* <AuthCard pathname={pathname} /> */}
+            </div>
 
-            <p
+            {/* <p
                 className={cn(
                     ["callback", "settings", "sign-out"].includes(pathname) && "hidden",
                     "text-muted-foreground text-xs"
@@ -28,7 +36,7 @@ function RouteComponent() {
                 >
                     better-auth.
                 </a>
-            </p>
+            </p> */}
         </main>
     )
 }
