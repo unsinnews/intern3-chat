@@ -116,7 +116,11 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
         modelType: "maxImagesPerCall" in finalModel ? "image" : "text"
     })
 
-    return finalModel as
-        | (LanguageModelV1 & { modelType: "text" })
-        | (ImageModelV1 & { modelType: "image" })
+    return {
+        model: finalModel as
+            | (LanguageModelV1 & { modelType: "text" })
+            | (ImageModelV1 & { modelType: "image" }),
+        registry,
+        modelName: model.name ?? model.id
+    }
 }

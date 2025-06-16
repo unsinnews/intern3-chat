@@ -8,7 +8,6 @@ import { browserEnv } from "@/lib/browser-env"
 import { useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { type Message, useChat } from "@ai-sdk/react"
-import { useQueryClient } from "@tanstack/react-query"
 import { useQuery as useConvexQuery } from "convex/react"
 import type { Infer } from "convex/values"
 import { nanoid } from "nanoid"
@@ -24,7 +23,6 @@ export function useChatIntegration<IsShared extends boolean>({
     isShared?: IsShared
 }) {
     const tokenData = useToken()
-    const queryClient = useQueryClient()
     const { selectedModel, enabledTools } = useModelStore()
     const { rerenderTrigger, shouldUpdateQuery, setShouldUpdateQuery, triggerRerender } =
         useChatStore()

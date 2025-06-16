@@ -74,10 +74,10 @@ export const chatPOST = httpAction(async (ctx, req) => {
         | Infer<typeof ErrorUIPart>
     > = []
 
-    const modelResult = await getModel(ctx, body.model)
-    if (modelResult instanceof ChatError) return modelResult.toResponse()
-    console.log(modelResult.provider, modelResult.modelId)
-    if (modelResult.modelType === "image") {
+    const modelData = await getModel(ctx, body.model)
+    if (modelData instanceof ChatError) return modelData.toResponse()
+    const { model, modelName } = modelData
+    if (model.modelType === "image") {
         return new ChatError(
             "bad_request:api",
             "Image models are not supported yet..."
@@ -125,8 +125,13 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 content: streamId
             })
 
+            dataStream.writeMessageAnnotation({
+                type: "model_name",
+                content: modelName
+            })
+
             const result = streamText({
-                model: modelResult,
+                model: model,
                 maxSteps: 100,
                 abortSignal: remoteCancel.signal,
                 experimental_transform: smoothStream(),
@@ -175,7 +180,8 @@ export const chatPOST = httpAction(async (ctx, req) => {
                               }
                           ],
                 metadata: {
-                    modelId: body.model, // Use the actual selected model
+                    modelId: body.model,
+                    modelName,
                     promptTokens: totalTokenUsage.promptTokens,
                     completionTokens: totalTokenUsage.completionTokens,
                     reasoningTokens: totalTokenUsage.reasoningTokens,

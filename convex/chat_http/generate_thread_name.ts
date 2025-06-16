@@ -50,8 +50,9 @@ export const generateThreadName = async (
 ) => {
     const relevant_messages = messages.filter((message) => message.role !== "system").slice(0, 5)
 
-    const model = await getModel(ctx, settings.titleGenerationModel)
-    if (model instanceof ChatError) return model
+    const modelData = await getModel(ctx, settings.titleGenerationModel)
+    if (modelData instanceof ChatError) return modelData
+    const { model } = modelData
     if (model.modelType === "image")
         return new ChatError(
             "bad_request:api",

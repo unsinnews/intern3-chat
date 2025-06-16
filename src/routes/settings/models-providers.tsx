@@ -65,8 +65,7 @@ export type DisplayModel =
           providerId: string
       }
 
-export function useAvailableModels(userSettings: Infer<typeof UserSettings>) {
-    console.log("userSettings", userSettings)
+export function useAvailableModels(userSettings: Infer<typeof UserSettings> | undefined) {
     const currentProviders = {
         core: userSettings?.coreAIProviders || {},
         custom: userSettings?.customAIProviders || {}

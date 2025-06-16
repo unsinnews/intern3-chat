@@ -1,7 +1,7 @@
 import { cn, copyToClipboard } from "@/lib/utils"
 import type { UIMessage } from "ai"
 import { Check, Copy, Edit3, RotateCcw } from "lucide-react"
-import { memo, useState } from "react"
+import { memo, useMemo, useState } from "react"
 import { Button } from "./ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
@@ -18,6 +18,26 @@ export const ChatActions = memo(
         onEdit?: (message: UIMessage) => void
     }) => {
         const [copied, setCopied] = useState(false)
+
+        const modelName: string | undefined = useMemo(() => {
+            if (message.role !== "assistant") return undefined
+            console.log(message)
+            if ("metadata" in message && message.metadata) {
+                const casted = message.metadata as { modelName?: string }
+                if (casted.modelName) return casted.modelName
+            }
+            const found = message.annotations?.find(
+                (annotation) =>
+                    annotation &&
+                    typeof annotation === "object" &&
+                    "type" in annotation &&
+                    annotation.type === "model_name"
+            )
+            if (found && typeof found === "object" && "content" in found) {
+                return found.content?.toString()
+            }
+            return undefined
+        }, [message.annotations, (message as { metadata?: { modelName?: string } }).metadata])
 
         const handleCopy = async () => {
             const textContent = message.parts
@@ -97,6 +117,12 @@ export const ChatActions = memo(
                     </TooltipTrigger>
                     <TooltipContent side="bottom">{copied ? "Copied!" : "Copy"}</TooltipContent>
                 </Tooltip>
+
+                {modelName && (
+                    <div className="flex h-7 items-center border border-border bg-background/80 px-2 text-muted-foreground text-xs">
+                        {modelName}
+                    </div>
+                )}
             </div>
         )
     }

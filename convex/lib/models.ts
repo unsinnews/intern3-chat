@@ -54,13 +54,13 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "o3",
         name: "o3",
-        adapters: ["i3-openai:o3", "openai:o3", "openrouter:openai/o3"],
+        adapters: ["openai:o3", "openrouter:openai/o3"],
         abilities: ["reasoning", "vision", "function_calling"]
     },
     {
         id: "o3-pro",
         name: "o3 pro",
-        adapters: ["i3-openai:o3-pro", "openai:o3-pro", "openrouter:openai/o3-pro"],
+        adapters: ["openai:o3-pro", "openrouter:openai/o3-pro"],
         abilities: ["reasoning", "vision", "function_calling"]
     },
     {
@@ -119,7 +119,7 @@ export const MODELS_SHARED: SharedModel[] = [
         adapters: [
             "i3-google:gemini-2.0-flash-lite",
             "google:gemini-2.0-flash-lite",
-            "openrouter:google/gemini-2.0-flash-lite"
+            "openrouter:google/gemini-2.0-flash-lite-001"
         ],
         abilities: ["function_calling"]
     },
@@ -129,7 +129,7 @@ export const MODELS_SHARED: SharedModel[] = [
         adapters: [
             "i3-google:gemini-2.5-flash",
             "google:gemini-2.5-flash",
-            "openrouter:google/gemini-2.5-flash"
+            "openrouter:google/gemini-2.5-flash-preview"
         ],
         abilities: ["function_calling", "reasoning"]
     },
@@ -139,7 +139,7 @@ export const MODELS_SHARED: SharedModel[] = [
         adapters: [
             "i3-google:gemini-2.0-flash",
             "google:gemini-2.0-flash",
-            "openrouter:google/gemini-2.0-flash"
+            "openrouter:google/gemini-2.0-flash-001"
         ],
         abilities: ["function_calling", "vision"]
     },
