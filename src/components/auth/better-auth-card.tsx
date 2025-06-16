@@ -8,7 +8,6 @@ import { AnimatePresence, motion } from "motion/react"
 export function BetterAuthCard() {
     return (
         <div className="flex w-full max-w-sm flex-col gap-6">
-            {/* SVG Filter for Gooey Effect */}
             <svg width="0" height="0" className="absolute">
                 <defs>
                     <filter id="gooey-filter" x="-50%" y="-50%" width="200%" height="200%">
