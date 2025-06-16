@@ -1,4 +1,5 @@
 export type ErrorType =
+    | "bad_model"
     | "bad_request"
     | "unauthorized"
     | "forbidden"
@@ -93,6 +94,9 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
             return "You need to sign in to view this chat. Please sign in and try again."
         case "offline:chat":
             return "We're having trouble sending your message. Please check your internet connection and try again."
+
+        case "bad_model:api":
+            return "The model you selected does not exist. Please select a different model and try again."
 
         default:
             return "Something went wrong. Please try again later."

@@ -9,9 +9,9 @@
  */
 
 import type * as analytics from "../analytics.js";
-import type * as apikeys from "../apikeys.js";
 import type * as attachments from "../attachments.js";
 import type * as chat_http_generate_thread_name from "../chat_http/generate_thread_name.js";
+import type * as chat_http_get_model from "../chat_http/get_model.js";
 import type * as chat_http_manual_stream_transform from "../chat_http/manual_stream_transform.js";
 import type * as chat_http_prompt from "../chat_http/prompt.js";
 import type * as chat_http_shared from "../chat_http/shared.js";
@@ -30,12 +30,13 @@ import type * as lib_tools_adapters_search_adapter from "../lib/tools/adapters/s
 import type * as lib_tools_adapters_search_provider from "../lib/tools/adapters/search_provider.js";
 import type * as lib_tools_web_search from "../lib/tools/web_search.js";
 import type * as messages from "../messages.js";
-import type * as schema_apikey from "../schema/apikey.js";
 import type * as schema_message from "../schema/message.js";
 import type * as schema_parts from "../schema/parts.js";
+import type * as schema_settings from "../schema/settings.js";
 import type * as schema_streams from "../schema/streams.js";
 import type * as schema_thread from "../schema/thread.js";
 import type * as schema_usage from "../schema/usage.js";
+import type * as settings from "../settings.js";
 import type * as streams from "../streams.js";
 import type * as threads from "../threads.js";
 
@@ -55,9 +56,9 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   analytics: typeof analytics;
-  apikeys: typeof apikeys;
   attachments: typeof attachments;
   "chat_http/generate_thread_name": typeof chat_http_generate_thread_name;
+  "chat_http/get_model": typeof chat_http_get_model;
   "chat_http/manual_stream_transform": typeof chat_http_manual_stream_transform;
   "chat_http/prompt": typeof chat_http_prompt;
   "chat_http/shared": typeof chat_http_shared;
@@ -76,12 +77,13 @@ declare const fullApi: ApiFromModules<{
   "lib/tools/adapters/search_provider": typeof lib_tools_adapters_search_provider;
   "lib/tools/web_search": typeof lib_tools_web_search;
   messages: typeof messages;
-  "schema/apikey": typeof schema_apikey;
   "schema/message": typeof schema_message;
   "schema/parts": typeof schema_parts;
+  "schema/settings": typeof schema_settings;
   "schema/streams": typeof schema_streams;
   "schema/thread": typeof schema_thread;
   "schema/usage": typeof schema_usage;
+  settings: typeof settings;
   streams: typeof streams;
   threads: typeof threads;
 }>;

@@ -26,6 +26,7 @@ export const AIMessage = v.object({
     updatedAt: v.number(),
     metadata: v.object({
         modelId: v.optional(v.string()),
+        modelName: v.optional(v.string()),
         promptTokens: v.optional(v.number()),
         completionTokens: v.optional(v.number()),
         reasoningTokens: v.optional(v.number()),
@@ -42,6 +43,7 @@ export const Message = v.object({
     updatedAt: v.number(),
     metadata: v.object({
         modelId: v.optional(v.string()),
+        modelName: v.optional(v.string()),
         promptTokens: v.optional(v.number()),
         completionTokens: v.optional(v.number()),
         reasoningTokens: v.optional(v.number()),

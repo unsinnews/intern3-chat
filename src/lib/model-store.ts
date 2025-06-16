@@ -1,11 +1,10 @@
-import type { Model } from "@/convex/lib/models"
 import type { AbilityId } from "@/convex/lib/toolkit"
 import { type AIConfig, loadAIConfig, saveAIConfig } from "@/lib/persistence"
 import { create } from "zustand"
 
 export type ModelStore = {
-    selectedModel: Model["id"] | null
-    setSelectedModel: (model: Model["id"] | null) => void
+    selectedModel: string | null
+    setSelectedModel: (model: string | null) => void
 
     enabledTools: AbilityId[]
     setEnabledTools: (tools: AbilityId[]) => void
@@ -13,7 +12,7 @@ export type ModelStore = {
 
 const initialConfig = loadAIConfig()
 
-const persistConfig = (selectedModel: Model["id"] | null, enabledTools: AbilityId[]) => {
+const persistConfig = (selectedModel: string | null, enabledTools: AbilityId[]) => {
     const config: AIConfig = { selectedModel, enabledTools }
     saveAIConfig(config)
 }

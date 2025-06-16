@@ -16,7 +16,7 @@ import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as ChatIndexRouteImport } from './routes/_chat.index'
 import { Route as SettingsUsageRouteImport } from './routes/settings/usage'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
-import { Route as SettingsApikeysRouteImport } from './routes/settings/apikeys'
+import { Route as SettingsModelsProvidersRouteImport } from './routes/settings/models-providers'
 import { Route as AuthPathnameRouteImport } from './routes/auth/$pathname'
 import { Route as ChatThreadThreadIdRouteImport } from './routes/_chat.thread.$threadId'
 import { Route as ChatSSharedThreadIdRouteImport } from './routes/_chat.s.$sharedThreadId'
@@ -48,9 +48,9 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
-const SettingsApikeysRoute = SettingsApikeysRouteImport.update({
-  id: '/apikeys',
-  path: '/apikeys',
+const SettingsModelsProvidersRoute = SettingsModelsProvidersRouteImport.update({
+  id: '/models-providers',
+  path: '/models-providers',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const AuthPathnameRoute = AuthPathnameRouteImport.update({
@@ -76,9 +76,8 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteRouteWithChildren
-  '': typeof ChatRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
-  '/settings/apikeys': typeof SettingsApikeysRoute
+  '/settings/models-providers': typeof SettingsModelsProvidersRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
@@ -88,7 +87,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
-  '/settings/apikeys': typeof SettingsApikeysRoute
+  '/settings/models-providers': typeof SettingsModelsProvidersRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
@@ -100,7 +99,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteRouteWithChildren
   '/_chat': typeof ChatRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
-  '/settings/apikeys': typeof SettingsApikeysRoute
+  '/settings/models-providers': typeof SettingsModelsProvidersRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/_chat/': typeof ChatIndexRoute
@@ -111,9 +110,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/settings'
-    | ''
     | '/auth/$pathname'
-    | '/settings/apikeys'
+    | '/settings/models-providers'
     | '/settings/profile'
     | '/settings/usage'
     | '/'
@@ -123,7 +121,7 @@ export interface FileRouteTypes {
   to:
     | '/settings'
     | '/auth/$pathname'
-    | '/settings/apikeys'
+    | '/settings/models-providers'
     | '/settings/profile'
     | '/settings/usage'
     | '/'
@@ -134,7 +132,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/_chat'
     | '/auth/$pathname'
-    | '/settings/apikeys'
+    | '/settings/models-providers'
     | '/settings/profile'
     | '/settings/usage'
     | '/_chat/'
@@ -206,11 +204,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
-    '/settings/apikeys': {
-      id: '/settings/apikeys'
-      path: '/apikeys'
-      fullPath: '/settings/apikeys'
-      preLoaderRoute: typeof SettingsApikeysRouteImport
+    '/settings/models-providers': {
+      id: '/settings/models-providers'
+      path: '/models-providers'
+      fullPath: '/settings/models-providers'
+      preLoaderRoute: typeof SettingsModelsProvidersRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
     '/auth/$pathname': {
@@ -249,13 +247,13 @@ declare module '@tanstack/react-start/server' {
 }
 
 interface SettingsRouteRouteChildren {
-  SettingsApikeysRoute: typeof SettingsApikeysRoute
+  SettingsModelsProvidersRoute: typeof SettingsModelsProvidersRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsUsageRoute: typeof SettingsUsageRoute
 }
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
-  SettingsApikeysRoute: SettingsApikeysRoute,
+  SettingsModelsProvidersRoute: SettingsModelsProvidersRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsUsageRoute: SettingsUsageRoute,
 }

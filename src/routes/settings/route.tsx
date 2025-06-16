@@ -1,6 +1,11 @@
+import { SettingsLayout } from "@/components/settings/settings-layout"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
+import { api } from "@/convex/_generated/api"
+import { useSession } from "@/hooks/auth-hooks"
 import { cn } from "@/lib/utils"
+import { useConvexQuery } from "@convex-dev/react-query"
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, BarChart3, Key, User } from "lucide-react"
@@ -19,8 +24,8 @@ const settingsNavItems = [
         icon: User
     },
     {
-        title: "API Keys",
-        href: "/settings/apikeys",
+        title: "Models/Providers",
+        href: "/settings/models-providers",
         icon: Key
     },
     {
@@ -39,14 +44,54 @@ export const Route = createFileRoute("/settings")({
             })
         }
     },
-    component: SettingsLayout
+    component: SettingsPage
 })
 
-function SettingsLayout({ title, description }: SettingsLayoutProps) {
+const Inner = () => {
+    const session = useSession()
+    const userSettings = useConvexQuery(
+        api.settings.getUserSettings,
+        session.user?.id ? {} : "skip"
+    )
+    if (!session.user?.id) {
+        return (
+            <SettingsLayout
+                title="API Keys"
+                description="Manage your models and providers. Keys are encrypted and stored securely."
+            >
+                <p className="text-muted-foreground text-sm">Sign in to manage your API keys.</p>
+            </SettingsLayout>
+        )
+    }
+    if (!userSettings) {
+        return (
+            <SettingsLayout
+                title="API Keys"
+                description="Manage your models and providers. Keys are encrypted and stored securely."
+            >
+                <Skeleton className="h-10 w-full" />
+            </SettingsLayout>
+        )
+    }
+    if ("error" in userSettings) {
+        return (
+            <SettingsLayout
+                title="API Keys"
+                description="Manage your models and providers. Keys are encrypted and stored securely."
+            >
+                <p className="text-muted-foreground text-sm">Error loading API keys.</p>
+            </SettingsLayout>
+        )
+    }
+
+    return <Outlet />
+}
+
+function SettingsPage({ title, description }: SettingsLayoutProps) {
     const location = useLocation()
 
     return (
-        <div className="flex h-screen flex-col bg-background overflow-hidden">
+        <div className="flex h-screen flex-col overflow-hidden bg-background">
             <div className="container mx-auto flex max-w-6xl flex-1 flex-col overflow-hidden p-6">
                 {/* Header */}
                 <div className="mb-8">
@@ -71,7 +116,7 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 overflow-hidden">
+                <div className="grid grid-cols-1 gap-8 overflow-hidden lg:grid-cols-4">
                     {/* Navigation */}
                     <div className="flex-shrink-0 lg:w-64">
                         <nav className="space-y-1">
@@ -99,9 +144,9 @@ function SettingsLayout({ title, description }: SettingsLayoutProps) {
                     </div>
 
                     {/* Main Content */}
-                    <ScrollArea className="flex-1 col-span-3 overflow-hidden">
+                    <ScrollArea className="col-span-3 flex-1 overflow-hidden">
                         <div className="space-y-6 pr-4">
-                            <Outlet />
+                            <Inner />
                         </div>
                     </ScrollArea>
                 </div>

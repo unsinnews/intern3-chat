@@ -1,9 +1,11 @@
 import { ChatError } from "@/lib/errors"
 import { type CoreMessage, generateText } from "ai"
 import type { GenericActionCtx } from "convex/server"
+import type { Infer } from "convex/values"
 import { internal } from "../_generated/api"
 import type { DataModel, Id } from "../_generated/dataModel"
-import { type APIKeyConfig, getLanguageModel } from "../lib/models"
+import type { UserSettings } from "../schema"
+import { getModel } from "./get_model"
 
 const contentToText = (content: CoreMessage["content"]): string => {
     if (typeof content === "string") {
@@ -43,25 +45,22 @@ export const generateThreadName = async (
     ctx: GenericActionCtx<DataModel>,
     threadId: Id<"threads">,
     messages: CoreMessage[],
-    userId: string
+    userId: string,
+    settings: Infer<typeof UserSettings>
 ) => {
     const relevant_messages = messages.filter((message) => message.role !== "system").slice(0, 5)
 
-    const userGoogleApiKey = await ctx.runQuery(internal.apikeys.getDecryptedApiKey, {
-        userId,
-        provider: "google"
-    })
-
-    // Create API key configuration for the registry
-    const apiKeys: APIKeyConfig = {
-        google: userGoogleApiKey
-    }
-
-    const modelResult = getLanguageModel("google:gemini-2.0-flash-lite", apiKeys)
-    if (modelResult instanceof ChatError) return modelResult
+    const modelData = await getModel(ctx, settings.titleGenerationModel)
+    if (modelData instanceof ChatError) return modelData
+    const { model } = modelData
+    if (model.modelType === "image")
+        return new ChatError(
+            "bad_request:api",
+            "Why is your title generation model an image model?"
+        )
 
     const result = await generateText({
-        model: modelResult,
+        model,
         messages: [
             {
                 role: "system",

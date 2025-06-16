@@ -1,4 +1,3 @@
-import { MODELS_SHARED } from "@/convex/lib/models"
 import { ABILITIES } from "@/convex/lib/toolkit"
 import { z } from "zod"
 
@@ -29,13 +28,7 @@ export const loadAIConfig = (): AIConfig => {
     try {
         const parsed = JSON.parse(stored)
 
-        if (
-            parsed.selectedModel &&
-            !MODELS_SHARED.some((model) => model.id === parsed.selectedModel)
-        ) {
-            parsed.selectedModel = null
-        }
-
+        // Validate enabled tools but let the UI handle invalid model IDs gracefully
         if (parsed.enabledTools.some((tool) => !ABILITIES.includes(tool))) {
             parsed.enabledTools = ["web_search"]
         }

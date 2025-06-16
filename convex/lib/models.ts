@@ -1,184 +1,187 @@
-import { ChatError } from "@/lib/errors"
-import { anthropic, createAnthropic } from "@ai-sdk/anthropic"
-import { createGoogleGenerativeAI, google } from "@ai-sdk/google"
-import { createOpenAI, openai } from "@ai-sdk/openai"
-import { createProviderRegistry, customProvider } from "ai"
-import type { LanguageModelV1 } from "ai"
+import { createAnthropic } from "@ai-sdk/anthropic"
+import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { createOpenAI } from "@ai-sdk/openai"
+import type { ProviderV1 } from "@ai-sdk/provider"
+import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 
-type Registry = ReturnType<typeof createModelRegistry>
-export type RegistryKey = Parameters<Registry["languageModel"]>[0]
+import type { ModelAbility } from "../schema/settings"
+
+export const CoreProviders = ["openai", "anthropic", "google"] as const
+export type CoreProvider = (typeof CoreProviders)[number]
+export type ModelDefinitionProviders =
+    | CoreProvider // user BYOK key
+    | `i3-${CoreProvider}` // internal API key
+    | "openrouter"
+
+export type RegistryKey = `${ModelDefinitionProviders | string}:${string}`
 export type Provider = RegistryKey extends `${infer P}:${string}` ? P : never
-type Ability = "reasoning" | "vision" | "web_search"
 
-export type SharedModel = {
+export type SharedModel<Abilities extends ModelAbility[] = ModelAbility[]> = {
+    id: string
     name: string
-    id: RegistryKey
-    abilities: Ability[]
+    adapters: RegistryKey[]
+    abilities: Abilities
+    mode?: "text" | "image"
+    contextLength?: number
+    maxTokens?: number
 }
 
 export const MODELS_SHARED: SharedModel[] = [
     {
+        id: "gpt-4o",
         name: "GPT 4o",
-        id: "openai:gpt-4o",
-        abilities: ["vision", "web_search"]
+        adapters: ["i3-openai:gpt-4o", "openai:gpt-4o", "openrouter:openai/gpt-4o"],
+        abilities: ["vision", "function_calling"]
     },
     {
+        id: "gpt-4o-mini",
         name: "GPT 4o mini",
-        id: "openai:gpt-4o-mini",
-        abilities: ["vision", "web_search"]
+        adapters: ["i3-openai:gpt-4o-mini", "openai:gpt-4o-mini", "openrouter:openai/gpt-4o-mini"],
+        abilities: ["vision", "function_calling"]
     },
     {
+        id: "o3-mini",
         name: "o3 mini",
-        id: "openai:o3-mini",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: ["i3-openai:o3-mini", "openai:o3-mini", "openrouter:openai/o3-mini"],
+        abilities: ["reasoning", "vision", "function_calling"]
     },
     {
+        id: "o4-mini",
         name: "o4 mini",
-        id: "openai:o4-mini",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: ["i3-openai:o4-mini", "openai:o4-mini", "openrouter:openai/o4-mini"],
+        abilities: ["reasoning", "vision", "function_calling"]
     },
     {
+        id: "o3",
         name: "o3",
-        id: "openai:o3",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: ["openai:o3", "openrouter:openai/o3"],
+        abilities: ["reasoning", "vision", "function_calling"]
     },
     {
+        id: "o3-pro",
         name: "o3 pro",
-        id: "openai:o3-pro",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: ["openai:o3-pro", "openrouter:openai/o3-pro"],
+        abilities: ["reasoning", "vision", "function_calling"]
     },
     {
+        id: "gpt-4.1",
         name: "GPT 4.1",
-        id: "openai:gpt-4.1",
-        abilities: ["vision", "web_search"]
+        adapters: ["i3-openai:gpt-4.1", "openai:gpt-4.1", "openrouter:openai/gpt-4.1"],
+        abilities: ["vision", "function_calling"]
     },
     {
+        id: "gpt-4.1-mini",
         name: "GPT 4.1 mini",
-        id: "openai:gpt-4.1-mini",
-        abilities: ["vision", "web_search"]
+        adapters: [
+            "i3-openai:gpt-4.1-mini",
+            "openai:gpt-4.1-mini",
+            "openrouter:openai/gpt-4.1-mini"
+        ],
+        abilities: ["vision", "function_calling"]
     },
     {
+        id: "gpt-4.1-nano",
         name: "GPT 4.1 nano",
-        id: "openai:gpt-4.1-nano",
-        abilities: ["vision", "web_search"]
+        adapters: [
+            "i3-openai:gpt-4.1-nano",
+            "openai:gpt-4.1-nano",
+            "openrouter:openai/gpt-4.1-nano"
+        ],
+        abilities: ["vision", "function_calling"]
     },
     {
+        id: "claude-opus-4",
         name: "Claude Opus 4",
-        id: "anthropic:claude-opus-4-0",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: ["anthropic:claude-opus-4-0", "openrouter:anthropic/claude-opus-4"],
+        abilities: ["reasoning", "vision", "function_calling"]
     },
     {
+        id: "claude-sonnet-4",
         name: "Claude Sonnet 4",
-        id: "anthropic:claude-sonnet-4-0",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: ["anthropic:claude-sonnet-4-0", "openrouter:anthropic/claude-sonnet-4"],
+        abilities: ["reasoning", "vision", "function_calling"]
     },
     {
+        id: "claude-3-7-sonnet",
         name: "Claude Sonnet 3.7",
-        id: "anthropic:claude-3-7-sonnet",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: ["anthropic:claude-3-7-sonnet", "openrouter:anthropic/claude-3.7-sonnet"],
+        abilities: ["reasoning", "vision", "function_calling"]
     },
     {
+        id: "claude-3-5-sonnet",
         name: "Claude Sonnet 3.5",
-        id: "anthropic:claude-3-5-sonnet",
-        abilities: ["vision", "web_search"]
+        adapters: ["anthropic:claude-3-5-sonnet", "openrouter:anthropic/claude-3.5-sonnet"],
+        abilities: ["vision", "function_calling"]
     },
     {
+        id: "gemini-2.0-flash-lite",
         name: "Gemini 2.0 Flash Lite",
-        id: "google:gemini-2.0-flash-lite",
-        abilities: ["web_search"]
+        adapters: [
+            "i3-google:gemini-2.0-flash-lite",
+            "google:gemini-2.0-flash-lite",
+            "openrouter:google/gemini-2.0-flash-lite-001"
+        ],
+        abilities: ["function_calling"]
     },
     {
+        id: "gemini-2.5-flash",
         name: "Gemini 2.5 Flash",
-        id: "google:gemini-2.5-flash",
-        abilities: ["web_search", "reasoning"]
+        adapters: [
+            "i3-google:gemini-2.5-flash",
+            "google:gemini-2.5-flash",
+            "openrouter:google/gemini-2.5-flash-preview"
+        ],
+        abilities: ["function_calling", "reasoning"]
     },
     {
+        id: "gemini-2.0-flash",
         name: "Gemini 2.0 Flash",
-        id: "google:gemini-2.0-flash",
-        abilities: ["web_search", "vision"]
+        adapters: [
+            "i3-google:gemini-2.0-flash",
+            "google:gemini-2.0-flash",
+            "openrouter:google/gemini-2.0-flash-001"
+        ],
+        abilities: ["function_calling", "vision"]
     },
     {
+        id: "gemini-2.5-pro",
         name: "Gemini 2.5 Pro",
-        id: "google:gemini-2.5-pro",
-        abilities: ["reasoning", "vision", "web_search"]
+        adapters: [
+            "google:gemini-2.5-pro-preview-06-05",
+            "openrouter:google/gemini-2.5-pro-preview"
+        ],
+        abilities: ["reasoning", "vision", "function_calling"]
     }
 ] as const
 
-const createOpenAIProvider = (apiKey?: string | null) => {
-    const openaiInstance = apiKey ? createOpenAI({ apiKey }) : openai
-
-    return customProvider({
-        languageModels: {
-            "gpt-4o": openaiInstance("gpt-4o"),
-            "gpt-4o-mini": openaiInstance("gpt-4o-mini"),
-            "o3-mini": openaiInstance("o3-mini"),
-            o3: openaiInstance("o3"),
-            "o3-pro": openaiInstance("o3-pro"),
-            "o4-mini": openaiInstance("o4-mini"),
-            "gpt-4.1": openaiInstance("gpt-4.1"),
-            "gpt-4.1-mini": openaiInstance("gpt-4.1-mini"),
-            "gpt-4.1-nano": openaiInstance("gpt-4.1-nano")
-        },
-        fallbackProvider: openaiInstance
-    })
-}
-
-const createAnthropicProvider = (apiKey?: string | null) => {
-    const anthropicInstance = apiKey ? createAnthropic({ apiKey }) : anthropic
-
-    return customProvider({
-        languageModels: {
-            "claude-3-5-sonnet": anthropicInstance("claude-3-5-sonnet-latest"),
-            "claude-opus-4-0": anthropicInstance("claude-opus-4-0"),
-            "claude-sonnet-4-0": anthropicInstance("claude-sonnet-4-0"),
-            "claude-3-7-sonnet": anthropicInstance("claude-3-7-sonnet-latest")
-        },
-        fallbackProvider: anthropicInstance
-    })
-}
-
-const createGoogleProvider = (apiKey?: string | null) => {
-    const googleInstance = apiKey ? createGoogleGenerativeAI({ apiKey }) : google
-
-    return customProvider({
-        languageModels: {
-            "gemini-2.0-flash-lite": googleInstance("gemini-2.0-flash-lite"),
-            "gemini-2.5-flash": googleInstance("gemini-2.5-flash-preview-05-20"),
-            "gemini-2.0-flash": googleInstance("gemini-2.0-flash"),
-            "gemini-2.5-pro": googleInstance("gemini-2.5-pro-preview-06-05")
-        },
-        fallbackProvider: googleInstance
-    })
-}
-
-function createModelRegistry(apiKeys: APIKeyConfig = {}) {
-    return createProviderRegistry({
-        openai: createOpenAIProvider(apiKeys.openai),
-        anthropic: createAnthropicProvider(apiKeys.anthropic),
-        google: createGoogleProvider(apiKeys.google)
-    })
-}
-
-export interface APIKeyConfig {
-    openai?: string | null
-    anthropic?: string | null
-    google?: string | null
-}
-
-export function getLanguageModel(
-    registryKey: RegistryKey,
-    apiKeys: APIKeyConfig = {}
-): LanguageModelV1 | ChatError {
-    const model = MODELS_SHARED.find((model) => model.id === registryKey)
-    if (!model) {
-        return new ChatError("bad_request:api", "Unsupported model")
+export const createProvider = (
+    providerId: CoreProvider | "openrouter",
+    apiKey: string | "internal"
+): Omit<ProviderV1, "textEmbeddingModel"> => {
+    if (apiKey !== "internal" && (!apiKey || apiKey.trim() === "")) {
+        throw new Error("API key is required for non-internal providers")
     }
 
-    const registry = createModelRegistry(apiKeys)
-
-    try {
-        return registry.languageModel(registryKey)
-    } catch (error) {
-        return new ChatError("bad_request:api", "Failed to create language model")
+    switch (providerId) {
+        case "openai":
+            return createOpenAI({
+                apiKey: apiKey === "internal" ? process.env.OPENAI_API_KEY : apiKey
+            })
+        case "anthropic":
+            return createAnthropic({
+                apiKey: apiKey === "internal" ? process.env.ANTHROPIC_API_KEY : apiKey
+            })
+        case "google":
+            return createGoogleGenerativeAI({
+                apiKey: apiKey === "internal" ? process.env.GOOGLE_API_KEY : apiKey
+            })
+        case "openrouter":
+            return createOpenRouter({
+                apiKey
+            })
+        default: {
+            const exhaustiveCheck: never = providerId
+            throw new Error(`Unknown provider: ${exhaustiveCheck}`)
+        }
     }
 }

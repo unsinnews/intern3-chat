@@ -1,6 +1,7 @@
 import Claude from "@/assets/claude.svg"
 import Gemini from "@/assets/gemini.svg"
 import OpenAI from "@/assets/openai.svg"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
     Command,
@@ -12,36 +13,58 @@ import {
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MODELS_SHARED, type SharedModel } from "@/convex/lib/models"
-import type { Provider } from "@/convex/schema/apikey"
+import { api } from "@/convex/_generated/api"
+import type { SharedModel } from "@/convex/lib/models"
+import { useSession } from "@/hooks/auth-hooks"
 import { cn } from "@/lib/utils"
+import { type DisplayModel, useAvailableModels } from "@/routes/settings/models-providers"
+import { useConvexQuery } from "@convex-dev/react-query"
 import { Brain, Check, ChevronDown, Eye, Globe } from "lucide-react"
 import * as React from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
 interface ModelItemProps {
-    model: SharedModel
+    model: DisplayModel
     selectedModel: string
     onModelChange: (modelId: string) => void
     onClose: () => void
+    isCustom?: boolean
 }
 
 const ModelItem = React.memo(function ModelItem({
     model,
     selectedModel,
     onModelChange,
-    onClose
+    onClose,
+    isCustom = false
 }: ModelItemProps) {
-    const provider = model.id.split(":")[0] as Provider
-    const providerIcon = (provider: Provider) => {
-        switch (provider) {
-            case "openai":
-                return <OpenAI />
-            case "anthropic":
-                return <Claude />
-            case "google":
-                return <Gemini />
+    const getProviderIcon = () => {
+        if (isCustom) {
+            return <Badge className="text-xs">Custom</Badge>
         }
+
+        // For shared models, try to determine provider from adapters
+        const sharedModel = model as SharedModel
+        if (sharedModel.adapters) {
+            const firstAdapter = sharedModel.adapters[0]
+            const provider = firstAdapter?.split(":")[0]
+
+            switch (provider) {
+                case "i3-openai":
+                case "openai":
+                    return <OpenAI />
+                case "i3-anthropic":
+                case "anthropic":
+                    return <Claude />
+                case "i3-google":
+                case "google":
+                    return <Gemini />
+                default:
+                    return <Badge className="text-xs">Built-in</Badge>
+            }
+        }
+
+        return <Badge className="text-xs">Built-in</Badge>
     }
 
     const abilityRenderer = (ability: string, className: string) => {
@@ -88,7 +111,7 @@ const ModelItem = React.memo(function ModelItem({
                 model.id === selectedModel && "bg-accent/50 text-accent-foreground"
             )}
         >
-            {providerIcon(provider)}
+            {getProviderIcon()}
             <span className="flex items-center gap-2">
                 {model.name}
                 {model.id === selectedModel && <Check className="size-4" />}
@@ -116,27 +139,30 @@ export function ModelSelector({
     onModelChange: (modelId: string) => void
     className?: string
 }) {
+    const session = useSession()
+    const userSettings = useConvexQuery(
+        api.settings.getUserSettings,
+        session.user?.id ? {} : "skip"
+    )
+    const { availableModels } = useAvailableModels(userSettings)
+
     const [open, setOpen] = React.useState(false)
-    const selectedModelData = MODELS_SHARED.find((model) => model.id === selectedModel)
+    const selectedModelData = availableModels.find((model) => model.id === selectedModel)
 
-    const providerTitle = (provider: Provider) => {
-        switch (provider) {
-            case "openai":
-                return "OpenAI"
-            case "anthropic":
-                return "Anthropic"
-            case "google":
-                return "Google"
-        }
-    }
+    // Group models by type
+    const sharedModels = availableModels.filter((model) => !("isCustom" in model))
+    const customModels = availableModels.filter((model) => "isCustom" in model && model.isCustom)
 
-    const groupedModels = Object.entries(
-        MODELS_SHARED.reduce<Record<string, SharedModel[]>>((acc, model) => {
-            const provider = model.id.split(":")[0]
-            if (!acc[provider]) {
-                acc[provider] = []
+    const groupedSharedModels = Object.entries(
+        sharedModels.reduce<Record<string, DisplayModel[]>>((acc, model) => {
+            const sharedModel = model as SharedModel
+            const provider = sharedModel.adapters?.[0]?.split(":")[0] || "unknown"
+            const providerKey = provider.startsWith("i3-") ? "Built-in" : provider
+
+            if (!acc[providerKey]) {
+                acc[providerKey] = []
             }
-            acc[provider].push(model)
+            acc[providerKey].push(model)
             return acc
         }, {})
     )
@@ -174,10 +200,20 @@ export function ModelSelector({
                     <CommandList>
                         <CommandEmpty>No model found.</CommandEmpty>
                         <ScrollArea className="h-[300px]">
-                            {groupedModels.map(([provider, providerModels]) => (
+                            {groupedSharedModels.map(([providerKey, providerModels]) => (
                                 <CommandGroup
-                                    key={provider}
-                                    heading={providerTitle(provider as Provider)}
+                                    key={providerKey}
+                                    heading={
+                                        providerKey === "Built-in"
+                                            ? "Built-in Models"
+                                            : providerKey === "openai"
+                                              ? "OpenAI"
+                                              : providerKey === "anthropic"
+                                                ? "Anthropic"
+                                                : providerKey === "google"
+                                                  ? "Google"
+                                                  : providerKey
+                                    }
                                 >
                                     {providerModels.map((model) => (
                                         <ModelItem
@@ -186,10 +222,25 @@ export function ModelSelector({
                                             selectedModel={selectedModel}
                                             onModelChange={onModelChange}
                                             onClose={() => setOpen(false)}
+                                            isCustom={false}
                                         />
                                     ))}
                                 </CommandGroup>
                             ))}
+                            {customModels.length > 0 && (
+                                <CommandGroup heading="Custom Models">
+                                    {customModels.map((model) => (
+                                        <ModelItem
+                                            key={model.id}
+                                            model={model}
+                                            selectedModel={selectedModel}
+                                            onModelChange={onModelChange}
+                                            onClose={() => setOpen(false)}
+                                            isCustom={true}
+                                        />
+                                    ))}
+                                </CommandGroup>
+                            )}
                         </ScrollArea>
                     </CommandList>
                 </Command>
