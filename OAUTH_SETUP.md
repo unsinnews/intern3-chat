@@ -1,6 +1,6 @@
 # OAuth Configuration
 
-This project supports OAuth authentication with Google and GitHub providers alongside email OTP authentication.
+This project supports OAuth authentication with Google, GitHub, and Atlassian providers alongside email OTP authentication.
 
 ## Environment Variables
 
@@ -20,6 +20,14 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 # Get these from https://github.com/settings/developers
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
+```
+
+### Atlassian OAuth
+
+```bash
+# Get these from https://developer.atlassian.com/console/myapps/
+ATLASSIAN_CLIENT_ID=your_atlassian_client_id
+ATLASSIAN_CLIENT_SECRET=your_atlassian_client_secret
 ```
 
 ## Setup Instructions
@@ -57,19 +65,38 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 5. Copy the Client ID and generate a Client Secret
 6. Add them to your `.env` file
 
+### Atlassian OAuth Setup
+
+1. Go to [Atlassian Developer Console](https://developer.atlassian.com/console/myapps/)
+2. Click "Create" > "OAuth 2.0 integration"
+3. Fill in the app details:
+   - App name: Your app name
+   - App description: Brief description of your app
+4. Configure OAuth 2.0:
+   - Callback URL (Redirect URI):
+     - For development: `http://localhost:3000/api/auth/callback/atlassian`
+     - For production: `https://yourdomain.com/api/auth/callback/atlassian`
+   - Permissions (Scopes):
+     - User identity API: `read:me`
+     - User identity API: `read:user`
+5. After creation, you'll receive:
+   - Client ID
+   - Client Secret (click "Reveal" to see it)
+6. Add them to your `.env` file
+
 ## Authentication Flow
 
 The app uses a unified authentication flow:
 
 1. **Email OTP**: Users can sign in with their email address and receive a one-time password
-2. **OAuth**: Users can sign in with Google or GitHub accounts
+2. **OAuth**: Users can sign in with Google, GitHub, or Atlassian accounts
 3. **User Onboarding**: New users (regardless of auth method) will be prompted to enter their name after first sign-in
 
 ## Features
 
 - **Unified Sign-In**: No separate sign-up/sign-in flows - users are automatically registered on first use
 - **Email OTP**: Secure passwordless authentication via email
-- **Social OAuth**: Quick sign-in with existing Google or GitHub accounts
+- **Social OAuth**: Quick sign-in with existing Google, GitHub, or Atlassian accounts
 - **Automatic User Creation**: New users are created automatically upon successful authentication
 - **Profile Completion**: New users are prompted to complete their profile (name) after first sign-in
 
@@ -80,7 +107,7 @@ To test OAuth functionality:
 1. Set up your OAuth credentials in the respective platforms
 2. Add the credentials to your `.env` file
 3. Run the application in development mode
-4. Click "Continue with Google" or "Continue with GitHub" on the auth page
+4. Click "Continue with Google", "Continue with GitHub", or "Continue with Atlassian" on the auth page
 5. Complete the OAuth flow in the provider's interface
 6. You should be redirected back and signed in
 
@@ -92,6 +119,7 @@ To test OAuth functionality:
 - **"Redirect URI mismatch"**: Make sure the callback URLs in your OAuth app settings match exactly with your app's URLs
 - **GitHub email not found**: Ensure your GitHub OAuth app has the `user:email` scope enabled
 - **Google consent screen issues**: Make sure you've configured the OAuth consent screen in Google Cloud Console
+- **Atlassian authorization issues**: Verify that the redirect URI matches exactly and includes the protocol (http/https)
 
 ### Security Notes
 

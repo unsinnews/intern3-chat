@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { emailOTP } from "better-auth/plugins"
+import { emailOTP, genericOAuth } from "better-auth/plugins"
 
 import { db } from "@/database/db"
 import * as schema from "@/database/schema"
@@ -24,6 +24,18 @@ export const auth = betterAuth({
         }
     },
     plugins: [
+        genericOAuth({
+            config: [
+                {
+                    providerId: "atlassian",
+                    clientId: process.env.ATLASSIAN_CLIENT_ID as string,
+                    clientSecret: process.env.ATLASSIAN_CLIENT_SECRET as string,
+                    authorizationUrl: "https://auth.atlassian.com/authorize",
+                    tokenUrl: "https://auth.atlassian.com/oauth/token",
+                    scopes: ["read:me", "read:user"]
+                }
+            ]
+        }),
         emailOTP({
             async sendVerificationOTP({ email, otp, type }) {
                 await sendOTPEmail({ email, otp, type })
