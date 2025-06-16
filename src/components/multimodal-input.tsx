@@ -165,7 +165,7 @@ export function MultimodalInput({
                                         key={uploadedFile.key}
                                         className="flex items-center gap-2 rounded-md bg-secondary px-3 py-2 text-sm"
                                     >
-                                        <Paperclip className="size-4" />
+                                        <Paperclip className="size-4 text-foreground" />
                                         <div className="flex flex-col">
                                             <span className="max-w-[120px] truncate">
                                                 {uploadedFile.fileName}
@@ -179,7 +179,7 @@ export function MultimodalInput({
                                             onClick={() => handleRemoveFile(uploadedFile.key)}
                                             className="rounded-md p-1 hover:bg-secondary/50"
                                         >
-                                            <X className="size-4" />
+                                            <X className="size-4 text-foreground" />
                                         </button>
                                     </div>
                                 ))}
@@ -189,8 +189,8 @@ export function MultimodalInput({
                         {dragActive && (
                             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
                                 <div className="text-center">
-                                    <Upload className="mx-auto mb-2 h-8 w-8 text-primary" />
-                                    <p className="font-medium text-primary text-sm">
+                                    <Upload className="mx-auto mb-2 h-8 w-8 text-foreground" />
+                                    <p className="font-medium text-foreground text-sm">
                                         Drop files here to upload
                                     </p>
                                 </div>
@@ -210,9 +210,9 @@ export function MultimodalInput({
                                     ref={uploadInputRef}
                                 />
                                 {uploading ? (
-                                    <Loader2 className="size-5 animate-spin text-primary" />
+                                    <Loader2 className="size-5 animate-spin text-foreground" />
                                 ) : (
-                                    <Paperclip className="-rotate-45 size-5 text-primary" />
+                                    <Paperclip className="-rotate-45 size-5 text-foreground" />
                                 )}
                                 {/* <span className="text-sm">Attach</span> */}
                             </label>
@@ -234,7 +234,7 @@ export function MultimodalInput({
                                         "bg-secondary-foreground/10"
                                 )}
                             >
-                                <Globe className="size-4 text-primary" />
+                                <Globe className="size-4 text-foreground" />
                                 {/* <span className="text-sm">Search</span> */}
                             </button>
                         </PromptInputAction>
