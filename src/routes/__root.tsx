@@ -39,7 +39,7 @@ export const Route = createRootRouteWithContext<{
                 content: "width=device-width, initial-scale=1"
             },
             {
-                title: "Intern3 Chat"
+                title: "intern3.chat" as string
             }
         ],
         links: [
