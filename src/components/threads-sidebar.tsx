@@ -29,12 +29,13 @@ import {
 } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { useQuery as useConvexQuery, useMutation } from "convex/react"
+import { useMutation, usePaginatedQuery } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
+import { Loader2, MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -225,11 +226,25 @@ export function ThreadsSidebar() {
     const [searchQuery, setSearchQuery] = useState("")
     const { data: session } = authClient.useSession()
 
-    const threads = useConvexQuery(api.threads.getAllUserThreads, session?.user?.id ? {} : "skip")
+    const {
+        results: threads,
+        status,
+        loadMore,
+        isLoading
+    } = usePaginatedQuery(api.threads.getUserThreadsPaginated, session?.user?.id ? {} : "skip", {
+        initialNumItems: 25
+    })
+
+    const sentinelRef = useInfiniteScroll({
+        hasMore: status === "CanLoadMore",
+        isLoading,
+        onLoadMore: () => loadMore(25),
+        rootMargin: "200px", // Start loading when sentinel is 200px away from viewport
+        threshold: 0.1
+    })
 
     const isAuthenticated = Boolean(session?.user?.id)
-    const isLoading = isAuthenticated && threads === undefined
-    const hasError = threads && "error" in threads
+    const hasError = false // Remove error handling since we return empty results instead
     const threadsData = Array.isArray(threads) ? threads : []
 
     const filteredThreads = useMemo(() => {
@@ -256,10 +271,6 @@ export function ThreadsSidebar() {
             return <></>
         }
 
-        if (threadsData.length === 0) {
-            return <EmptyState message="No threads yet. Start a new conversation!" />
-        }
-
         if (filteredThreads.length === 0 && searchQuery) {
             return <EmptyState message="No threads match your search" />
         }
@@ -275,6 +286,25 @@ export function ThreadsSidebar() {
                 <ThreadsGroup title="Yesterday" threads={groupedThreads.yesterday} />
                 <ThreadsGroup title="Last 7 Days" threads={groupedThreads.lastSevenDays} />
                 <ThreadsGroup title="Last 30 Days" threads={groupedThreads.lastThirtyDays} />
+
+                {/* Infinite Scroll Sentinel */}
+                {status === "CanLoadMore" && (
+                    <SidebarGroup>
+                        <SidebarGroupContent>
+                            <div
+                                ref={sentinelRef}
+                                className="flex w-full items-center justify-center gap-2 p-3 text-muted-foreground text-sm"
+                            >
+                                {isLoading && (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Loading more threads...
+                                    </>
+                                )}
+                            </div>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
             </>
         )
     }

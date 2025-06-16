@@ -31,7 +31,10 @@ export function CommandK() {
     const { data: session } = authClient.useSession()
     const router = useRouter()
 
-    const threads = useConvexQuery(api.threads.getAllUserThreads, session?.user?.id ? {} : "skip")
+    const threads = useConvexQuery(
+        api.threads.getAllUserThreadsForSearch,
+        session?.user?.id ? {} : "skip"
+    )
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
