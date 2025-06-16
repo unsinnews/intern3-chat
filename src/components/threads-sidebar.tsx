@@ -31,9 +31,10 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { authClient } from "@/lib/auth-client"
+import { useDiskCachedPaginatedQuery } from "@/lib/convex-cached-query"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { useMutation, usePaginatedQuery } from "convex/react"
+import { useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { Loader2, MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -229,15 +230,21 @@ export function ThreadsSidebar() {
     const {
         results: threads,
         status,
-        loadMore,
-        isLoading
-    } = usePaginatedQuery(api.threads.getUserThreadsPaginated, session?.user?.id ? {} : "skip", {
-        initialNumItems: 25
-    })
+        loadMore
+    } = useDiskCachedPaginatedQuery(
+        api.threads.getUserThreadsPaginated,
+        { key: "threads-sidebar", maxItems: 25 },
+        session?.user?.id ? {} : "skip",
+        {
+            initialNumItems: 25
+        }
+    )
+
+    const isLoading = false
 
     const sentinelRef = useInfiniteScroll({
         hasMore: status === "CanLoadMore",
-        isLoading,
+        isLoading: false,
         onLoadMore: () => loadMore(25),
         rootMargin: "200px", // Start loading when sentinel is 200px away from viewport
         threshold: 0.1
