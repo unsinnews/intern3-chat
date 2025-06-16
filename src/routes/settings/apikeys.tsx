@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import type { Provider } from "@/convex/schema/apikey"
-import { useSession } from "@/hooks/auth-hooks"
+import { authClient } from "@/lib/auth-client"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation, useQuery } from "convex/react"
 import { Plus, Trash2 } from "lucide-react"
@@ -50,12 +50,12 @@ function ApiKeysSettings() {
     const [addingKey, setAddingKey] = useState<Provider | null>(null)
     const [loading, setLoading] = useState(false)
 
-    const session = useSession()
-    const apiKeys = useQuery(api.apikeys.listApiKeys, session.user?.id ? {} : "skip") ?? []
+    const { data: session } = authClient.useSession()
+    const apiKeys = useQuery(api.apikeys.listApiKeys, session?.user?.id ? {} : "skip") ?? []
     const storeApiKey = useMutation(api.apikeys.storeApiKey)
     const deleteApiKey = useMutation(api.apikeys.deleteApiKey)
 
-    if (!session.user?.id) {
+    if (!session?.user?.id) {
         return (
             <SettingsLayout
                 title="API Keys"

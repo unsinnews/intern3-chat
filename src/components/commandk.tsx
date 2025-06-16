@@ -16,7 +16,7 @@ import {
     CommandList
 } from "@/components/ui/command"
 import { api } from "@/convex/_generated/api"
-import { useSession } from "@/hooks/auth-hooks"
+import { authClient } from "@/lib/auth-client"
 
 interface Thread {
     _id: string
@@ -28,10 +28,10 @@ interface Thread {
 export function CommandK() {
     const [open, setOpen] = useState(false)
     const [query, setQuery] = useState("")
-    const session = useSession()
+    const { data: session } = authClient.useSession()
     const router = useRouter()
 
-    const threads = useConvexQuery(api.threads.getAllUserThreads, session.user?.id ? {} : "skip")
+    const threads = useConvexQuery(api.threads.getAllUserThreads, session?.user?.id ? {} : "skip")
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -70,7 +70,7 @@ export function CommandK() {
         }
     }
 
-    if (!session.user?.id) {
+    if (!session?.user?.id) {
         return null
     }
 

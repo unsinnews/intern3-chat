@@ -2,8 +2,8 @@ import { Messages } from "@/components/messages"
 import { Button } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { useSession } from "@/hooks/auth-hooks"
 import { useChatIntegration } from "@/hooks/use-chat-integration"
+import { authClient } from "@/lib/auth-client"
 import { useRouter } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { ArrowRight, GitFork } from "lucide-react"
@@ -15,7 +15,7 @@ interface SharedChatProps {
 
 export function SharedChat({ sharedThreadId }: SharedChatProps) {
     const router = useRouter()
-    const session = useSession()
+    const { data: session } = authClient.useSession()
     const forkThread = useMutation(api.threads.forkSharedThread)
 
     const { messages, thread } = useChatIntegration({
@@ -25,7 +25,7 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
     })
 
     const handleFork = async () => {
-        if (!session.user?.id) {
+        if (!session?.user?.id) {
             // Redirect to login or show login modal
             router.navigate({ to: "/auth/$pathname", params: { pathname: "sign-in" } })
             return
@@ -53,7 +53,7 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
 
     return (
         <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
-            <Messages messages={messages} />
+            <Messages messages={messages} status="ready" />
             <div className="absolute right-0 bottom-2 left-0">
                 {/* Fork prompt instead of input */}
                 <div className="border-t bg-background p-4">

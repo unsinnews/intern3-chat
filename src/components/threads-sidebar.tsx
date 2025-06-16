@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { useSession } from "@/hooks/auth-hooks"
+import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useQuery as useConvexQuery, useMutation } from "convex/react"
@@ -223,11 +223,11 @@ function EmptyState({ message }: { message: string }) {
 
 export function ThreadsSidebar() {
     const [searchQuery, setSearchQuery] = useState("")
-    const session = useSession()
+    const { data: session } = authClient.useSession()
 
-    const threads = useConvexQuery(api.threads.getAllUserThreads, session.user?.id ? {} : "skip")
+    const threads = useConvexQuery(api.threads.getAllUserThreads, session?.user?.id ? {} : "skip")
 
-    const isAuthenticated = Boolean(session.user?.id)
+    const isAuthenticated = Boolean(session?.user?.id)
     const isLoading = isAuthenticated && threads === undefined
     const hasError = threads && "error" in threads
     const threadsData = Array.isArray(threads) ? threads : []
