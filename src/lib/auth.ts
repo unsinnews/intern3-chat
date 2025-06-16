@@ -1,31 +1,37 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { emailOTP } from "better-auth/plugins"
 
 import { db } from "@/database/db"
 import * as schema from "@/database/schema"
 import { jwt } from "better-auth/plugins/jwt"
-import { sendPasswordResetEmail, sendVerificationEmail } from "./email"
+import { sendOTPEmail } from "./email"
 
 export const auth = betterAuth({
-    emailVerification: {
-        sendVerificationEmail: async (data, request) => {
-            await sendVerificationEmail(data)
-        }
-    },
-
     database: drizzleAdapter(db, {
         provider: "pg",
         usePlural: true,
         schema
     }),
-    emailAndPassword: {
-        enabled: true,
-        requireEmailVerification: true,
-        sendResetPassword: async (data, request) => {
-            await sendPasswordResetEmail(data)
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || ""
+        },
+        github: {
+            clientId: process.env.GITHUB_CLIENT_ID || "",
+            clientSecret: process.env.GITHUB_CLIENT_SECRET || ""
         }
     },
     plugins: [
+        emailOTP({
+            async sendVerificationOTP({ email, otp, type }) {
+                await sendOTPEmail({ email, otp, type })
+            },
+            otpLength: 6,
+            expiresIn: 300, // 5 minutes
+            allowedAttempts: 3
+        }),
         jwt({
             jwt: {
                 audience: "intern3",
