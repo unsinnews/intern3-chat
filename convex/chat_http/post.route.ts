@@ -14,12 +14,12 @@ import type { Id } from "../_generated/dataModel"
 import { httpAction } from "../_generated/server"
 import { dbMessagesToCore } from "../lib/db_to_core_messages"
 import { getUserIdentity } from "../lib/identity"
-import { MODELS_SHARED, getLanguageModel } from "../lib/models"
 import { getResumableStreamContext } from "../lib/resumable_stream_context"
 import { type AbilityId, getToolkit } from "../lib/toolkit"
 import type { HTTPAIMessage } from "../schema/message"
 import type { ErrorUIPart } from "../schema/parts"
 import { generateThreadName } from "./generate_thread_name"
+import { getModel } from "./get_model"
 import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
 import { RESPONSE_OPTS } from "./shared"
@@ -74,14 +74,19 @@ export const chatPOST = httpAction(async (ctx, req) => {
         | Infer<typeof ErrorUIPart>
     > = []
 
-    const model = MODELS_SHARED.find((m) => m.id === body.model)
-    if (!model) return new ChatError("bad_request:api", "Unsupported model").toResponse()
-
-    const userApiKeys = await ctx.runQuery(internal.apikeys.getAllApiKeys)
-    if ("error" in userApiKeys) return new ChatError("unauthorized:chat").toResponse()
-
-    const modelResult = getLanguageModel(model.id, userApiKeys)
+    const modelResult = await getModel(ctx, body.model)
     if (modelResult instanceof ChatError) return modelResult.toResponse()
+    console.log(modelResult.provider, modelResult.modelId)
+    if (modelResult.modelType === "image") {
+        return new ChatError(
+            "bad_request:api",
+            "Image models are not supported yet..."
+        ).toResponse()
+    }
+
+    const settings = await ctx.runQuery(internal.settings.getUserSettingsInternal, {
+        userId: user.id
+    })
 
     // Track token usage
     const totalTokenUsage = {
@@ -105,7 +110,8 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     ctx,
                     mutationResult.threadId,
                     mapped_messages,
-                    user.id
+                    user.id,
+                    settings
                 )
             }
 
