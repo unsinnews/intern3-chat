@@ -57,7 +57,7 @@ export function UserButton() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="relative h-8 w-8 rounded-full">
+                <Button variant="outline" className="relative h-6 w-6 rounded-full p-1">
                     <Avatar className="h-8 w-8">
                         <AvatarImage
                             src={session.user.image || undefined}

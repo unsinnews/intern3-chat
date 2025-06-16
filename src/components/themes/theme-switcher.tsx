@@ -10,7 +10,8 @@ import {
     PlusIcon,
     Search,
     ShuffleIcon,
-    SunIcon
+    SunIcon,
+    SwatchBookIcon
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"
@@ -220,8 +221,9 @@ export function ThemeSwitcher() {
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="size-8 rounded-full">
-                        <SunIcon className="dark:-rotate-90 h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:scale-0" />
-                        <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                        {/* <SunIcon className="dark:-rotate-90 h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:scale-0" />
+                        <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" /> */}
+                        <SwatchBookIcon className="h-4 w-4" />
                         <span className="sr-only">Toggle theme</span>
                     </Button>
                 </DropdownMenuTrigger>

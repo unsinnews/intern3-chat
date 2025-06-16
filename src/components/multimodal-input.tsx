@@ -163,7 +163,7 @@ export function MultimodalInput({
                                 {uploadedFiles.map((uploadedFile) => (
                                     <div
                                         key={uploadedFile.key}
-                                        className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm"
+                                        className="flex items-center gap-2 rounded-md bg-secondary px-3 py-2 text-sm"
                                     >
                                         <Paperclip className="size-4" />
                                         <div className="flex flex-col">
@@ -177,7 +177,7 @@ export function MultimodalInput({
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveFile(uploadedFile.key)}
-                                            className="rounded-full p-1 hover:bg-secondary/50"
+                                            className="rounded-md p-1 hover:bg-secondary/50"
                                         >
                                             <X className="size-4" />
                                         </button>
@@ -199,7 +199,7 @@ export function MultimodalInput({
                         <PromptInputAction tooltip="Attach files">
                             <label
                                 htmlFor="file-upload"
-                                className="flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-full border border-accent hover:bg-secondary"
+                                className="flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent hover:bg-secondary"
                             >
                                 <input
                                     type="file"
@@ -229,7 +229,7 @@ export function MultimodalInput({
                                     )
                                 }}
                                 className={cn(
-                                    "flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-full border border-accent hover:bg-secondary",
+                                    "flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent hover:bg-secondary",
                                     enabledTools.includes("web_search") &&
                                         "bg-secondary-foreground/10"
                                 )}
@@ -244,7 +244,7 @@ export function MultimodalInput({
                         <Button
                             variant="default"
                             size="icon"
-                            className="h-8 w-8 rounded-full"
+                            className="h-8 w-8 rounded-md"
                             disabled={status === "submitted" || uploading}
                             onClick={handleSubmit}
                             type="submit"

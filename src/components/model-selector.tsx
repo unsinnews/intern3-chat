@@ -160,7 +160,7 @@ export function ModelSelector({
                     variant="ghost"
                     aria-expanded={open}
                     className={cn(
-                        "gap-2 rounded-full border border-accent bg-background font-normal",
+                        "gap-2 rounded-md border border-accent bg-background font-normal",
                         className
                     )}
                 >
