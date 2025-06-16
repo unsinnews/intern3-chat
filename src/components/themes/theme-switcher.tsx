@@ -3,10 +3,12 @@ import { toggleThemeMode } from "@/lib/toggle-theme-mode"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 import {
+    CheckCircle,
     ExternalLinkIcon,
     LoaderIcon,
     MoonIcon,
     PlusIcon,
+    Search,
     ShuffleIcon,
     SunIcon
 } from "lucide-react"
@@ -24,6 +26,7 @@ import { ImportThemeDialog } from "./import-theme-dialog"
 
 const THEME_URLS = [
     "https://tweakcn.com/editor/theme?theme=mono",
+    "https://tweakcn.com/editor/theme?theme=t3-chat",
     "https://tweakcn.com/editor/theme?theme=perpetuity",
     "https://tweakcn.com/r/themes/vintage-paper.json",
     "https://tweakcn.com/r/themes/amethyst-haze.json",
@@ -225,25 +228,13 @@ export function ThemeSwitcher() {
 
                 <DropdownMenuContent
                     align="end"
-                    className="w-80"
+                    className="w-72"
                     onCloseAutoFocus={(e) => e.preventDefault()}
                 >
                     {/* Search Input */}
                     <div>
                         <div className="relative">
-                            <svg
-                                className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                />
-                            </svg>
+                            <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
                             <Input
                                 placeholder="Search themes..."
                                 className="h-9 border-none pl-10 shadow-none"
@@ -302,7 +293,7 @@ export function ThemeSwitcher() {
                     <DropdownMenuSeparator />
 
                     {/* Themes List */}
-                    <ScrollArea className="h-64">
+                    <ScrollArea className="h-72">
                         <div className="p-1">
                             {isLoadingThemes ? (
                                 <div className="flex items-center gap-2 p-1 text-muted-foreground">
@@ -310,7 +301,7 @@ export function ThemeSwitcher() {
                                     Loading themes...
                                 </div>
                             ) : (
-                                <div className="space-y-2">
+                                <div className="grid grid-cols-1 gap-2">
                                     {filteredThemes.map((theme) => {
                                         const isSelected = selectedThemeUrl === theme.url
                                         const colors =
@@ -337,7 +328,7 @@ export function ThemeSwitcher() {
                                                 className={cn(
                                                     "cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:shadow-md",
                                                     isSelected
-                                                        ? "border-2 border-primary"
+                                                        ? "border border-border"
                                                         : "border-border",
                                                     "error" in theme &&
                                                         theme.error &&
@@ -348,17 +339,11 @@ export function ThemeSwitcher() {
                                                     <div>
                                                         <div className="text-sm">{theme.name}</div>
                                                     </div>
-                                                    <div
-                                                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
-                                                            isSelected
-                                                                ? "border-primary"
-                                                                : "border-muted-foreground"
-                                                        }`}
-                                                    >
-                                                        {isSelected && (
-                                                            <div className="h-2 w-2 rounded-full bg-primary" />
-                                                        )}
-                                                    </div>
+                                                    {isSelected && (
+                                                        <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+                                                            <CheckCircle className="size-4 text-foreground" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="flex h-3">
                                                     {colors.map((color, index) => (
