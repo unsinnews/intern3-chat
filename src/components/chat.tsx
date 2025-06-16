@@ -3,8 +3,9 @@ import { MODELS_SHARED } from "@/convex/lib/models"
 import { useChatActions } from "@/hooks/use-chat-actions"
 import { useChatDataProcessor } from "@/hooks/use-chat-data-processor"
 import { useChatIntegration } from "@/hooks/use-chat-integration"
+import { useDynamicTitle } from "@/hooks/use-dynamic-title"
 import { useThreadSync } from "@/hooks/use-thread-sync"
-import { useChatStore } from "@/lib/chat-store"
+// import { useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { useMemo } from "react"
 import { MultimodalInput } from "./multimodal-input"
@@ -16,7 +17,9 @@ interface ChatProps {
 export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
     const { selectedModel, setSelectedModel } = useModelStore()
     const { threadId } = useThreadSync({ routeThreadId })
-    const { setTargetFromMessageId } = useChatStore()
+    // const { setTargetFromMessageId } = useChatStore()
+
+    useDynamicTitle({ threadId })
 
     useMemo(() => {
         if (!selectedModel && MODELS_SHARED.length > 0) {
