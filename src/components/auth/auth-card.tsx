@@ -72,8 +72,12 @@ export function AuthCard() {
                 name: values.name
             })
         },
-        onSuccess: () => {
-            router.navigate({ to: "/" })
+        onSuccess: ({ error }) => {
+            if (error) {
+                toast.error(error.message ?? "There was an error signing up")
+            } else {
+                router.navigate({ to: "/" })
+            }
         },
         onError: (error) => {
             toast.error(error.message ?? "There was an error signing up")
@@ -87,8 +91,12 @@ export function AuthCard() {
                 password: values.password
             })
         },
-        onSuccess: () => {
-            router.navigate({ to: "/" })
+        onSuccess: ({ error }) => {
+            if (error) {
+                toast.error(error.message ?? "There was an error signing in")
+            } else {
+                router.navigate({ to: "/" })
+            }
         },
         onError: (error) => {
             toast.error(error.message ?? "There was an error signing in")

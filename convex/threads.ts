@@ -1,4 +1,5 @@
 import { ChatError } from "@/lib/errors"
+import { paginationOptsValidator } from "convex/server"
 import { type Infer, v } from "convex/values"
 import { nanoid } from "nanoid"
 import { api, internal } from "./_generated/api"
@@ -203,7 +204,8 @@ export const getThreadMessages = query({
     }
 })
 
-export const getAllUserThreads = query({
+// Non-paginated query for command palette and search
+export const getAllUserThreadsForSearch = query({
     args: {},
     handler: async ({ db, auth }) => {
         const user = await getUserIdentity(auth, {
@@ -227,6 +229,72 @@ export const getAllUserThreads = query({
             // If both have same pinned status, sort by updatedAt descending
             return b.updatedAt - a.updatedAt
         })
+    }
+})
+
+export const getUserThreadsPaginated = query({
+    args: { paginationOpts: paginationOptsValidator },
+    handler: async ({ db, auth }, { paginationOpts }) => {
+        const user = await getUserIdentity(auth, {
+            allowAnons: true
+        })
+
+        if ("error" in user) {
+            // Return empty pagination result instead of error object
+            return {
+                page: [],
+                isDone: true,
+                continueCursor: ""
+            }
+        }
+
+        // For the first page, include pinned threads at the top
+        const isFirstPage = !paginationOpts.cursor
+
+        if (isFirstPage) {
+            // Get pinned threads first
+            const pinnedThreads = await db
+                .query("threads")
+                .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+                .filter((q) => q.eq(q.field("pinned"), true))
+                .order("desc")
+                .collect()
+
+            // Get regular threads (non-pinned) with pagination
+            const regularThreadsResult = await db
+                .query("threads")
+                .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+                .filter((q) => q.neq(q.field("pinned"), true))
+                .order("desc")
+                .paginate(paginationOpts)
+
+            // Combine pinned threads with regular threads
+            const combinedPage = [...pinnedThreads, ...regularThreadsResult.page]
+
+            // If we have too many threads, trim to the requested page size
+            const maxItems = paginationOpts.numItems
+            if (combinedPage.length > maxItems) {
+                return {
+                    page: combinedPage.slice(0, maxItems),
+                    isDone: false,
+                    continueCursor: regularThreadsResult.continueCursor
+                }
+            }
+
+            return {
+                page: combinedPage,
+                isDone: regularThreadsResult.isDone,
+                continueCursor: regularThreadsResult.continueCursor
+            }
+        }
+
+        // For subsequent pages, only get regular threads (no pinned)
+        return await db
+            .query("threads")
+            .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+            .filter((q) => q.neq(q.field("pinned"), true))
+            .order("desc")
+            .paginate(paginationOpts)
     }
 })
 

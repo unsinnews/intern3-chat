@@ -29,13 +29,15 @@ import {
 } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { useSession } from "@/hooks/auth-hooks"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
+import { authClient } from "@/lib/auth-client"
+import { useDiskCachedPaginatedQuery } from "@/lib/convex-cached-query"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { useQuery as useConvexQuery, useMutation } from "convex/react"
+import { useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { Loader2, MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 interface Thread {
@@ -223,13 +225,35 @@ function EmptyState({ message }: { message: string }) {
 
 export function ThreadsSidebar() {
     const [searchQuery, setSearchQuery] = useState("")
-    const session = useSession()
+    const [showGradient, setShowGradient] = useState(false)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+    const { data: session } = authClient.useSession()
 
-    const threads = useConvexQuery(api.threads.getAllUserThreads, session.user?.id ? {} : "skip")
+    const {
+        results: threads,
+        status,
+        loadMore
+    } = useDiskCachedPaginatedQuery(
+        api.threads.getUserThreadsPaginated,
+        { key: "threads-sidebar", maxItems: 25 },
+        session?.user?.id ? {} : "skip",
+        {
+            initialNumItems: 25
+        }
+    )
 
-    const isAuthenticated = Boolean(session.user?.id)
-    const isLoading = isAuthenticated && threads === undefined
-    const hasError = threads && "error" in threads
+    const isLoading = false
+
+    const sentinelRef = useInfiniteScroll({
+        hasMore: status === "CanLoadMore",
+        isLoading: false,
+        onLoadMore: () => loadMore(25),
+        rootMargin: "200px", // Start loading when sentinel is 200px away from viewport
+        threshold: 0.1
+    })
+
+    const isAuthenticated = Boolean(session?.user?.id)
+    const hasError = false // Remove error handling since we return empty results instead
     const threadsData = Array.isArray(threads) ? threads : []
 
     const filteredThreads = useMemo(() => {
@@ -243,6 +267,29 @@ export function ThreadsSidebar() {
         return groupThreadsByTime(filteredThreads)
     }, [filteredThreads])
 
+    useEffect(() => {
+        const container = scrollContainerRef.current
+        if (!container) return
+
+        const handleScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = container
+            const hasScrollableContent = scrollHeight > clientHeight
+            const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 5
+            setShowGradient(hasScrollableContent && !isScrolledToBottom)
+        }
+
+        handleScroll() // Initial check
+        container.addEventListener("scroll", handleScroll)
+
+        const resizeObserver = new ResizeObserver(handleScroll)
+        resizeObserver.observe(container)
+
+        return () => {
+            container.removeEventListener("scroll", handleScroll)
+            resizeObserver.disconnect()
+        }
+    }, [threadsData])
+
     const renderContent = () => {
         if (!isAuthenticated) {
             return <></>
@@ -254,10 +301,6 @@ export function ThreadsSidebar() {
 
         if (hasError) {
             return <></>
-        }
-
-        if (threadsData.length === 0) {
-            return <EmptyState message="No threads yet. Start a new conversation!" />
         }
 
         if (filteredThreads.length === 0 && searchQuery) {
@@ -275,18 +318,38 @@ export function ThreadsSidebar() {
                 <ThreadsGroup title="Yesterday" threads={groupedThreads.yesterday} />
                 <ThreadsGroup title="Last 7 Days" threads={groupedThreads.lastSevenDays} />
                 <ThreadsGroup title="Last 30 Days" threads={groupedThreads.lastThirtyDays} />
+
+                {/* Infinite Scroll Sentinel */}
+                {status === "CanLoadMore" && (
+                    <SidebarGroup>
+                        <SidebarGroupContent>
+                            <div
+                                ref={sentinelRef}
+                                className="flex w-full items-center justify-center gap-2 p-3 text-muted-foreground text-sm"
+                            >
+                                {isLoading && (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Loading more threads...
+                                    </>
+                                )}
+                            </div>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
             </>
         )
     }
 
     return (
         <Sidebar variant="inset">
-            <SidebarHeader className="gap-3">
+            <SidebarHeader className="mt-1 gap-4">
                 <div className="flex items-center justify-between">
-                    <div className="font-medium text-base text-sidebar-foreground tracking-tight">
-                        Intern3.chat
+                    <div className="cursor-default select-none font-medium text-sidebar-foreground text-xl">
+                        intern3.chat
                     </div>
                 </div>
+                <div className="h-px w-full bg-border" />
                 <Link
                     to="/"
                     className={cn(buttonVariants({ variant: "default" }), "w-full justify-start")}
@@ -305,7 +368,10 @@ export function ThreadsSidebar() {
                     />
                 </div>
             </SidebarHeader>
-            <SidebarContent>{renderContent()}</SidebarContent>
+            <SidebarContent ref={scrollContainerRef}>{renderContent()}</SidebarContent>
+            {showGradient && (
+                <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
+            )}
         </Sidebar>
     )
 }

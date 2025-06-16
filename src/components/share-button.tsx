@@ -74,7 +74,7 @@ export function ShareButton({ threadId }: ShareButtonProps) {
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="size-8 rounded-full">
+                <Button variant="outline" size="icon" className="size-8 rounded-md">
                     <Share2 className="h-4 w-4" />
                 </Button>
             </DialogTrigger>

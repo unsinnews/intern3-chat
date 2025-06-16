@@ -36,7 +36,7 @@ const PartsRenderer = memo(
                 )
             case "reasoning":
                 return markdown ? (
-                    <div className="rounded-lg border bg-muted/50 p-4">
+                    <div className="prose prose-p:my-0 prose-pre:my-2 prose-ul:my-2 prose-li:mt-1 mb-12 prose-li:mb-0 max-w-none rounded-lg border bg-muted/50 prose-pre:bg-transparent p-4 prose-pre:p-0 font-claude-message prose-headings:font-semibold prose-strong:font-medium prose-pre:text-foreground leading-[1.65rem] [&>div>div>:is(p,blockquote,h1,h2,h3,h4,h5,h6)]:pl-2 [&>div>div>:is(p,blockquote,ul,ol,h1,h2,h3,h4,h5,h6)]:pr-8 [&_.ignore-pre-bg>div]:bg-transparent [&_pre>div]:border-0.5 [&_pre>div]:border-border [&_pre>div]:bg-background">
                         <MemoizedMarkdown content={part.reasoning} id={id} />
                     </div>
                 ) : (
