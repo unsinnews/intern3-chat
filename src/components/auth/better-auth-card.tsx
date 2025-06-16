@@ -8,69 +8,60 @@ import { AnimatePresence, motion } from "motion/react"
 export function BetterAuthCard() {
     return (
         <div className="flex w-full max-w-sm flex-col gap-6">
-            <svg width="0" height="0" className="absolute">
-                <defs>
-                    <filter id="gooey-filter" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-                        <feColorMatrix
-                            in="blur"
-                            mode="matrix"
-                            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10"
-                            result="gooey"
-                        />
-                        <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
-                    </filter>
-                </defs>
-            </svg>
-
             <Tabs defaultValue="sign-up">
-                <TabsContent value="sign-up">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key="sign-up"
-                            initial={{ opacity: 0, scale: 0.8, filter: "url(#gooey-filter)" }}
-                            animate={{ opacity: 1, scale: 1, filter: "url(#gooey-filter)" }}
-                            exit={{ opacity: 0, scale: 0.8, filter: "url(#gooey-filter)" }}
-                            transition={{
-                                duration: 0.6,
-                                ease: [0.25, 0.46, 0.45, 0.94],
-                                scale: {
-                                    type: "spring",
-                                    damping: 15,
-                                    stiffness: 100
-                                }
-                            }}
-                            style={{ filter: "url(#gooey-filter)" }}
-                            className="relative"
-                        >
-                            <motion.div
-                                initial={{ borderRadius: "50%" }}
-                                animate={{ borderRadius: "12px" }}
-                                transition={{
-                                    duration: 0.8,
-                                    ease: [0.25, 0.46, 0.45, 0.94],
-                                    delay: 0.1
-                                }}
-                            >
-                                <Card className="overflow-hidden bg-card shadow-2xl">
-                                    <CardHeader>
-                                        <TabsList className="mb-4 dark:bg-background/70">
-                                            <TabsTrigger value="sign-up">Sign up</TabsTrigger>
-                                            <TabsTrigger value="sign-in">Sign in</TabsTrigger>
-                                        </TabsList>
-                                        <CardTitle className="text-xl">Create an account</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="grid gap-6">
+                <Card className="overflow-hidden bg-card shadow-2xl">
+                    <CardHeader>
+                        <TabsList className="mb-4 dark:bg-background/70">
+                            <TabsTrigger value="sign-up">Sign up</TabsTrigger>
+                            <TabsTrigger value="sign-in">Sign in</TabsTrigger>
+                        </TabsList>
+                        <AnimatePresence mode="wait">
+                            <TabsContent value="sign-up" className="mt-0">
+                                <motion.div
+                                    key="sign-up-title"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <CardTitle className="text-xl">Create an account</CardTitle>
+                                </motion.div>
+                            </TabsContent>
+                            <TabsContent value="sign-in" className="mt-0">
+                                <motion.div
+                                    key="sign-in-title"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <CardTitle className="text-xl">Sign In</CardTitle>
+                                </motion.div>
+                            </TabsContent>
+                        </AnimatePresence>
+                    </CardHeader>
+
+                    <div className="relative overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            <TabsContent value="sign-up" className="m-0">
+                                <motion.div
+                                    key="sign-up-content"
+                                    initial={{ x: "100%", opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    exit={{ x: "-100%", opacity: 0 }}
+                                    transition={{
+                                        type: "spring",
+                                        damping: 25,
+                                        stiffness: 200,
+                                        duration: 0.4
+                                    }}
+                                >
+                                    <CardContent className="grid gap-6 pb-6">
                                         <motion.div
                                             className="grid gap-3"
-                                            initial={{ opacity: 0, x: -30, scale: 0.9 }}
-                                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                                            transition={{
-                                                delay: 0.2,
-                                                duration: 0.4,
-                                                type: "spring",
-                                                damping: 10
-                                            }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.1, duration: 0.3 }}
                                         >
                                             <Label htmlFor="name">Name</Label>
                                             <Input
@@ -81,14 +72,9 @@ export function BetterAuthCard() {
                                         </motion.div>
                                         <motion.div
                                             className="grid gap-3"
-                                            initial={{ opacity: 0, x: -30, scale: 0.9 }}
-                                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                                            transition={{
-                                                delay: 0.3,
-                                                duration: 0.4,
-                                                type: "spring",
-                                                damping: 10
-                                            }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.15, duration: 0.3 }}
                                         >
                                             <Label htmlFor="email">Email</Label>
                                             <Input
@@ -99,14 +85,9 @@ export function BetterAuthCard() {
                                         </motion.div>
                                         <motion.div
                                             className="grid gap-3"
-                                            initial={{ opacity: 0, x: -30, scale: 0.9 }}
-                                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                                            transition={{
-                                                delay: 0.4,
-                                                duration: 0.4,
-                                                type: "spring",
-                                                damping: 10
-                                            }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.2, duration: 0.3 }}
                                         >
                                             <Label htmlFor="password">Password</Label>
                                             <Input
@@ -116,75 +97,40 @@ export function BetterAuthCard() {
                                             />
                                         </motion.div>
                                     </CardContent>
-                                    <CardFooter>
+                                    <CardFooter className="pt-0">
                                         <motion.div
                                             className="w-full"
-                                            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            transition={{
-                                                delay: 0.5,
-                                                duration: 0.4,
-                                                type: "spring",
-                                                damping: 10
-                                            }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.25, duration: 0.3 }}
                                         >
                                             <Button className="h-10 w-full">
                                                 Create an account
                                             </Button>
                                         </motion.div>
                                     </CardFooter>
-                                </Card>
-                            </motion.div>
-                        </motion.div>
-                    </AnimatePresence>
-                </TabsContent>
-                <TabsContent value="sign-in">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key="sign-in"
-                            initial={{ opacity: 0, scale: 0.8, filter: "url(#gooey-filter)" }}
-                            animate={{ opacity: 1, scale: 1, filter: "url(#gooey-filter)" }}
-                            exit={{ opacity: 0, scale: 0.8, filter: "url(#gooey-filter)" }}
-                            transition={{
-                                duration: 0.6,
-                                ease: [0.25, 0.46, 0.45, 0.94],
-                                scale: {
-                                    type: "spring",
-                                    damping: 15,
-                                    stiffness: 100
-                                }
-                            }}
-                            style={{ filter: "url(#gooey-filter)" }}
-                            className="relative"
-                        >
-                            <motion.div
-                                initial={{ borderRadius: "50%" }}
-                                animate={{ borderRadius: "12px" }}
-                                transition={{
-                                    duration: 0.8,
-                                    ease: [0.25, 0.46, 0.45, 0.94],
-                                    delay: 0.1
-                                }}
-                            >
-                                <Card className="overflow-hidden bg-card shadow-2xl">
-                                    <CardHeader>
-                                        <TabsList className="mb-4 dark:bg-background/70">
-                                            <TabsTrigger value="sign-up">Sign up</TabsTrigger>
-                                            <TabsTrigger value="sign-in">Sign in</TabsTrigger>
-                                        </TabsList>
-                                        <CardTitle className="text-xl">Sign In</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="grid gap-6">
+                                </motion.div>
+                            </TabsContent>
+
+                            <TabsContent value="sign-in" className="m-0">
+                                <motion.div
+                                    key="sign-in-content"
+                                    initial={{ x: "100%", opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    exit={{ x: "-100%", opacity: 0 }}
+                                    transition={{
+                                        type: "spring",
+                                        damping: 25,
+                                        stiffness: 200,
+                                        duration: 0.4
+                                    }}
+                                >
+                                    <CardContent className="grid gap-6 pb-6">
                                         <motion.div
                                             className="grid gap-3"
-                                            initial={{ opacity: 0, x: -30, scale: 0.9 }}
-                                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                                            transition={{
-                                                delay: 0.2,
-                                                duration: 0.4,
-                                                type: "spring",
-                                                damping: 10
-                                            }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.1, duration: 0.3 }}
                                         >
                                             <Label htmlFor="email">Email</Label>
                                             <Input
@@ -195,14 +141,9 @@ export function BetterAuthCard() {
                                         </motion.div>
                                         <motion.div
                                             className="grid gap-3"
-                                            initial={{ opacity: 0, x: -30, scale: 0.9 }}
-                                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                                            transition={{
-                                                delay: 0.3,
-                                                duration: 0.4,
-                                                type: "spring",
-                                                damping: 10
-                                            }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.15, duration: 0.3 }}
                                         >
                                             <Label htmlFor="password">Password</Label>
                                             <Input
@@ -212,26 +153,21 @@ export function BetterAuthCard() {
                                             />
                                         </motion.div>
                                     </CardContent>
-                                    <CardFooter>
+                                    <CardFooter className="pt-0">
                                         <motion.div
                                             className="w-full"
-                                            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            transition={{
-                                                delay: 0.4,
-                                                duration: 0.4,
-                                                type: "spring",
-                                                damping: 10
-                                            }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.2, duration: 0.3 }}
                                         >
                                             <Button className="h-10 w-full">Sign in</Button>
                                         </motion.div>
                                     </CardFooter>
-                                </Card>
-                            </motion.div>
-                        </motion.div>
-                    </AnimatePresence>
-                </TabsContent>
+                                </motion.div>
+                            </TabsContent>
+                        </AnimatePresence>
+                    </div>
+                </Card>
             </Tabs>
         </div>
     )
