@@ -66,10 +66,10 @@ export const Codeblock = memo(
 
         return !inline && (match || isMultiLine) ? (
             <div className="relative mt-1 mb-1 flex flex-col rounded-lg border border-border">
-                <div className="flex items-center rounded-t-lg border-border border-b bg-muted px-0.5 py-px">
+                <div className="flex items-center rounded-t-md border-border border-b bg-muted px-2 py-1">
                     <span className="pl-2 font-mono text-muted-foreground text-xs">{language}</span>
                     {lineNumber >= 16 && (
-                        <span className="pl-2 font-mono text-muted-foreground/50 text-xs">
+                        <span className="pt-0.5 pl-2 font-mono text-muted-foreground/50 text-xs">
                             {lineNumber + 1} lines
                         </span>
                     )}
@@ -83,7 +83,7 @@ export const Codeblock = memo(
                         >
                             {expanded ? (
                                 <>
-                                    <ArrowsUpFromLine className="!size-5" />
+                                    <ArrowsUpFromLine className="!size-3" />
                                     {isDesktop && (
                                         <span className="ml-1 hidden text-xs md:inline">
                                             Collapse
@@ -92,7 +92,7 @@ export const Codeblock = memo(
                                 </>
                             ) : (
                                 <>
-                                    <ArrowDownSquareIcon className="!size-5" />
+                                    <ArrowDownSquareIcon className="!size-3" />
                                     {isDesktop && (
                                         <span className="ml-1 hidden text-xs md:inline">
                                             Expand
@@ -109,7 +109,7 @@ export const Codeblock = memo(
                             className="h-[1.5rem] gap-1 font-sans text-muted-foreground md:w-auto md:px-2"
                             onClick={() => setWrapped((t) => !t)}
                         >
-                            <AlignLeft className="!size-5" />
+                            <AlignLeft className="!size-3" />
                             {isDesktop && (
                                 <span className="ml-1 hidden text-xs md:inline">Wrap</span>
                             )}
@@ -130,7 +130,7 @@ export const Codeblock = memo(
                         >
                             {didRecentlyCopied ? (
                                 <>
-                                    <CheckIcon className="size-4" />
+                                    <CheckIcon className="size-3" />
                                     {isDesktop && (
                                         <span className="ml-1 hidden text-xs md:inline">
                                             Copied
@@ -139,7 +139,7 @@ export const Codeblock = memo(
                                 </>
                             ) : (
                                 <>
-                                    <CopyIcon className="size-4" />
+                                    <CopyIcon className="size-3" />
                                     {isDesktop && (
                                         <span className="ml-1 hidden text-xs md:inline">Copy</span>
                                     )}
