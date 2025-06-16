@@ -246,15 +246,15 @@ export function ThemeSwitcher() {
 
                     <ResponsivePopoverContent
                         align="end"
-                        className="w-80 p-0"
+                        className="w-full p-0 md:w-80"
                         title="Theme Selector"
                         description="Choose a theme for your interface"
                     >
                         {/* Note: Title and description are already in ResponsivePopoverContent */}
-                        <Separator />
+                        <Separator className="hidden md:block" />
 
                         {/* Search Input */}
-                        <div className="p-2">
+                        <div className="hidden p-2 md:block">
                             <div className="relative">
                                 <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
                                 <Input
@@ -314,7 +314,7 @@ export function ThemeSwitcher() {
                                         Loading themes...
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 gap-2">
+                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-1 ">
                                         {filteredThemes.map((theme) => {
                                             const isSelected = selectedThemeUrl === theme.url
                                             const colors =
@@ -339,7 +339,7 @@ export function ThemeSwitcher() {
                                                         }
                                                     }}
                                                     className={cn(
-                                                        "w-full cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:scale-[1.02] hover:shadow-md",
+                                                        "w-full cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:shadow-md sm:hover:scale-[1.02] ",
                                                         isSelected
                                                             ? "border-primary shadow-sm ring-2 ring-primary/20"
                                                             : "border-border hover:border-primary/50",

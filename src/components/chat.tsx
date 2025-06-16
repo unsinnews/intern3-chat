@@ -45,7 +45,7 @@ export const Chat = ({ threadId: routeThreadId }: ChatProps) => {
                 onEditAndRetry={handleEditAndRetry}
                 status={status}
             />
-            <div className="-bottom-10 absolute right-0 left-0 z-[10] flex justify-center">
+            <div className="-bottom-[3.875rem] md:-bottom-10 absolute right-0 left-0 z-[10] flex justify-center">
                 <MultimodalInput onSubmit={handleInputSubmit} status={status} />
             </div>
         </div>

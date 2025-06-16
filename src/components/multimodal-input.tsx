@@ -145,12 +145,12 @@ export function MultimodalInput({
     if (!isClient) return null
 
     return (
-        <div className="@container w-full">
+        <div className="@container w-full md:px-2">
             <PromptInput
                 ref={promptInputRef}
                 onSubmit={handleSubmit}
                 className={cn(
-                    "mx-auto w-full max-w-2xl md:min-w-2xl",
+                    "mx-auto w-full max-w-2xl",
                     dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
                 )}
             >
@@ -189,7 +189,7 @@ export function MultimodalInput({
                         {dragActive && (
                             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-primary border-dashed bg-primary/5">
                                 <div className="text-center">
-                                    <Upload className="mx-auto mb-2 h-8 w-8 text-foreground" />
+                                    <Upload className="mx-auto mb-2 size-8 text-foreground" />
                                     <p className="font-medium text-foreground text-sm">
                                         Drop files here to upload
                                     </p>
@@ -209,7 +209,7 @@ export function MultimodalInput({
                                 variant="ghost"
                                 onClick={() => uploadInputRef.current?.click()}
                                 className={cn(
-                                    "flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
+                                    "flex size-8 shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
                                 )}
                             >
                                 <input
@@ -239,7 +239,7 @@ export function MultimodalInput({
                                     )
                                 }}
                                 className={cn(
-                                    "flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
+                                    "flex size-8 shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
                                     enabledTools.includes("web_search") && "bg-secondary/70"
                                 )}
                             >
@@ -252,7 +252,7 @@ export function MultimodalInput({
                         <Button
                             variant="default"
                             size="icon"
-                            className="h-8 w-8 rounded-md"
+                            className="size-8 shrink-0 rounded-md"
                             disabled={status === "submitted" || uploading}
                             onClick={handleSubmit}
                             type="submit"

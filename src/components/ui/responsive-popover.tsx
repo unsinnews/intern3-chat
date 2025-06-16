@@ -11,7 +11,7 @@ import {
     SheetDescription,
     SheetHeader,
     SheetTitle,
-    SheetTrigger 
+    SheetTrigger,
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
@@ -103,10 +103,10 @@ export function ResponsivePopoverContent({
         return (
             <SheetContent 
                 side={side} 
-                className={cn("max-h-[85vh] overflow-y-auto", className)}
+                className={cn("max-h-[85vh] overflow-y-auto bg-popover", className)}
             >
                 {(title || description) && (
-                    <SheetHeader>
+                    <SheetHeader className="pb-0">
                         {title && <SheetTitle>{title}</SheetTitle>}
                         {description && <SheetDescription>{description}</SheetDescription>}
                     </SheetHeader>
@@ -124,7 +124,7 @@ export function ResponsivePopoverContent({
             align={align}
             alignOffset={alignOffset}
             sideOffset={sideOffset}
-            className={className}
+            className={cn("bg-popover rounded-none md:rounded-md", className)}
             {...props}
         >
             {children}
