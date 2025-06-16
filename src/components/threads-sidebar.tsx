@@ -306,12 +306,13 @@ export function ThreadsSidebar() {
 
     return (
         <Sidebar variant="inset">
-            <SidebarHeader className="gap-3">
+            <SidebarHeader className="mt-1 gap-4">
                 <div className="flex items-center justify-between">
-                    <div className="font-medium text-base text-sidebar-foreground tracking-tight">
+                    <div className="cursor-default select-none font-medium text-sidebar-foreground text-xl">
                         Intern3.chat
                     </div>
                 </div>
+                <div className="h-px w-full bg-border" />
                 <Link
                     to="/"
                     className={cn(buttonVariants({ variant: "default" }), "w-full justify-start")}
