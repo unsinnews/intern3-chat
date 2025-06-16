@@ -231,15 +231,17 @@ export function Messages({
                 ))}
 
                 {status === "error" && (
-                    <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/15 p-4">
+                    <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive p-4">
                         <div className="flex w-full items-center justify-between">
-                            <p className="text-destructive">Oops! Something went wrong.</p>
+                            <p className="text-destructive-foreground">
+                                Oops! Something went wrong.
+                            </p>
                             {lastUserMessage && (
                                 <Button
-                                    variant="ghost"
+                                    variant="destructive"
                                     size="sm"
                                     onClick={() => onRetry?.(lastUserMessage)}
-                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    className="text-destructive-foreground hover:text-destructive-foreground/80"
                                 >
                                     <RotateCcw />
                                     Retry
