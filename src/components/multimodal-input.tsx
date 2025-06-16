@@ -13,7 +13,7 @@ import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
 import { ArrowUp, Globe, Loader2, Paperclip, Square, Upload, X } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 export function MultimodalInput({
     onSubmit,
@@ -136,6 +136,13 @@ export function MultimodalInput({
         const i = Math.floor(Math.log(bytes) / Math.log(k))
         return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
     }
+
+    const [isClient, setIsClient] = useState(false)
+    useEffect(() => {
+        setIsClient(true)
+    }, [])
+
+    if (!isClient) return null
 
     return (
         <div className="@container w-full">
