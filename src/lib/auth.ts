@@ -30,9 +30,12 @@ export const auth = betterAuth({
                     providerId: "atlassian",
                     clientId: process.env.ATLASSIAN_CLIENT_ID as string,
                     clientSecret: process.env.ATLASSIAN_CLIENT_SECRET as string,
-                    authorizationUrl: "https://auth.atlassian.com/authorize",
+
+                    authorizationUrl:
+                        "https://auth.atlassian.com/authorize?audience=api.atlassian.com&prompt=consent",
                     tokenUrl: "https://auth.atlassian.com/oauth/token",
-                    scopes: ["read:me", "read:user"]
+                    redirectURI: "https://intern3.chat/api/auth/oauth2/callback/atlassian",
+                    scopes: ["read:me"]
                 }
             ]
         }),
