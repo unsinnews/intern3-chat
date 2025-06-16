@@ -11,7 +11,11 @@ import {
     CommandItem,
     CommandList
 } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+    ResponsivePopover,
+    ResponsivePopoverContent,
+    ResponsivePopoverTrigger
+} from "@/components/ui/responsive-popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { api } from "@/convex/_generated/api"
 import type { SharedModel } from "@/convex/lib/models"
@@ -180,8 +184,8 @@ export function ModelSelector({
     // }, [])
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
+        <ResponsivePopover open={open} onOpenChange={setOpen}>
+            <ResponsivePopoverTrigger asChild>
                 <Button
                     variant="ghost"
                     aria-expanded={open}
@@ -193,8 +197,13 @@ export function ModelSelector({
                     <span>{selectedModelData?.name}</span>
                     <ChevronDown className="ml-auto h-4 w-4" />
                 </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
+            </ResponsivePopoverTrigger>
+            <ResponsivePopoverContent
+                className="p-0"
+                align="start"
+                title="Select Model"
+                description="Choose a model for your conversation"
+            >
                 <Command>
                     <CommandInput placeholder="Search models..." className="h-9" />
                     <CommandList>
@@ -244,7 +253,7 @@ export function ModelSelector({
                         </ScrollArea>
                     </CommandList>
                 </Command>
-            </PopoverContent>
-        </Popover>
+            </ResponsivePopoverContent>
+        </ResponsivePopover>
     )
 }
