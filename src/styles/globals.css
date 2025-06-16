@@ -304,7 +304,7 @@
         @apply border-border outline-ring/50;
         --color-scrollbar-track: transparent;
         scrollbar-width: thin;
-        scrollbar-color: oklch(from var(--muted-foreground) calc(l * 1.5) c h) transparent;
+        scrollbar-color: var(--border) transparent;
     }
     body {
         @apply bg-background text-foreground;
@@ -316,7 +316,7 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        background-color: oklch(from var(--muted-foreground) calc(l * 1.5) c h) !important;
+        background-color: var(--border) !important;
         border-radius: 9999px;
     }
 

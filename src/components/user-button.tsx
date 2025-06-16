@@ -21,7 +21,7 @@ export function UserButton() {
 
     if (isPending) {
         return (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md">
                 <Loader2 className="h-4 w-4 animate-spin" />
             </div>
         )
@@ -57,8 +57,8 @@ export function UserButton() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="relative h-6 w-6 rounded-full p-1">
-                    <Avatar className="h-8 w-8">
+                <button type="button" className="relative h-8 w-8 rounded-md">
+                    <Avatar className="h-8 w-8 rounded-md">
                         <AvatarImage
                             src={session.user.image || undefined}
                             alt={session.user.name || "User"}
@@ -67,11 +67,11 @@ export function UserButton() {
                             {session.user.name ? (
                                 getInitials(session.user.name)
                             ) : (
-                                <UserIcon className="h-4 w-4" />
+                                <UserIcon className="h-4 w-4 rounded-md" />
                             )}
                         </AvatarFallback>
                     </Avatar>
-                </Button>
+                </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">

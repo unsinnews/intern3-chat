@@ -7,11 +7,11 @@ import {
     ExternalLinkIcon,
     LoaderIcon,
     MoonIcon,
+    PaintBucketIcon,
     PlusIcon,
     Search,
     ShuffleIcon,
-    SunIcon,
-    SwatchBookIcon
+    SunIcon
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"
@@ -31,11 +31,14 @@ const THEME_URLS = [
     "https://tweakcn.com/editor/theme?theme=perpetuity",
     "https://tweakcn.com/r/themes/vintage-paper.json",
     "https://tweakcn.com/r/themes/amethyst-haze.json",
-    "https://tweakcn.com/r/themes/claude.json",
     "https://tweakcn.com/r/themes/cmbpg28hj000404l7ferxfwgs",
     "https://tweakcn.com/editor/theme?theme=doom-64",
     "https://tweakcn.com/editor/theme?theme=notebook",
-    "https://tweakcn.com/editor/theme?theme=pastel-dreams"
+    "https://tweakcn.com/editor/theme?theme=pastel-dreams",
+    "https://tweakcn.com/editor/theme?theme=quantum-rose",
+    "https://tweakcn.com/editor/theme?theme=claymorphism",
+    "https://tweakcn.com/editor/theme?theme=supabase",
+    "https://tweakcn.com/editor/theme?theme=vercel"
 ]
 
 type ThemePreset = {
@@ -218,23 +221,45 @@ export function ThemeSwitcher() {
                 onOpenChange={setIsImportDialogOpen}
                 onThemeImported={handleThemeImported}
             />
+
+            <Button
+                variant="outline"
+                size="icon"
+                className="size-8 rounded-md"
+                onClick={toggleMode}
+            >
+                <SunIcon className="dark:-rotate-90 h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:scale-0" />
+                <MoonIcon className="absolute h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle mode</span>
+            </Button>
+
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 rounded-full">
-                        {/* <SunIcon className="dark:-rotate-90 h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:scale-0" />
-                        <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" /> */}
-                        <SwatchBookIcon className="h-4 w-4" />
-                        <span className="sr-only">Toggle theme</span>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="flex size-8 items-center rounded-md"
+                    >
+                        <PaintBucketIcon className="h-3.5 w-3.5" />
                     </Button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
                     align="end"
-                    className="w-72"
+                    className="w-80"
                     onCloseAutoFocus={(e) => e.preventDefault()}
                 >
+                    {/* Header */}
+                    <div className="px-3 py-2">
+                        <h3 className="font-medium text-sm">Theme Selector</h3>
+                        <p className="text-muted-foreground text-xs">
+                            Choose a theme for your interface
+                        </p>
+                    </div>
+                    <DropdownMenuSeparator />
+
                     {/* Search Input */}
-                    <div>
+                    <div className="p-2">
                         <div className="relative">
                             <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
                             <Input
@@ -248,23 +273,13 @@ export function ThemeSwitcher() {
                     <DropdownMenuSeparator />
 
                     {/* Theme Count and Controls */}
-                    <div className="flex items-center justify-between px-3 py-1">
+                    <div className="flex items-center justify-between px-3 py-2">
                         <div className="text-muted-foreground text-sm">
-                            {isLoadingThemes ? "Loading..." : `${filteredThemes.length} themes`}
+                            {isLoadingThemes
+                                ? "Loading..."
+                                : `${filteredThemes.length} themes available`}
                         </div>
                         <div className="flex items-center gap-1">
-                            {/* Mode Switcher */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-7"
-                                onClick={toggleMode}
-                            >
-                                <SunIcon className="dark:-rotate-90 h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:scale-0" />
-                                <MoonIcon className="absolute h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                                <span className="sr-only">Toggle mode</span>
-                            </Button>
-
                             {/* Randomizer */}
                             <Button
                                 variant="ghost"
@@ -272,6 +287,7 @@ export function ThemeSwitcher() {
                                 className="size-7"
                                 onClick={randomizeTheme}
                                 disabled={isLoadingThemes || filteredThemes.length === 0}
+                                title="Random theme"
                             >
                                 <ShuffleIcon className="h-3.5 w-3.5" />
                                 <span className="sr-only">Random theme</span>
@@ -281,24 +297,24 @@ export function ThemeSwitcher() {
                             <Button
                                 variant="secondary"
                                 size="sm"
-                                className="size-7"
+                                className="h-7 text-xs"
                                 onClick={(e) => {
                                     e.preventDefault()
                                     setIsImportDialogOpen(true)
                                 }}
                             >
                                 <PlusIcon className="h-3.5 w-3.5" />
-                                <span className="sr-only">Import theme</span>
+                                Import
                             </Button>
                         </div>
                     </div>
                     <DropdownMenuSeparator />
 
                     {/* Themes List */}
-                    <ScrollArea className="h-72">
-                        <div className="p-1">
+                    <ScrollArea className="h-80">
+                        <div className="p-2">
                             {isLoadingThemes ? (
-                                <div className="flex items-center gap-2 p-1 text-muted-foreground">
+                                <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
                                     <LoaderIcon className="size-4 animate-spin" />
                                     Loading themes...
                                 </div>
@@ -328,37 +344,49 @@ export function ThemeSwitcher() {
                                                     }
                                                 }}
                                                 className={cn(
-                                                    "cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:shadow-md",
+                                                    "w-full cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:scale-[1.02] hover:shadow-md",
                                                     isSelected
-                                                        ? "border border-border"
-                                                        : "border-border",
+                                                        ? "border-primary shadow-sm ring-2 ring-primary/20"
+                                                        : "border-border hover:border-primary/50",
                                                     "error" in theme &&
                                                         theme.error &&
-                                                        "cursor-not-allowed opacity-50"
+                                                        "cursor-not-allowed opacity-50 hover:scale-100"
                                                 )}
+                                                disabled={"error" in theme && !!theme.error}
                                             >
-                                                <div className="flex items-center justify-between p-2">
-                                                    <div>
-                                                        <div className="text-sm">{theme.name}</div>
+                                                <div className="flex items-center justify-between p-3">
+                                                    <div className="text-left">
+                                                        <div className="font-medium text-sm">
+                                                            {theme.name}
+                                                        </div>
+                                                        {isSelected && (
+                                                            <div className="text-muted-foreground text-xs">
+                                                                Currently active
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     {isSelected && (
-                                                        <div className="flex h-4 w-4 shrink-0 items-center justify-center">
-                                                            <CheckCircle className="size-4 text-foreground" />
+                                                        <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                                                            <CheckCircle className="size-4 text-primary" />
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="flex h-3">
-                                                    {colors.map((color, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="w-full"
-                                                            style={{ backgroundColor: color }}
-                                                        />
-                                                    ))}
-                                                </div>
+                                                {colors.length > 0 && (
+                                                    <div className="flex h-2">
+                                                        {colors.map((color, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="flex-1"
+                                                                style={{
+                                                                    backgroundColor: color
+                                                                }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
                                                 {"error" in theme && theme.error && (
                                                     <div className="p-3 pt-2 text-destructive text-xs">
-                                                        {theme.error}
+                                                        Error: {theme.error}
                                                     </div>
                                                 )}
                                             </button>
@@ -371,10 +399,13 @@ export function ThemeSwitcher() {
 
                     <DropdownMenuSeparator />
 
-                    <div className="flex items-center justify-center gap-1 p-2 text-muted-foreground text-sm">
+                    {/* Footer */}
+                    <div className="flex items-center justify-center gap-1 p-3 text-muted-foreground text-sm">
                         Get more themes at
                         <a
                             href="https://tweakcn.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="flex items-center text-primary transition-colors hover:underline"
                         >
                             tweakcn.com

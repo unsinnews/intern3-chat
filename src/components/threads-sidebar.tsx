@@ -35,7 +35,7 @@ import { Link } from "@tanstack/react-router"
 import { useQuery as useConvexQuery, useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 interface Thread {
@@ -223,6 +223,8 @@ function EmptyState({ message }: { message: string }) {
 
 export function ThreadsSidebar() {
     const [searchQuery, setSearchQuery] = useState("")
+    const [showGradient, setShowGradient] = useState(false)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
     const { data: session } = authClient.useSession()
 
     const threads = useConvexQuery(api.threads.getAllUserThreads, session?.user?.id ? {} : "skip")
@@ -242,6 +244,29 @@ export function ThreadsSidebar() {
     const groupedThreads = useMemo(() => {
         return groupThreadsByTime(filteredThreads)
     }, [filteredThreads])
+
+    useEffect(() => {
+        const container = scrollContainerRef.current
+        if (!container) return
+
+        const handleScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = container
+            const hasScrollableContent = scrollHeight > clientHeight
+            const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 5
+            setShowGradient(hasScrollableContent && !isScrolledToBottom)
+        }
+
+        handleScroll() // Initial check
+        container.addEventListener("scroll", handleScroll)
+
+        const resizeObserver = new ResizeObserver(handleScroll)
+        resizeObserver.observe(container)
+
+        return () => {
+            container.removeEventListener("scroll", handleScroll)
+            resizeObserver.disconnect()
+        }
+    }, [threadsData])
 
     const renderContent = () => {
         if (!isAuthenticated) {
@@ -305,7 +330,10 @@ export function ThreadsSidebar() {
                     />
                 </div>
             </SidebarHeader>
-            <SidebarContent>{renderContent()}</SidebarContent>
+            <SidebarContent ref={scrollContainerRef}>{renderContent()}</SidebarContent>
+            {showGradient && (
+                <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
+            )}
         </Sidebar>
     )
 }

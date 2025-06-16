@@ -10,9 +10,10 @@ export function Header({ threadId }: { threadId?: string }) {
                 <div className="pointer-events-auto">
                     <SidebarTrigger />
                 </div>
-                <div className="pointer-events-auto flex items-center gap-2">
+                <div className="pointer-events-auto flex items-center space-x-2">
                     {threadId && <ShareButton threadId={threadId} />}
                     <ThemeSwitcher />
+                    <div className="h-4 w-px bg-border" />
                     <UserButton />
                 </div>
             </div>
