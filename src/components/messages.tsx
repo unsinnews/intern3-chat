@@ -1,7 +1,9 @@
+import type { useChatIntegration } from "@/hooks/use-chat-integration"
 import { browserEnv } from "@/lib/browser-env"
 import { useChatStore } from "@/lib/chat-store"
 import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
+import { RotateCcw } from "lucide-react"
 import { memo, useState } from "react"
 import { ChatActions } from "./chat-actions"
 import { MemoizedMarkdown } from "./memoized-markdown"
@@ -136,7 +138,7 @@ export function Messages({
     messages: UIMessage[]
     onRetry?: (message: UIMessage) => void
     onEditAndRetry?: (messageId: string, newContent: string) => void
-    status?: "idle" | "streaming" | "submitted" | string
+    status: ReturnType<typeof useChatIntegration>["status"]
 }) {
     const { setTargetFromMessageId, targetFromMessageId, setTargetMode, targetMode } =
         useChatStore()
@@ -172,6 +174,8 @@ export function Messages({
             ))
 
     const showTypingLoader = status === "submitted" || isStreamingWithoutContent
+
+    const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")
 
     return (
         <ScrollArea className="h-full p-4 pt-0">
@@ -225,6 +229,25 @@ export function Messages({
                         )}
                     </div>
                 ))}
+
+                {status === "error" && (
+                    <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/15 p-4">
+                        <div className="flex w-full items-center justify-between">
+                            <p className="text-destructive">Oops! Something went wrong.</p>
+                            {lastUserMessage && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onRetry?.(lastUserMessage)}
+                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                    <RotateCcw />
+                                    Retry
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {showTypingLoader && (
                     <div className="flex items-center gap-2 py-4">
