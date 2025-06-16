@@ -15,9 +15,9 @@ export function useDynamicTitle({ threadId }: UseDynamicTitleProps) {
 
     useEffect(() => {
         if (threadId && thread && !("error" in thread)) {
-            document.title = `${thread.title} - Intern3 Chat`
+            document.title = `${thread.title} - intern3.chat`
         } else {
-            document.title = "Intern3 Chat"
+            document.title = "intern3.chat"
         }
     }, [threadId, thread])
 }
