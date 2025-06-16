@@ -1,4 +1,5 @@
 import { type Infer, v } from "convex/values"
+import type { RegistryKey } from "../lib/models"
 
 export const providerSchema = v.union(
     v.literal("openai"),
@@ -15,4 +16,4 @@ export const ApiKey = v.object({
 })
 
 export type ApiKey = Infer<typeof ApiKey>
-export type Provider = ApiKey["provider"]
+export type Provider = RegistryKey extends `${infer P}:${string}` ? P : never
