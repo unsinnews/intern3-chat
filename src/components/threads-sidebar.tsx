@@ -1,9 +1,3 @@
-import { Link } from "@tanstack/react-router"
-import { useQuery as useConvexQuery, useMutation } from "convex/react"
-import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
-import { toast } from "sonner"
-import { buttonVariants } from "@/components/ui/button"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -14,6 +8,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog"
+import { buttonVariants } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -32,12 +27,16 @@ import {
     SidebarMenuButton,
     SidebarMenuItem
 } from "@/components/ui/sidebar"
-import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useSession } from "@/hooks/auth-hooks"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { Link } from "@tanstack/react-router"
+import { useQuery as useConvexQuery, useMutation } from "convex/react"
+import { isAfter, isToday, isYesterday, subDays } from "date-fns"
+import { MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
+import { useMemo, useState } from "react"
+import { toast } from "sonner"
 
 interface Thread {
     _id: Id<"threads">
@@ -208,110 +207,77 @@ function groupThreadsByTime(threads: Thread[]) {
     }
 }
 
+function LoadingSkeleton() {
+    return <></>
+}
+
+function EmptyState({ message }: { message: string }) {
+    return (
+        <SidebarGroup>
+            <SidebarGroupContent>
+                <div className="p-4 text-center text-muted-foreground">{message}</div>
+            </SidebarGroupContent>
+        </SidebarGroup>
+    )
+}
+
 export function ThreadsSidebar() {
     const [searchQuery, setSearchQuery] = useState("")
     const session = useSession()
 
     const threads = useConvexQuery(api.threads.getAllUserThreads, session.user?.id ? {} : "skip")
-    const isLoading = threads === undefined
 
-    if (!session.user?.id) {
+    const isAuthenticated = Boolean(session.user?.id)
+    const isLoading = isAuthenticated && threads === undefined
+    const hasError = threads && "error" in threads
+    const threadsData = Array.isArray(threads) ? threads : []
+
+    const filteredThreads = useMemo(() => {
+        if (!searchQuery) return threadsData
+        return threadsData.filter((thread: Thread) =>
+            thread.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    }, [threadsData, searchQuery])
+
+    const groupedThreads = useMemo(() => {
+        return groupThreadsByTime(filteredThreads)
+    }, [filteredThreads])
+
+    const renderContent = () => {
+        if (!isAuthenticated) {
+            return <></>
+        }
+
+        if (isLoading) {
+            return <LoadingSkeleton />
+        }
+
+        if (hasError) {
+            return <></>
+        }
+
+        if (threadsData.length === 0) {
+            return <EmptyState message="No threads yet. Start a new conversation!" />
+        }
+
+        if (filteredThreads.length === 0 && searchQuery) {
+            return <EmptyState message="No threads match your search" />
+        }
+
         return (
-            <Sidebar variant="inset">
-                <SidebarHeader className="gap-3">
-                    <div className="flex items-center justify-between">
-                        <div className="font-medium text-base text-sidebar-foreground">
-                            Intern3.chat
-                        </div>
-                    </div>
-                    <Link
-                        to="/"
-                        className={cn(
-                            buttonVariants({ variant: "default" }),
-                            "w-full justify-start"
-                        )}
-                    >
-                        <Plus />
-                        New Chat
-                    </Link>
-                </SidebarHeader>
-                <SidebarContent>
-                    <div className="p-4 text-center text-muted-foreground">
-                        Sign in to view your threads
-                    </div>
-                </SidebarContent>
-            </Sidebar>
+            <>
+                <ThreadsGroup
+                    title="Pinned"
+                    threads={groupedThreads.pinned}
+                    icon={<Pin className="h-4 w-4" />}
+                />
+                <ThreadsGroup title="Today" threads={groupedThreads.today} />
+                <ThreadsGroup title="Yesterday" threads={groupedThreads.yesterday} />
+                <ThreadsGroup title="Last 7 Days" threads={groupedThreads.lastSevenDays} />
+                <ThreadsGroup title="Last 30 Days" threads={groupedThreads.lastThirtyDays} />
+            </>
         )
     }
-
-    if (isLoading) {
-        return (
-            <Sidebar variant="inset">
-                <SidebarHeader className="gap-3">
-                    <div className="flex items-center justify-between">
-                        <div className="font-medium text-base text-sidebar-foreground tracking-tight">
-                            Intern3.chat
-                        </div>
-                    </div>
-                    <Link
-                        to="/"
-                        className={cn(
-                            buttonVariants({ variant: "default" }),
-                            "w-full justify-start"
-                        )}
-                    >
-                        <Plus />
-                        New Chat
-                    </Link>
-                    <div className="relative">
-                        <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search your threads..."
-                            className="pl-8"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                </SidebarHeader>
-                <SidebarContent>
-                    <SidebarGroup>
-                        <SidebarGroupContent>
-                            <div className="space-y-2">
-                                {Array.from({ length: 8 }).map((_, i) => (
-                                    <Skeleton key={i} className="h-8 w-full" />
-                                ))}
-                            </div>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
-                </SidebarContent>
-            </Sidebar>
-        )
-    }
-
-    if (!threads || "error" in threads) {
-        return (
-            <Sidebar variant="inset">
-                <SidebarHeader>
-                    <div className="font-medium text-base text-sidebar-foreground tracking-tight">
-                        Intern3.chat
-                    </div>
-                </SidebarHeader>
-                <SidebarContent>
-                    <div className="p-4 text-center text-muted-foreground">
-                        Failed to load threads
-                    </div>
-                </SidebarContent>
-            </Sidebar>
-        )
-    }
-
-    const filteredThreads = searchQuery
-        ? threads.filter((thread: Thread) =>
-              thread.title.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        : threads
-
-    const groupedThreads = groupThreadsByTime(filteredThreads)
 
     return (
         <Sidebar variant="inset">
@@ -335,20 +301,11 @@ export function ThreadsSidebar() {
                         className="pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        disabled={isLoading}
                     />
                 </div>
             </SidebarHeader>
-            <SidebarContent>
-                <ThreadsGroup
-                    title="Pinned"
-                    threads={groupedThreads.pinned}
-                    icon={<Pin className="h-4 w-4" />}
-                />
-                <ThreadsGroup title="Today" threads={groupedThreads.today} />
-                <ThreadsGroup title="Yesterday" threads={groupedThreads.yesterday} />
-                <ThreadsGroup title="Last 7 Days" threads={groupedThreads.lastSevenDays} />
-                <ThreadsGroup title="Last 30 Days" threads={groupedThreads.lastThirtyDays} />
-            </SidebarContent>
+            <SidebarContent>{renderContent()}</SidebarContent>
         </Sidebar>
     )
 }

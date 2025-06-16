@@ -5,12 +5,12 @@ import { UserButton } from "./user-button"
 
 export function Header({ threadId }: { threadId?: string }) {
     return (
-        <header className="pointer-events-none absolute top-0 z-50 w-full">
+        <header className="pointer-events-none absolute top-0 z-50 w-full px-4 pt-2">
             <div className="flex w-full items-center justify-between">
-                <div className="pointer-events-auto p-4">
+                <div className="pointer-events-auto">
                     <SidebarTrigger />
                 </div>
-                <div className="pointer-events-auto flex items-center gap-2 p-4">
+                <div className="pointer-events-auto flex items-center gap-2">
                     {threadId && <ShareButton threadId={threadId} />}
                     <ThemeSwitcher />
                     <UserButton />
