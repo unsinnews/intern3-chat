@@ -1,4 +1,4 @@
-import { BetterAuthCard } from "@/components/auth/better-auth-card"
+import { AuthCard } from "@/components/auth/auth-card"
 import { ShaderBackground } from "@/components/auth/shader-background"
 import { ThemeSwitcher } from "@/components/themes/theme-switcher"
 import { createFileRoute } from "@tanstack/react-router"
@@ -17,7 +17,7 @@ function RouteComponent() {
                 <ThemeSwitcher />
             </div>
             <div className="flex w-full max-w-lg items-center justify-center gap-4">
-                <BetterAuthCard />
+                <AuthCard />
                 {/* <AuthCard pathname={pathname} /> */}
             </div>
 
