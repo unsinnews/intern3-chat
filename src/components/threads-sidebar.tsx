@@ -57,9 +57,13 @@ function ThreadItem({ thread }: { thread: Thread }) {
     const togglePinMutation = useMutation(api.threads.togglePinThread)
     const params = useParams({ strict: false }) as { threadId?: string }
     const isActive = params.threadId === thread._id
+    const navigate = useNavigate()
 
     const handleDelete = async () => {
         try {
+            if (isActive) {
+                navigate({ to: "/", replace: true })
+            }
             await deleteThreadMutation({ threadId: thread._id })
             setShowDeleteDialog(false)
         } catch (error) {

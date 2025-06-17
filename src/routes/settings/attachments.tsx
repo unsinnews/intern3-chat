@@ -306,7 +306,7 @@ function AttachmentsPage() {
 
                 {/* Storage Info */}
                 <Card className="gap-3 p-4">
-                    <CardHeader className="gap-0 px-0">
+                    <CardHeader className="gap-2 px-0">
                         <CardTitle>Storage Information</CardTitle>
                         <CardDescription>Information about your file storage usage</CardDescription>
                     </CardHeader>

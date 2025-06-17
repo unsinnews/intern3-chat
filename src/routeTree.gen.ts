@@ -11,6 +11,7 @@
 import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ChatRouteImport } from './routes/_chat'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as ChatIndexRouteImport } from './routes/_chat.index'
@@ -27,6 +28,11 @@ import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/
 
 const rootServerRouteImport = createServerRootRoute()
 
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatRoute = ChatRouteImport.update({
   id: '/_chat',
   getParentRoute: () => rootRouteImport,
@@ -94,6 +100,7 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/auth/$pathname': typeof AuthPathnameRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/auth/$pathname': typeof AuthPathnameRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/settings': typeof SettingsRouteRouteWithChildren
   '/_chat': typeof ChatRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/auth/$pathname': typeof AuthPathnameRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/settings'
+    | '/privacy-policy'
     | '/auth/$pathname'
     | '/settings/ai-options'
     | '/settings/appearance'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings'
+    | '/privacy-policy'
     | '/auth/$pathname'
     | '/settings/ai-options'
     | '/settings/appearance'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/settings'
     | '/_chat'
+    | '/privacy-policy'
     | '/auth/$pathname'
     | '/settings/ai-options'
     | '/settings/appearance'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
   ChatRoute: typeof ChatRouteWithChildren
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   AuthPathnameRoute: typeof AuthPathnameRoute
 }
 export interface FileServerRoutesByFullPath {
@@ -205,6 +218,13 @@ export interface RootServerRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_chat': {
       id: '/_chat'
       path: ''
@@ -342,6 +362,7 @@ const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
   ChatRoute: ChatRouteWithChildren,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   AuthPathnameRoute: AuthPathnameRoute,
 }
 export const routeTree = rootRouteImport

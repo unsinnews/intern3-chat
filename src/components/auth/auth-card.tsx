@@ -199,8 +199,8 @@ export function AuthCard() {
 
     return (
         <div className="flex w-full max-w-sm flex-col gap-6">
-            <Card className="overflow-hidden bg-card shadow-2xl">
-                <CardHeader>
+            <Card className="inset-shadow-sm gap-4 overflow-hidden bg-card pt-3 pb-5">
+                <CardHeader className="flex justify-center border-b-2 border-dotted [.border-b-2]:pb-4">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={`${step}-title`}
@@ -359,20 +359,19 @@ export function AuthCard() {
                                     duration: 0.4
                                 }}
                             >
-                                <Form {...otpForm}>
-                                    <form onSubmit={otpForm.handleSubmit(onOTPSubmit)}>
-                                        <CardContent className="grid gap-6">
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.1, duration: 0.3 }}
-                                                className="text-center text-muted-foreground text-sm"
-                                            >
-                                                We sent a 6-digit code to{" "}
-                                                <span className="font-medium text-foreground">
-                                                    {email}
-                                                </span>
-                                            </motion.div>
+                                <CardContent className="grid gap-4">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.1, duration: 0.3 }}
+                                        className="text-center text-muted-foreground"
+                                    >
+                                        We sent a 6-digit code to{" "}
+                                        <span className="font-medium text-foreground">{email}</span>
+                                    </motion.div>
+
+                                    <Form {...otpForm}>
+                                        <form onSubmit={otpForm.handleSubmit(onOTPSubmit)}>
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
@@ -383,9 +382,11 @@ export function AuthCard() {
                                                     name="otp"
                                                     render={({ field }) => (
                                                         <FormItem>
-                                                            <FormLabel>Verification Code</FormLabel>
+                                                            {/* <FormLabel className="text-center font-semibold text-base">
+                                                                Verification Code
+                                                            </FormLabel> */}
                                                             <FormControl>
-                                                                <div className="flex justify-center">
+                                                                <div className="flex w-full justify-center">
                                                                     <InputOTP
                                                                         maxLength={6}
                                                                         {...field}
@@ -393,24 +394,30 @@ export function AuthCard() {
                                                                         <InputOTPGroup>
                                                                             <InputOTPSlot
                                                                                 index={0}
+                                                                                className="h-10 w-10"
                                                                             />
                                                                             <InputOTPSlot
                                                                                 index={1}
+                                                                                className="h-10 w-10"
                                                                             />
                                                                             <InputOTPSlot
                                                                                 index={2}
+                                                                                className="h-10 w-10"
                                                                             />
                                                                         </InputOTPGroup>
                                                                         <InputOTPSeparator />
                                                                         <InputOTPGroup>
                                                                             <InputOTPSlot
                                                                                 index={3}
+                                                                                className="h-10 w-10"
                                                                             />
                                                                             <InputOTPSlot
                                                                                 index={4}
+                                                                                className="h-10 w-10"
                                                                             />
                                                                             <InputOTPSlot
                                                                                 index={5}
+                                                                                className="h-10 w-10"
                                                                             />
                                                                         </InputOTPGroup>
                                                                     </InputOTP>
@@ -421,10 +428,8 @@ export function AuthCard() {
                                                     )}
                                                 />
                                             </motion.div>
-                                        </CardContent>
-                                        <CardFooter className="flex flex-col gap-3 pt-0">
                                             <motion.div
-                                                className="w-full"
+                                                className="mt-6 flex w-full flex-col gap-3"
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.2, duration: 0.3 }}
@@ -438,13 +443,6 @@ export function AuthCard() {
                                                         ? "Verifying..."
                                                         : "Verify & Continue"}
                                                 </Button>
-                                            </motion.div>
-                                            <motion.div
-                                                className="w-full"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.25, duration: 0.3 }}
-                                            >
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
@@ -454,9 +452,9 @@ export function AuthCard() {
                                                     Back to email
                                                 </Button>
                                             </motion.div>
-                                        </CardFooter>
-                                    </form>
-                                </Form>
+                                        </form>
+                                    </Form>
+                                </CardContent>
                             </motion.div>
                         ) : (
                             <motion.div
@@ -473,14 +471,14 @@ export function AuthCard() {
                             >
                                 <Form {...nameForm}>
                                     <form onSubmit={nameForm.handleSubmit(onNameSubmit)}>
-                                        <CardContent className="flex flex-col gap-6">
+                                        <CardContent className="flex flex-col gap-4">
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.1, duration: 0.3 }}
-                                                className="text-center text-muted-foreground text-sm"
+                                                className="text-center text-muted-foreground"
                                             >
-                                                Welcome! Let's get to know you better.
+                                                We'd love to know your name!!
                                             </motion.div>
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
@@ -492,10 +490,10 @@ export function AuthCard() {
                                                     name="name"
                                                     render={({ field }) => (
                                                         <FormItem>
-                                                            <FormLabel>Your Name</FormLabel>
                                                             <FormControl>
                                                                 <Input
-                                                                    placeholder="Theo Browne"
+                                                                    placeholder="Enter your name"
+                                                                    className="mb-5"
                                                                     {...field}
                                                                 />
                                                             </FormControl>
@@ -505,7 +503,7 @@ export function AuthCard() {
                                                 />
                                             </motion.div>
                                         </CardContent>
-                                        <CardFooter className="pt-0">
+                                        <CardFooter className="border-t-2 border-dotted pt-0 [.border-t-2]:pt-4">
                                             <motion.div
                                                 className="w-full"
                                                 initial={{ opacity: 0, y: 10 }}
