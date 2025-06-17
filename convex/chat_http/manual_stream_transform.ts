@@ -222,6 +222,12 @@ export const manualStreamTransform = (
                     totalTokenUsage.promptTokens += chunk.usage.promptTokens || 0
                     totalTokenUsage.completionTokens += chunk.usage.completionTokens || 0
 
+                    console.log(
+                        "chunk.providerMetadata",
+                        chunk.providerMetadata,
+                        "totalTokenUsage",
+                        totalTokenUsage
+                    )
                     if (
                         chunk.providerMetadata?.openai?.reasoningTokens &&
                         typeof chunk.providerMetadata.openai.reasoningTokens === "number"

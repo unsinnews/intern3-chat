@@ -149,7 +149,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
 
                     {/* Main Content */}
                     <div className="col-span-3 flex-1">
-                        <div className="space-y-6 md:max-h-[calc(100dvh-12rem)] md:overflow-y-auto">
+                        <div className="space-y-6 px-0.5 md:max-h-[calc(100dvh-12rem)] md:overflow-y-auto">
                             <Inner />
                         </div>
                     </div>

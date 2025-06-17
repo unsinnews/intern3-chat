@@ -1,6 +1,7 @@
 import type { useChatIntegration } from "@/hooks/use-chat-integration"
 import { browserEnv } from "@/lib/browser-env"
 import { useChatStore } from "@/lib/chat-store"
+import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
 import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
 import { RotateCcw } from "lucide-react"
@@ -142,6 +143,7 @@ export function Messages({
 }) {
     const { setTargetFromMessageId, targetFromMessageId, setTargetMode, targetMode } =
         useChatStore()
+    const { chatWidthState } = useChatWidthStore()
 
     const handleEdit = (message: UIMessage) => {
         setTargetFromMessageId(message.id)
@@ -180,7 +182,12 @@ export function Messages({
     return (
         <StickToBottom.Content>
             <div className="p-4 pt-0">
-                <div className="mx-auto max-w-2xl space-y-3 pb-40">
+                <div
+                    className={cn(
+                        "mx-auto space-y-3 pb-40",
+                        getChatWidthClass(chatWidthState.chatWidth)
+                    )}
+                >
                     {messages.map((message) => (
                         <div
                             key={message.id}
