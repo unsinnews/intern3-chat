@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, BarChart3, Key, User } from "lucide-react"
+import { ArrowLeft, BarChart3, Key, PaintBucket, User } from "lucide-react"
 import type { ReactNode } from "react"
 
 interface SettingsLayoutProps {
@@ -31,6 +31,11 @@ const settingsNavItems = [
         title: "Usage Analytics",
         href: "/settings/usage",
         icon: BarChart3
+    },
+    {
+        title: "Appearance",
+        href: "/settings/appearance",
+        icon: PaintBucket
     }
 ]
 

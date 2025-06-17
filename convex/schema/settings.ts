@@ -40,7 +40,8 @@ export const NonSensitiveUserSettings = v.object({
     searchProvider: v.union(v.literal("firecrawl"), v.literal("brave")),
     searchIncludeSourcesByDefault: v.boolean(),
     customModels: v.record(v.string(), CustomModel),
-    titleGenerationModel: v.string()
+    titleGenerationModel: v.string(),
+    customThemes: v.optional(v.array(v.string()))
 })
 
 export const UserSettings = v.object({
@@ -50,5 +51,6 @@ export const UserSettings = v.object({
     coreAIProviders: v.record(v.string(), CoreAIProvider),
     customAIProviders: v.record(v.string(), CustomAIProvider),
     customModels: v.record(v.string(), CustomModel),
-    titleGenerationModel: v.string()
+    titleGenerationModel: v.string(),
+    customThemes: v.optional(v.array(v.string()))
 })

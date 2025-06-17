@@ -1,3 +1,4 @@
+import { type ThemePreset, fetchThemeFromUrl } from "@/lib/theme-utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { AlertTriangleIcon, LoaderIcon } from "lucide-react"
@@ -7,21 +8,6 @@ import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form"
 import { Input } from "../ui/input"
-
-type ThemePreset = {
-    cssVars: {
-        theme: Record<string, string>
-        light: Record<string, string>
-        dark: Record<string, string>
-    }
-}
-
-type FetchedTheme = {
-    name: string
-    preset: ThemePreset
-    url: string
-    error?: string
-}
 
 const formSchema = z.object({
     url: z
@@ -36,64 +22,6 @@ interface ImportThemeDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onThemeImported: (preset: ThemePreset, url: string) => void
-}
-
-function convertToThemePreset(externalTheme: any): ThemePreset {
-    if (externalTheme.cssVars) {
-        return {
-            cssVars: {
-                theme: externalTheme.cssVars.theme || {},
-                light: externalTheme.cssVars.light || {},
-                dark: externalTheme.cssVars.dark || {}
-            }
-        }
-    }
-
-    throw new Error("Unsupported theme format")
-}
-
-function getThemeName(themeData: any, url: string): string {
-    if (themeData.name) {
-        return themeData.name.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-    }
-
-    return "Custom Theme"
-}
-
-async function fetchThemeFromUrl(url: string): Promise<FetchedTheme> {
-    const baseUrl = "https://tweakcn.com/r/themes/"
-    const isBuiltInUrl = url.includes("editor/theme?theme=")
-
-    const transformedUrl =
-        url
-            .replace("https://tweakcn.com/editor/theme?theme=", baseUrl)
-            .replace("https://tweakcn.com/themes/", baseUrl) + (isBuiltInUrl ? ".json" : "")
-
-    try {
-        const response = await fetch(transformedUrl)
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-
-        const themeData = await response.json()
-        const themePreset = convertToThemePreset(themeData)
-        const themeName = getThemeName(themeData, url)
-
-        return {
-            name: themeName,
-            preset: themePreset,
-            url
-        }
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to fetch theme"
-        return {
-            name: getThemeName({}, url),
-            preset: { cssVars: { theme: {}, light: {}, dark: {} } },
-            url,
-            error: errorMessage
-        }
-    }
 }
 
 export function ImportThemeDialog({ open, onOpenChange, onThemeImported }: ImportThemeDialogProps) {

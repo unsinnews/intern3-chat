@@ -1,7 +1,6 @@
-import { useThemeStore } from "@/lib/theme-store"
-import { toggleThemeMode } from "@/lib/toggle-theme-mode"
+import { useThemeManagement } from "@/hooks/use-theme-management"
+import { type FetchedTheme, extractThemeColors } from "@/lib/theme-utils"
 import { cn } from "@/lib/utils"
-import { useQuery } from "@tanstack/react-query"
 import {
     CheckCircle,
     ExternalLinkIcon,
@@ -25,195 +24,89 @@ import { ScrollArea } from "../ui/scroll-area"
 import { Separator } from "../ui/separator"
 import { ImportThemeDialog } from "./import-theme-dialog"
 
-const THEME_URLS = [
-    "https://tweakcn.com/editor/theme?theme=mono",
-    "https://tweakcn.com/editor/theme?theme=t3-chat",
-    "https://tweakcn.com/editor/theme?theme=tangerine",
-    "https://tweakcn.com/editor/theme?theme=perpetuity",
-    "https://tweakcn.com/editor/theme?theme=modern-minimal",
-    "https://tweakcn.com/r/themes/vintage-paper.json",
-    "https://tweakcn.com/r/themes/amethyst-haze.json",
-    "https://tweakcn.com/editor/theme?theme=caffeine",
-    "https://tweakcn.com/editor/theme?theme=quantum-rose",
-    "https://tweakcn.com/editor/theme?theme=claymorphism",
-    "https://tweakcn.com/editor/theme?theme=pastel-dreams",
-    "https://tweakcn.com/editor/theme?theme=supabase",
-    "https://tweakcn.com/editor/theme?theme=vercel",
-    "https://tweakcn.com/editor/theme?theme=cyberpunk"
-]
-
-type ThemePreset = {
-    cssVars: {
-        theme: Record<string, string>
-        light: Record<string, string>
-        dark: Record<string, string>
-    }
+type ThemeButtonProps = {
+    theme: FetchedTheme
+    isSelected: boolean
+    onSelect: (theme: FetchedTheme) => void
+    currentMode: "light" | "dark"
 }
 
-type FetchedTheme = {
-    name: string
-    preset: ThemePreset
-    url: string
-    error?: string
-}
+function ThemeButton({ theme, isSelected, onSelect, currentMode }: ThemeButtonProps) {
+    const colors =
+        "error" in theme && theme.error
+            ? []
+            : "preset" in theme
+              ? extractThemeColors(theme.preset, currentMode)
+              : []
 
-function convertToThemePreset(externalTheme: any): ThemePreset {
-    if (externalTheme.cssVars) {
-        return {
-            cssVars: {
-                theme: externalTheme.cssVars.theme || {},
-                light: externalTheme.cssVars.light || {},
-                dark: externalTheme.cssVars.dark || {}
-            }
-        }
-    }
-
-    throw new Error("Unsupported theme format")
-}
-
-function getThemeName(themeData: any, url: string): string {
-    if (themeData.name) {
-        return themeData.name.replace(/[-_]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-    }
-
-    return "Custom Theme"
-}
-
-async function fetchThemeFromUrl(url: string): Promise<FetchedTheme> {
-    const baseUrl = "https://tweakcn.com/r/themes/"
-    const isBuiltInUrl = url.includes("editor/theme?theme=")
-
-    const transformedUrl =
-        url
-            .replace("https://tweakcn.com/editor/theme?theme=", baseUrl)
-            .replace("https://tweakcn.com/themes/", baseUrl) + (isBuiltInUrl ? ".json" : "")
-
-    try {
-        const response = await fetch(transformedUrl)
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-
-        const themeData = await response.json()
-        const themePreset = convertToThemePreset(themeData)
-        const themeName = getThemeName(themeData, url)
-
-        return {
-            name: themeName,
-            preset: themePreset,
-            url
-        }
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to fetch theme"
-        return {
-            name: getThemeName({}, url),
-            preset: { cssVars: { theme: {}, light: {}, dark: {} } },
-            url,
-            error: errorMessage
-        }
-    }
-}
-
-// Fetch all predefined themes
-async function fetchAllThemes(): Promise<FetchedTheme[]> {
-    if (THEME_URLS.length === 0) return []
-
-    const fetchPromises = THEME_URLS.map(fetchThemeFromUrl)
-    return Promise.all(fetchPromises)
-}
-
-// Helper function to extract key colors from theme
-function extractThemeColors(preset: ThemePreset, mode: "light" | "dark"): string[] {
-    const colors: string[] = []
-    const { light, dark, theme } = preset.cssVars
-    const modeVars = mode === "light" ? light : dark
-
-    // Priority order for color extraction
-    const colorKeys = [
-        "foreground",
-        "primary",
-        "secondary",
-        "accent",
-        "background",
-        "muted",
-        "destructive",
-        "border",
-        "card",
-        "popover"
-    ]
-
-    // Extract from current mode first, then fallback to theme
-    const currentVars = { ...theme, ...modeVars }
-
-    colorKeys.forEach((key) => {
-        const colorValue = currentVars[key]
-        if (colorValue && colors.length < 5) {
-            // Convert HSL to hex if needed, or use as-is
-            if (colorValue.includes("hsl")) {
-                colors.push(`hsl(${colorValue})`)
-            } else {
-                colors.push(colorValue)
-            }
-        }
-    })
-
-    return colors.slice(0, 5)
+    return (
+        <button
+            type="button"
+            key={theme.url}
+            onClick={() => onSelect(theme)}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    onSelect(theme)
+                }
+            }}
+            className={cn(
+                "w-full cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:scale-[1.02] hover:shadow-md",
+                isSelected
+                    ? "border-primary shadow-sm ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/50",
+                "error" in theme && theme.error && "cursor-not-allowed opacity-50 hover:scale-100"
+            )}
+            disabled={"error" in theme && !!theme.error}
+        >
+            <div className="flex items-center justify-between p-3">
+                <div className="text-left">
+                    <div className="font-medium text-sm">{theme.name}</div>
+                    {isSelected && (
+                        <div className="text-muted-foreground text-xs">Currently active</div>
+                    )}
+                </div>
+                {isSelected && (
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                        <CheckCircle className="size-4 text-primary" />
+                    </div>
+                )}
+            </div>
+            {colors.length > 0 && (
+                <div className="flex h-2">
+                    {colors.map((color, index) => (
+                        <div
+                            key={index}
+                            className="flex-1"
+                            style={{
+                                backgroundColor: color
+                            }}
+                        />
+                    ))}
+                </div>
+            )}
+            {"error" in theme && theme.error && (
+                <div className="p-3 pt-2 text-destructive text-xs">Error: {theme.error}</div>
+            )}
+        </button>
+    )
 }
 
 export function ThemeSwitcher() {
-    const { themeState, setThemeState } = useThemeStore()
-    const [searchQuery, setSearchQuery] = useState("")
-    const [selectedThemeUrl, setSelectedThemeUrl] = useState<string | null>(null)
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
-    const { data: fetchedThemes = [], isLoading: isLoadingThemes } = useQuery({
-        queryKey: ["themes", "predefined"],
-        queryFn: fetchAllThemes,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000 // 10 minutes
-    })
-
-    const applyThemePreset = (preset: ThemePreset) => {
-        setThemeState({
-            currentMode: themeState.currentMode,
-            cssVars: preset.cssVars
-        })
-    }
-
-    const handleThemeImported = (preset: ThemePreset, url: string) => {
-        applyThemePreset(preset)
-        setSelectedThemeUrl(url)
-    }
-
-    const handleThemeSelect = (theme: FetchedTheme) => {
-        if ("error" in theme && theme.error) {
-            return
-        }
-
-        if ("preset" in theme) {
-            applyThemePreset(theme.preset)
-            setSelectedThemeUrl(theme.url)
-        }
-    }
-
-    const toggleMode = () => {
-        toggleThemeMode()
-    }
-
-    const randomizeTheme = () => {
-        const availableThemes = fetchedThemes.filter((theme) => !("error" in theme && theme.error))
-        if (availableThemes.length > 0) {
-            const randomTheme = availableThemes[Math.floor(Math.random() * availableThemes.length)]
-            handleThemeSelect(randomTheme)
-        }
-    }
-
-    const themes = fetchedThemes
-
-    const filteredThemes = themes.filter((theme) =>
-        theme.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const {
+        themeState,
+        searchQuery,
+        setSearchQuery,
+        selectedThemeUrl,
+        isLoadingThemes,
+        filteredThemes,
+        handleThemeImported,
+        handleThemeSelect,
+        toggleMode,
+        randomizeTheme
+    } = useThemeManagement()
 
     return (
         <>
@@ -313,80 +206,48 @@ export function ThemeSwitcher() {
                                         Loading themes...
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-1 ">
-                                        {filteredThemes.map((theme) => {
-                                            const isSelected = selectedThemeUrl === theme.url
-                                            const colors =
-                                                "error" in theme && theme.error
-                                                    ? []
-                                                    : "preset" in theme
-                                                      ? extractThemeColors(
-                                                            theme.preset,
-                                                            themeState.currentMode
-                                                        )
-                                                      : []
-
-                                            return (
-                                                <button
-                                                    type="button"
-                                                    key={theme.url}
-                                                    onClick={() => handleThemeSelect(theme)}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "Enter" || e.key === " ") {
-                                                            e.preventDefault()
-                                                            handleThemeSelect(theme)
-                                                        }
-                                                    }}
-                                                    className={cn(
-                                                        "w-full cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:shadow-md sm:hover:scale-[1.02] ",
-                                                        isSelected
-                                                            ? "border-primary shadow-sm ring-2 ring-primary/20"
-                                                            : "border-border hover:border-primary/50",
-                                                        "error" in theme &&
-                                                            theme.error &&
-                                                            "cursor-not-allowed opacity-50 hover:scale-100"
-                                                    )}
-                                                    disabled={"error" in theme && !!theme.error}
-                                                >
-                                                    <div className="flex items-center justify-between p-3">
-                                                        <div className="text-left">
-                                                            <div className="font-medium text-sm">
-                                                                {theme.name}
-                                                            </div>
-                                                            {isSelected && (
-                                                                <div className="text-muted-foreground text-xs">
-                                                                    Currently active
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        {isSelected && (
-                                                            <div className="flex h-5 w-5 shrink-0 items-center justify-center">
-                                                                <CheckCircle className="size-4 text-primary" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    {colors.length > 0 && (
-                                                        <div className="flex h-2">
-                                                            {colors.map((color, index) => (
-                                                                <div
-                                                                    key={index}
-                                                                    className="flex-1"
-                                                                    style={{
-                                                                        backgroundColor: color
-                                                                    }}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    {"error" in theme && theme.error && (
-                                                        <div className="p-3 pt-2 text-destructive text-xs">
-                                                            Error: {theme.error}
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
+                                    <>
+                                        <div className="mb-8">
+                                            <h4 className="mb-1 text-muted-foreground text-xs">
+                                                My Themes
+                                            </h4>
+                                            <div className="mt-1 grid grid-cols-1 gap-2">
+                                                {filteredThemes
+                                                    .filter((theme) => theme.type === "custom")
+                                                    .map((theme) => (
+                                                        <ThemeButton
+                                                            key={theme.url}
+                                                            theme={theme}
+                                                            isSelected={
+                                                                selectedThemeUrl === theme.url
+                                                            }
+                                                            onSelect={handleThemeSelect}
+                                                            currentMode={themeState.currentMode}
+                                                        />
+                                                    ))}
+                                            </div>
+                                        </div>
+                                        <div className="mb-2">
+                                            <h4 className="mb-1 text-muted-foreground text-xs">
+                                                Built-in Themes
+                                            </h4>
+                                            <div className="mt-1 grid grid-cols-1 gap-2">
+                                                {filteredThemes
+                                                    .filter((theme) => theme.type === "built-in")
+                                                    .map((theme) => (
+                                                        <ThemeButton
+                                                            key={theme.url}
+                                                            theme={theme}
+                                                            isSelected={
+                                                                selectedThemeUrl === theme.url
+                                                            }
+                                                            onSelect={handleThemeSelect}
+                                                            currentMode={themeState.currentMode}
+                                                        />
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </ScrollArea>

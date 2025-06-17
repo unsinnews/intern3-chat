@@ -16,7 +16,8 @@ const DefaultSettings = (userId: string) =>
         coreAIProviders: {},
         customAIProviders: {},
         customModels: {},
-        titleGenerationModel: "gemini-2.0-flash-lite"
+        titleGenerationModel: "gemini-2.0-flash-lite",
+        customThemes: []
     }) satisfies Infer<typeof UserSettings>
 
 const getSettings = async (
@@ -166,6 +167,57 @@ export const updateUserSettings = mutation({
                     ? await encryptKey(provider.newKey)
                     : settings.customAIProviders[providerId].encryptedKey
             }
+        }
+
+        if (settings._id) {
+            await ctx.db.patch(settings._id, newSettings)
+        } else {
+            await ctx.db.insert("settings", newSettings)
+        }
+    }
+})
+
+export const addUserTheme = mutation({
+    args: {
+        url: v.string()
+    },
+    handler: async (ctx, args) => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) throw new Error("Unauthorized")
+        const settings = await getSettings(ctx, user.id)
+        const existingThemes = settings.customThemes ?? []
+
+        if (existingThemes.includes(args.url)) return
+        if (existingThemes.length >= 5) throw new Error("Maximum number of themes reached")
+
+        const newSettings: Infer<typeof UserSettings> = {
+            ...settings,
+            customThemes: [...existingThemes, args.url]
+        }
+
+        if (settings._id) {
+            await ctx.db.patch(settings._id, newSettings)
+        } else {
+            await ctx.db.insert("settings", newSettings)
+        }
+    }
+})
+
+export const deleteUserTheme = mutation({
+    args: {
+        url: v.string()
+    },
+    handler: async (ctx, args) => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) throw new Error("Unauthorized")
+        const settings = await getSettings(ctx, user.id)
+
+        const existingThemes = settings.customThemes ?? []
+        const updatedThemes = existingThemes.filter((t) => t !== args.url)
+
+        const newSettings: Infer<typeof UserSettings> = {
+            ...settings,
+            customThemes: updatedThemes
         }
 
         if (settings._id) {
