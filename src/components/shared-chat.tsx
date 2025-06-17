@@ -4,6 +4,8 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useChatIntegration } from "@/hooks/use-chat-integration"
 import { authClient } from "@/lib/auth-client"
+import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
+import { cn } from "@/lib/utils"
 import { useRouter } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { ArrowRight, GitFork } from "lucide-react"
@@ -14,6 +16,7 @@ interface SharedChatProps {
 }
 
 export function SharedChat({ sharedThreadId }: SharedChatProps) {
+    const { chatWidthState } = useChatWidthStore()
     const router = useRouter()
     const { data: session } = authClient.useSession()
     const forkThread = useMutation(api.threads.forkSharedThread)
@@ -57,7 +60,12 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
             <div className="absolute right-0 bottom-2 left-0">
                 {/* Fork prompt instead of input */}
                 <div className="border-t bg-background p-4">
-                    <div className="container mx-auto max-w-3xl">
+                    <div
+                        className={cn(
+                            "container mx-auto",
+                            getChatWidthClass(chatWidthState.chatWidth)
+                        )}
+                    >
                         <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
                             <div className="flex-1">
                                 {thread ? (

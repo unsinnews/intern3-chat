@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { browserEnv } from "@/lib/browser-env"
 import { type UploadedFile, useChatStore } from "@/lib/chat-store"
+import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
@@ -43,6 +44,7 @@ export function MultimodalInput({
     const { selectedModel, setSelectedModel, enabledTools, setEnabledTools } = useModelStore()
     const { uploadedFiles, addUploadedFile, removeUploadedFile, uploading, setUploading } =
         useChatStore()
+    const { chatWidthState } = useChatWidthStore()
 
     const isLoading = status === "streaming"
     const uploadInputRef = useRef<HTMLInputElement>(null)
@@ -417,7 +419,8 @@ export function MultimodalInput({
                     ref={promptInputRef}
                     onSubmit={handleSubmit}
                     className={cn(
-                        "mx-auto w-full max-w-2xl",
+                        "mx-auto w-full",
+                        getChatWidthClass(chatWidthState.chatWidth),
                         dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
                     )}
                 >

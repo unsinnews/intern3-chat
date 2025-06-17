@@ -7,13 +7,37 @@ import {
 } from "@/components/ui/chart"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api } from "@/convex/_generated/api"
+import { useSession } from "@/hooks/auth-hooks"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { useQuery } from "convex/react"
 import { Activity, BarChart3, TrendingUp, Zap } from "lucide-react"
-import { useState } from "react"
-import { Bar, BarChart, Cell, Line, LineChart, Pie, PieChart, XAxis, YAxis } from "recharts"
+import { useMemo, useState } from "react"
+import { Bar, BarChart, XAxis, YAxis } from "recharts"
 
-const CHART_COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
+// Enhanced color palette for better model distinction
+const MODEL_COLORS = [
+    "#3b82f6", // blue
+    "#ef4444", // red
+    "#10b981", // emerald
+    "#f59e0b", // amber
+    "#8b5cf6", // violet
+    "#ec4899", // pink
+    "#06b6d4", // cyan
+    "#84cc16", // lime
+    "#f97316", // orange
+    "#6366f1", // indigo
+    "#14b8a6", // teal
+    "#eab308", // yellow
+    "#dc2626", // red-600
+    "#059669", // emerald-600
+    "#7c3aed", // violet-600
+    "#db2777", // pink-600
+    "#0891b2", // cyan-600
+    "#65a30d", // lime-600
+    "#ea580c", // orange-600
+    "#4f46e5" // indigo-600
+]
 
 interface UsageDashboardProps {
     className?: string
@@ -21,53 +45,91 @@ interface UsageDashboardProps {
 
 export function UsageDashboard({ className }: UsageDashboardProps) {
     const [timeframe, setTimeframe] = useState<"1d" | "7d" | "30d">("7d")
+    const isMobile = useIsMobile()
 
-    const stats = useQuery(api.analytics.getMyUsageStats, { timeframe })
-    const chartData = useQuery(api.analytics.getMyUsageChartData, { timeframe })
+    const session = useSession()
+    const stats = useQuery(api.analytics.getMyUsageStats, session.user?.id ? { timeframe } : "skip")
+    const chartData = useQuery(
+        api.analytics.getMyUsageChartData,
+        session.user?.id ? { timeframe } : "skip"
+    )
 
-    const chartConfig = {
-        requests: {
-            label: "Requests",
-            color: "hsl(var(--chart-1))"
+    // Process data for stacked model usage chart
+    const modelUsageData = useMemo(() => {
+        if (!chartData) return []
+
+        return chartData.map((day) => {
+            const dayData: Record<string, any> = {
+                date: day.date,
+                total: day.totalTokens
+            }
+
+            // Add each model's token count
+            Object.entries(day.models).forEach(([modelId, data]) => {
+                dayData[modelId] = data.tokens
+            })
+
+            return dayData
+        })
+    }, [chartData])
+
+    // Process data for token type distribution chart
+    const tokenTypeData = useMemo(() => {
+        if (!chartData) return []
+
+        return chartData.map((day) => ({
+            date: day.date,
+            prompt: Object.values(day.models).reduce((sum, model) => sum + model.promptTokens, 0),
+            completion: Object.values(day.models).reduce(
+                (sum, model) => sum + model.completionTokens,
+                0
+            ),
+            reasoning: Object.values(day.models).reduce(
+                (sum, model) => sum + model.reasoningTokens,
+                0
+            )
+        }))
+    }, [chartData])
+
+    // Get unique models for chart config
+    const modelIds = useMemo(() => {
+        if (!stats) return []
+        return stats.modelStats.map((model) => model.modelId)
+    }, [stats])
+
+    // Create chart configs
+    const modelChartConfig = useMemo(() => {
+        const config: ChartConfig = {}
+        modelIds.forEach((modelId, index) => {
+            config[modelId] = {
+                label: stats?.modelStats.find((m) => m.modelId === modelId)?.modelName || modelId,
+                color: MODEL_COLORS[index % MODEL_COLORS.length]
+            }
+        })
+        return config
+    }, [modelIds, stats])
+
+    const tokenChartConfig = {
+        prompt: {
+            label: "Input Tokens"
         },
-        tokens: {
-            label: "Tokens",
-            color: "hsl(var(--chart-2))"
+        completion: {
+            label: "Output Tokens"
+        },
+        reasoning: {
+            label: "Reasoning Tokens"
         }
     } satisfies ChartConfig
 
-    // Process chart data for display
-    const processedChartData =
-        chartData?.map((day) => ({
-            date: day.date,
-            totalRequests: day.totalRequests,
-            totalTokens: day.totalTokens,
-            ...Object.fromEntries(
-                Object.entries(day.models).map(([modelId, data]) => [
-                    modelId.replace(":", "_"), // Replace colon for chart compatibility
-                    data.requests
-                ])
-            )
-        })) || []
-
-    // Process pie chart data for model distribution
-    const pieChartData =
-        stats?.modelStats.map((model, index) => ({
-            name: model.modelName,
-            value: model.requests,
-            fill: CHART_COLORS[index % CHART_COLORS.length]
-        })) || []
-
     return (
-        <div className={cn("space-y-6", className)}>
-            {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                {/* Timeframe selector */}
+        <div className={cn("space-y-4", className)}>
+            {/* Header with timeframe selector */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Tabs
                     value={timeframe}
                     onValueChange={(value) => setTimeframe(value as "1d" | "7d" | "30d")}
                 >
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-3 sm:w-auto">
                         <TabsTrigger value="1d">1 Day</TabsTrigger>
                         <TabsTrigger value="7d">7 Days</TabsTrigger>
                         <TabsTrigger value="30d">30 Days</TabsTrigger>
@@ -75,179 +137,278 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                 </Tabs>
             </div>
 
-            {/* Key Metrics Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="font-medium text-sm">Total Requests</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
+            {/* Key Metrics Cards - Compact */}
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <Card className="gap-3 p-4">
+                    <CardHeader className="flex flex-row items-center px-0">
+                        <Activity className="size-3 text-muted-foreground sm:size-4" />
+                        <CardTitle className="font-medium text-xs sm:text-sm">
+                            Total Requests
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="font-bold text-2xl">{stats?.totalRequests || 0}</div>
+                    <CardContent className="p-0">
+                        <div className="font-bold text-lg sm:text-2xl">
+                            {stats?.totalRequests || 0}
+                        </div>
                         <p className="text-muted-foreground text-xs">
-                            in the last{" "}
-                            {timeframe === "1d" ? "day" : timeframe === "7d" ? "7 days" : "30 days"}
+                            {timeframe === "1d"
+                                ? "today"
+                                : `last ${timeframe === "7d" ? "7" : "30"} days`}
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="font-medium text-sm">Total Tokens</CardTitle>
-                        <Zap className="h-4 w-4 text-muted-foreground" />
+                <Card className="gap-3 p-4">
+                    <CardHeader className="flex flex-row items-center px-0">
+                        <Zap className="size-3 text-muted-foreground sm:size-4" />
+                        <CardTitle className="font-medium text-xs sm:text-sm">
+                            Total Tokens
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="font-bold text-2xl">
-                            {(stats?.totalTokens || 0).toLocaleString()}
+                    <CardContent className="p-0">
+                        <div className="font-bold text-lg sm:text-2xl">
+                            {((stats?.totalTokens || 0) / 1000).toFixed(1)}K
                         </div>
                         <p className="text-muted-foreground text-xs">input + output + reasoning</p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="font-medium text-sm">Models Used</CardTitle>
-                        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                <Card className="gap-3 p-4">
+                    <CardHeader className="flex flex-row items-center px-0">
+                        <BarChart3 className="size-3 text-muted-foreground sm:size-4" />
+                        <CardTitle className="font-medium text-xs sm:text-sm">
+                            Models Used
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="font-bold text-2xl">{stats?.modelStats.length || 0}</div>
+                    <CardContent className="p-0">
+                        <div className="font-bold text-lg sm:text-2xl">
+                            {stats?.modelStats.length || 0}
+                        </div>
                         <p className="text-muted-foreground text-xs">different models</p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="font-medium text-sm">Avg per Request</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <Card className="gap-3 p-4">
+                    <CardHeader className="flex flex-row items-center px-0">
+                        <TrendingUp className="size-3 text-muted-foreground sm:size-4" />
+                        <CardTitle className="font-medium text-xs sm:text-sm">
+                            Avg tokens/request
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="font-bold text-2xl">
+                    <CardContent className="p-0">
+                        <div className="font-bold text-lg sm:text-2xl">
                             {stats?.totalRequests
                                 ? Math.round((stats?.totalTokens || 0) / stats.totalRequests)
                                 : 0}
                         </div>
-                        <p className="text-muted-foreground text-xs">tokens per request</p>
+                        <p className="text-muted-foreground text-xs">
+                            total tokens / total requests
+                        </p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Charts */}
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Requests over time */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Requests Over Time</CardTitle>
-                        <CardDescription>
-                            Daily request volume for the selected period
+            <div className="grid gap-4">
+                {/* Stacked Model Usage Chart */}
+                <Card className="gap-3 p-4">
+                    <CardHeader className="gap-0 px-0 pb-3">
+                        <CardTitle className="text-base sm:text-lg">Token Usage by Model</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm">
+                            Daily token consumption breakdown by model
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={chartConfig}>
-                            <LineChart data={processedChartData}>
+                    <CardContent className="p-3 px-0">
+                        <ChartContainer
+                            config={modelChartConfig}
+                            className="h-[250px] w-full sm:h-[300px]"
+                        >
+                            <BarChart data={modelUsageData}>
                                 <XAxis
                                     dataKey="date"
-                                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                                    tickFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleTimeString([], {
+                                                hour: "numeric",
+                                                hour12: true
+                                            })
+                                        }
+                                        return isMobile
+                                            ? `${date.getMonth() + 1}/${date.getDate()}`
+                                            : date.toLocaleDateString()
+                                    }}
+                                    fontSize={isMobile ? 10 : 12}
                                 />
-                                <YAxis />
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                                <Line
-                                    type="monotone"
-                                    dataKey="totalRequests"
-                                    stroke="var(--color-requests)"
-                                    strokeWidth={2}
+                                <YAxis
+                                    width={30}
+                                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                                    fontSize={isMobile ? 10 : 12}
                                 />
-                            </LineChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                {/* Model distribution */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Model Usage Distribution</CardTitle>
-                        <CardDescription>Breakdown of requests by model</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={chartConfig}>
-                            <PieChart>
-                                <Pie
-                                    data={pieChartData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {pieChartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                                    ))}
-                                </Pie>
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                            </PieChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                {/* Token usage over time */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Token Consumption</CardTitle>
-                        <CardDescription>Daily token usage for the selected period</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={chartConfig}>
-                            <BarChart data={processedChartData}>
-                                <XAxis
-                                    dataKey="date"
-                                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                                <ChartTooltip
+                                    content={<ChartTooltipContent />}
+                                    labelFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleString([], {
+                                                month: "short",
+                                                day: "numeric",
+                                                hour: "numeric",
+                                                minute: "2-digit",
+                                                hour12: true
+                                            })
+                                        }
+                                        return date.toLocaleDateString([], {
+                                            weekday: "short",
+                                            month: "short",
+                                            day: "numeric"
+                                        })
+                                    }}
+                                    formatter={(value, name) => [
+                                        `${Number(value).toLocaleString()} tokens - `,
+                                        modelChartConfig[name as string]?.label || name
+                                    ]}
                                 />
-                                <YAxis />
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                                <Bar dataKey="totalTokens" fill="var(--color-tokens)" />
+                                {modelIds.map((modelId) => (
+                                    <Bar
+                                        key={modelId}
+                                        dataKey={modelId}
+                                        stackId="models"
+                                        fill={modelChartConfig[modelId]?.color}
+                                    />
+                                ))}
                             </BarChart>
                         </ChartContainer>
                     </CardContent>
                 </Card>
 
-                {/* Model details table */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Model Details</CardTitle>
-                        <CardDescription>Detailed breakdown by model</CardDescription>
+                {/* Token Type Distribution Chart */}
+                <Card className="gap-3 p-4">
+                    <CardHeader className="gap-0 px-0 pb-3">
+                        <CardTitle className="text-base sm:text-lg">
+                            Token Type Distribution
+                        </CardTitle>
+                        <CardDescription className="text-xs sm:text-sm">
+                            Input, output, and reasoning token breakdown
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {stats?.modelStats.map((model) => (
-                                <div
-                                    key={model.modelId}
-                                    className="flex items-center justify-between rounded-lg border p-4"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div>
-                                            <div className="font-medium">{model.modelName}</div>
-                                            <div className="text-muted-foreground text-sm">
-                                                {model.requests} requests
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="font-medium">
-                                            {model.totalTokens.toLocaleString()}
-                                        </div>
-                                        <div className="text-muted-foreground text-sm">
-                                            {model.promptTokens.toLocaleString()} prompt +{" "}
-                                            {model.completionTokens.toLocaleString()} completion
-                                            {model.reasoningTokens > 0 &&
-                                                ` + ${model.reasoningTokens.toLocaleString()} reasoning`}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                    <CardContent className="p-3 px-0">
+                        <ChartContainer
+                            config={tokenChartConfig}
+                            className="h-[250px] w-full sm:h-[300px]"
+                        >
+                            <BarChart data={tokenTypeData} margin={{ left: 0 }}>
+                                <XAxis
+                                    dataKey="date"
+                                    tickFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleTimeString([], {
+                                                hour: "numeric",
+                                                hour12: true
+                                            })
+                                        }
+                                        return isMobile
+                                            ? `${date.getMonth() + 1}/${date.getDate()}`
+                                            : date.toLocaleDateString()
+                                    }}
+                                    fontSize={isMobile ? 10 : 12}
+                                />
+                                <YAxis
+                                    width={30}
+                                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                                    fontSize={isMobile ? 10 : 12}
+                                />
+                                <ChartTooltip
+                                    content={<ChartTooltipContent />}
+                                    labelFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleString([], {
+                                                month: "short",
+                                                day: "numeric",
+                                                hour: "numeric",
+                                                minute: "2-digit",
+                                                hour12: true
+                                            })
+                                        }
+                                        return date.toLocaleDateString([], {
+                                            weekday: "short",
+                                            month: "short",
+                                            day: "numeric"
+                                        })
+                                    }}
+                                    formatter={(value, name) => [
+                                        `${Number(value).toLocaleString()} `,
+                                        tokenChartConfig[name as keyof typeof tokenChartConfig]
+                                            ?.label || name
+                                    ]}
+                                />
+                                <Bar dataKey="prompt" stackId="tokens" fill={"var(--chart-1)"} />
+                                <Bar
+                                    dataKey="completion"
+                                    stackId="tokens"
+                                    fill={"var(--chart-2)"}
+                                />
+                                <Bar dataKey="reasoning" stackId="tokens" fill={"var(--chart-3)"} />
+                            </BarChart>
+                        </ChartContainer>
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Model Details - Non-chart breakdown */}
+            <Card className="gap-3 p-4">
+                <CardHeader className="gap-0 px-0">
+                    <CardTitle className="text-base sm:text-lg">Model Usage Details</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                        Detailed breakdown by model for the selected period
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 pt-0">
+                    <div className="space-y-1.5">
+                        {stats?.modelStats.map((model, index) => (
+                            <div
+                                key={model.modelId}
+                                className="flex items-center justify-between rounded-lg border px-2 py-1"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="h-3 w-3 rounded-full"
+                                        style={{
+                                            backgroundColor:
+                                                MODEL_COLORS[index % MODEL_COLORS.length]
+                                        }}
+                                    />
+                                    <div>
+                                        <div className="font-medium text-sm">{model.modelName}</div>
+                                        <div className="text-muted-foreground text-xs">
+                                            {model.requests} request
+                                            {model.requests === 1 ? "" : "s"}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="font-medium text-sm sm:text-base">
+                                        {(model.totalTokens / 1000).toFixed(1)}K tokens
+                                    </div>
+                                    <div className="text-muted-foreground text-xs">
+                                        {(model.promptTokens / 1000).toFixed(0)}K in •{" "}
+                                        {(model.completionTokens / 1000).toFixed(0)}K out
+                                        {model.reasoningTokens > 0 &&
+                                            ` • ${(model.reasoningTokens / 1000).toFixed(0)}K reasoning`}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {(!stats?.modelStats || stats.modelStats.length === 0) && (
+                            <div className="py-8 text-center text-muted-foreground">
+                                No usage data for the selected period
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     )
 }

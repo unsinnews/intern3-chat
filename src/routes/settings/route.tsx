@@ -96,9 +96,9 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
 
     return (
         <div className="flex h-screen flex-col overflow-y-auto bg-background">
-            <div className="container mx-auto flex max-w-6xl flex-1 flex-col p-6">
+            <div className="container mx-auto flex max-w-6xl flex-1 flex-col p-3 md:max-h-dvh md:overflow-y-hidden md:p-6">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-8 max-md:px-2">
                     <div className="mb-6 flex items-center gap-4">
                         <Link to="/">
                             <Button
@@ -120,10 +120,10 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+                <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-4">
                     {/* Navigation */}
-                    <div className="flex-shrink-0 lg:w-64">
-                        <nav className="space-y-1">
+                    <div className="w-full flex-shrink-0 lg:w-64">
+                        <nav className="w-full space-y-1">
                             {settingsNavItems.map((item) => {
                                 const isActive = location.pathname === item.href
                                 const Icon = item.icon
@@ -133,7 +133,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
                                         key={item.href}
                                         to={item.href}
                                         className={cn(
-                                            "flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+                                            "flex w-full items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
                                             isActive
                                                 ? "bg-muted text-foreground"
                                                 : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -149,7 +149,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
 
                     {/* Main Content */}
                     <div className="col-span-3 flex-1">
-                        <div className="space-y-6 pr-4">
+                        <div className="space-y-6 px-0.5 md:max-h-[calc(100dvh-12rem)] md:overflow-y-auto">
                             <Inner />
                         </div>
                     </div>

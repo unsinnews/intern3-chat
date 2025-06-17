@@ -165,7 +165,8 @@ export const createProvider = (
     switch (providerId) {
         case "openai":
             return createOpenAI({
-                apiKey: apiKey === "internal" ? process.env.OPENAI_API_KEY : apiKey
+                apiKey: apiKey === "internal" ? process.env.OPENAI_API_KEY : apiKey,
+                compatibility: "strict"
             })
         case "anthropic":
             return createAnthropic({
