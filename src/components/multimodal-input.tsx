@@ -230,7 +230,7 @@ export function MultimodalInput({
                         <PromptInputAction tooltip="Search the web">
                             <Button
                                 type="button"
-                                variant="ghost"
+                                variant={enabledTools.includes("web_search") ? "default" : "ghost"}
                                 onClick={() => {
                                     setEnabledTools(
                                         enabledTools.includes("web_search")
@@ -239,11 +239,12 @@ export function MultimodalInput({
                                     )
                                 }}
                                 className={cn(
-                                    "flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
-                                    enabledTools.includes("web_search") && "bg-secondary/70"
+                                    "h-9 w-9",
+                                    !enabledTools.includes("web_search") &&
+                                        "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
                                 )}
                             >
-                                <Globe className="size-4 text-foreground" />
+                                <Globe className="size-4" />
                             </Button>
                         </PromptInputAction>
                     </div>

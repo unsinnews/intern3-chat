@@ -64,7 +64,7 @@ export const Codeblock = memo(
         if (!children) return null
 
         return !inline && (match || isMultiLine) ? (
-            <div className="relative mt-1 mb-1 flex flex-col rounded-lg border border-border">
+            <div className="relative mt-1 mb-1 flex flex-col overflow-hidden rounded-lg border border-border">
                 <div className="flex items-center gap-2 rounded-t-md border-border border-b bg-muted px-2 py-1">
                     <span className="pl-2 font-mono text-muted-foreground text-xs">{language}</span>
                     {lineNumber >= 16 && (
