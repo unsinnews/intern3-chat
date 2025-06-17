@@ -152,7 +152,7 @@ const PartsRenderer = memo(
                     isStreaming && (!hasReasoningContent || part.reasoning.endsWith(""))
 
                 return (
-                    <Reasoning className="mb-12" isStreaming={isReasoningStreaming}>
+                    <Reasoning className="mb-6" isStreaming={isReasoningStreaming}>
                         <ReasoningTrigger className="mb-4">Reasoning</ReasoningTrigger>
                         <ReasoningContent
                             markdown={markdown}
