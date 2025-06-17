@@ -426,8 +426,9 @@ function AppearanceSettings() {
                         Get more themes at
                         <a
                             href="https://tweakcn.com"
+                            // biome-ignore lint/a11y/noBlankTarget: tweakcn.com is trusted
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                             className="ml-1 inline-flex items-center font-medium text-primary hover:underline"
                         >
                             tweakcn.com

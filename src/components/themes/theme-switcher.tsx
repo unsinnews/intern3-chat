@@ -3,7 +3,6 @@ import { type FetchedTheme, extractThemeColors } from "@/lib/theme-utils"
 import { cn } from "@/lib/utils"
 import {
     CheckCircle,
-    ExternalLinkIcon,
     LoaderIcon,
     MoonIcon,
     PaintBucketIcon,
@@ -199,7 +198,7 @@ export function ThemeSwitcher() {
 
                         {/* Themes List */}
                         <ScrollArea className="h-80">
-                            <div className="p-2">
+                            <div className="p-3">
                                 {isLoadingThemes ? (
                                     <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
                                         <LoaderIcon className="size-4 animate-spin" />
@@ -207,7 +206,7 @@ export function ThemeSwitcher() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="mb-8">
+                                        <div className="mt-2 mb-6">
                                             <h4 className="mb-1 text-muted-foreground text-xs">
                                                 My Themes
                                             </h4>
@@ -251,22 +250,6 @@ export function ThemeSwitcher() {
                                 )}
                             </div>
                         </ScrollArea>
-
-                        <Separator />
-
-                        {/* Footer */}
-                        <div className="flex items-center justify-center gap-1 p-3 text-muted-foreground text-sm">
-                            Get more themes at
-                            <a
-                                href="https://tweakcn.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center text-primary transition-colors hover:underline"
-                            >
-                                tweakcn.com
-                                <ExternalLinkIcon className="ml-1 size-3" />
-                            </a>
-                        </div>
                     </ResponsivePopoverContent>
                 </ResponsivePopover>
             </div>

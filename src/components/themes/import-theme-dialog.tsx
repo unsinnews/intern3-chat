@@ -68,7 +68,17 @@ export function ImportThemeDialog({ open, onOpenChange, onThemeImported }: Impor
                 <DialogHeader>
                     <DialogTitle>Import Theme</DialogTitle>
                     <DialogDescription>
-                        Enter a theme URL to import and apply a custom theme.
+                        Enter a theme URL from{" "}
+                        <a
+                            href="https://tweakcn.com"
+                            // biome-ignore lint/a11y/noBlankTarget: tweakcn.com is trusted
+                            target="_blank"
+                            rel="noopener"
+                            className="inline-flex items-baseline gap-1 text-primary underline"
+                        >
+                            tweakcn.com
+                        </a>{" "}
+                        to apply a custom theme.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -82,7 +92,7 @@ export function ImportThemeDialog({ open, onOpenChange, onThemeImported }: Impor
                                     <FormControl>
                                         <Input
                                             type="url"
-                                            placeholder="https://tweakcn.com/r/themes/..."
+                                            placeholder="https://tweakcn.com/themes/themeId"
                                             disabled={fetchAndApplyThemeMutation.isPending}
                                             autoFocus
                                             {...field}
