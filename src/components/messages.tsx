@@ -212,45 +212,6 @@ const EditableMessage = memo(
                 onCancel()
             }
         }
-        const renderFilePreview = () => {
-            if (!previewFile) return null
-
-            const { isImage, isText } = getFileType(previewFile)
-            const fileName = previewFile.filename || "Unknown file"
-
-            return (
-                <div className="max-h-[70vh] overflow-auto">
-                    {isImage ? (
-                        <img
-                            src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${previewFile.data}`}
-                            alt={fileName}
-                            className="h-auto w-full rounded object-contain"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.style.display = "none"
-                                const errorDiv = target.nextElementSibling as HTMLElement
-                                if (errorDiv) errorDiv.style.display = "flex"
-                            }}
-                        />
-                    ) : isText ? (
-                        <div className="rounded bg-muted p-4 text-sm">
-                            <p className="text-muted-foreground">
-                                File preview not available in edit mode
-                            </p>
-                            <p className="font-medium">{fileName}</p>
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center p-8 text-muted-foreground">
-                            <div className="text-center">
-                                <FileType className="mx-auto mb-2 size-12" />
-                                <p>Binary file: {fileName}</p>
-                                <p className="mt-1 text-xs">Preview not available</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )
-        }
 
         return (
             <div className="rounded-2xl bg-primary">
