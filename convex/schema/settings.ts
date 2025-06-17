@@ -18,6 +18,11 @@ export const CustomAIProvider = v.object({
     encryptedKey: v.string()
 })
 
+export const SupermemoryConfig = v.object({
+    enabled: v.boolean(),
+    encryptedKey: v.string()
+})
+
 const ModelAbilitySchema = v.union(
     v.literal("reasoning"),
     v.literal("vision"),
@@ -41,7 +46,8 @@ export const NonSensitiveUserSettings = v.object({
     searchIncludeSourcesByDefault: v.boolean(),
     customModels: v.record(v.string(), CustomModel),
     titleGenerationModel: v.string(),
-    customThemes: v.optional(v.array(v.string()))
+    customThemes: v.optional(v.array(v.string())),
+    supermemory: v.optional(SupermemoryConfig)
 })
 
 export const UserSettings = v.object({

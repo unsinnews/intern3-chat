@@ -3,10 +3,11 @@ import type { GenericActionCtx } from "convex/server"
 import type { Infer } from "convex/values"
 import type { DataModel } from "../_generated/dataModel"
 import type { UserSettings } from "../schema/settings"
+import { SupermemoryTools } from "./tools/supermemory"
 import { WebSearchTool } from "./tools/web_search"
 
-export const TOOL_ADAPTERS = [WebSearchTool]
-export const ABILITIES = ["web_search"]
+export const TOOL_ADAPTERS = [WebSearchTool, SupermemoryTools]
+export const ABILITIES = ["web_search", "supermemory"]
 export type AbilityId = (typeof ABILITIES)[number]
 
 export type ConditionalToolParams = {

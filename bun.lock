@@ -93,6 +93,7 @@
         "resumable-stream": "^2.2.0",
         "shiki": "^3.6.0",
         "sonner": "^2.0.5",
+        "supermemory": "^3.0.0-alpha.18",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.4",
         "tailwindcss-safe-area": "^0.6.0",
@@ -2520,6 +2521,8 @@
     "style-to-object": ["style-to-object@1.0.9", "", { "dependencies": { "inline-style-parser": "0.2.4" } }, "sha512-G4qppLgKu/k6FwRpHiGiKPaPTFcG3g4wNVX/Qsfu+RqQM30E7Tyu/TEgxcL9PNLF5pdRLwQdE3YKKf+KF2Dzlw=="],
 
     "superjson": ["superjson@2.2.2", "", { "dependencies": { "copy-anything": "^3.0.2" } }, "sha512-5JRxVqC8I8NuOUjzBbvVJAKNM8qoVuH0O77h4WInc/qC2q5IreqKxYwgkga3PfA22OayK2ikceb/B26dztPl+Q=="],
+
+    "supermemory": ["supermemory@3.0.0-alpha.18", "", {}, "sha512-cxgq228HnaMzcaMDgPZCz0KZLjRPLDEe56XN1fcVSLmIW3qBSYexsvRlTLASP+fu0H2sBBI9VyY8/B7yXBBzhQ=="],
 
     "supports-color": ["supports-color@7.2.0", "", { "dependencies": { "has-flag": "^4.0.0" } }, "sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw=="],
 

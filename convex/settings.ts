@@ -17,7 +17,8 @@ const DefaultSettings = (userId: string) =>
         customAIProviders: {},
         customModels: {},
         titleGenerationModel: "gemini-2.0-flash-lite",
-        customThemes: []
+        customThemes: [],
+        supermemory: undefined
     }) satisfies Infer<typeof UserSettings>
 
 const getSettings = async (
@@ -130,6 +131,12 @@ export const updateUserSettings = mutation({
                 endpoint: v.string(),
                 newKey: v.optional(v.string())
             })
+        ),
+        supermemory: v.optional(
+            v.object({
+                enabled: v.boolean(),
+                newKey: v.optional(v.string())
+            })
         )
     },
     handler: async (ctx, args) => {
@@ -167,6 +174,18 @@ export const updateUserSettings = mutation({
                     ? await encryptKey(provider.newKey)
                     : settings.customAIProviders[providerId].encryptedKey
             }
+        }
+
+        // Handle supermemory configuration
+        if (args.supermemory) {
+            newSettings.supermemory = {
+                enabled: args.supermemory.enabled,
+                encryptedKey: args.supermemory.newKey
+                    ? await encryptKey(args.supermemory.newKey)
+                    : settings.supermemory?.encryptedKey || ""
+            }
+        } else {
+            newSettings.supermemory = settings.supermemory
         }
 
         if (settings._id) {
@@ -224,6 +243,26 @@ export const deleteUserTheme = mutation({
             await ctx.db.patch(settings._id, newSettings)
         } else {
             await ctx.db.insert("settings", newSettings)
+        }
+    }
+})
+
+export const getSupermemoryKey = internalQuery({
+    args: {
+        userId: v.string()
+    },
+    handler: async (ctx, args): Promise<string | null> => {
+        const settings = await getSettings(ctx, args.userId)
+
+        if (!settings.supermemory?.enabled || !settings.supermemory.encryptedKey) {
+            return null
+        }
+
+        try {
+            return await decryptKey(settings.supermemory.encryptedKey)
+        } catch (error) {
+            console.error("Failed to decrypt supermemory key:", error)
+            return null
         }
     }
 })

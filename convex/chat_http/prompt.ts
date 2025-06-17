@@ -2,6 +2,7 @@ import dedent from "ts-dedent"
 import type { AbilityId } from "../lib/toolkit"
 export const buildPrompt = (enabledTools: AbilityId[]) => {
     const hasWebSearch = enabledTools.includes("web_search")
+    const hasSupermemory = enabledTools.includes("supermemory")
 
     // Get current UTC date in DD-MM-YYYY format
     const now = new Date()
@@ -25,6 +26,17 @@ Use web search for:
 - Real-time data verification
 - Technology updates beyond your training data
 - When you need to confirm current facts`
+        )
+
+    if (hasSupermemory)
+        layers.push(
+            dedent`
+## Memory Tools
+You have access to persistent memory capabilities:
+- **add_memory**: Store important information, insights, or context for future conversations
+- **search_memories**: Retrieve previously stored information using semantic search
+- Use these tools to maintain context across conversations and provide personalized assistance
+- Store user preferences, important facts, project details, or any information worth remembering`
         )
 
     layers.push(dedent`Today's date (UTC): ${utcDate}`)
