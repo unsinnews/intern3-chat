@@ -259,12 +259,12 @@ export function ThemeSwitcher() {
                         <DropdownMenuSeparator />
 
                         {/* Search Input */}
-                        <div className="p-2">
+                        <div>
                             <div className="relative">
                                 <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
                                 <Input
                                     placeholder="Search themes..."
-                                    className="h-9 border-none pl-10 shadow-none"
+                                    className="h-9 rounded-none border-none bg-popover pl-10 shadow-none dark:bg-popover"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -275,9 +275,7 @@ export function ThemeSwitcher() {
                         {/* Theme Count and Controls */}
                         <div className="flex items-center justify-between px-3 py-2">
                             <div className="text-muted-foreground text-sm">
-                                {isLoadingThemes
-                                    ? "Loading..."
-                                    : `${filteredThemes.length} themes available`}
+                                {isLoadingThemes ? "Loading..." : `${filteredThemes.length} themes`}
                             </div>
                             <div className="flex items-center gap-1">
                                 {/* Randomizer */}

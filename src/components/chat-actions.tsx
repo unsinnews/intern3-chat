@@ -2,6 +2,7 @@ import { cn, copyToClipboard } from "@/lib/utils"
 import type { UIMessage } from "ai"
 import { Check, Copy, Edit3, RotateCcw } from "lucide-react"
 import { memo, useMemo, useState } from "react"
+import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
@@ -119,9 +120,9 @@ export const ChatActions = memo(
                 </Tooltip>
 
                 {modelName && (
-                    <div className="flex h-7 items-center border border-border bg-background/80 px-2 text-muted-foreground text-xs">
+                    <Badge variant="secondary" className="ml-1 h-7">
                         {modelName}
-                    </div>
+                    </Badge>
                 )}
             </div>
         )
