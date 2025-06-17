@@ -70,6 +70,62 @@ export const PasswordResetTemplate = ({ name, resetUrl }: PasswordResetTemplateP
     </Html>
 )
 
+interface OTPEmailTemplateProps {
+    otp: string
+    type: "sign-in" | "email-verification" | "forget-password"
+}
+
+export const OTPEmailTemplate = ({ otp, type }: OTPEmailTemplateProps) => {
+    const getContent = () => {
+        switch (type) {
+            case "sign-in":
+                return {
+                    preview: "Your sign-in code for Intern3 Chat",
+                    heading: "Your sign-in code",
+                    description: "Use this code to sign in to your Intern3 Chat account:"
+                }
+            case "email-verification":
+                return {
+                    preview: "Verify your email for Intern3 Chat",
+                    heading: "Verify your email",
+                    description: "Use this code to verify your email address for Intern3 Chat:"
+                }
+            case "forget-password":
+                return {
+                    preview: "Reset your password for Intern3 Chat",
+                    heading: "Reset your password",
+                    description:
+                        "Use this code to reset your password for your Intern3 Chat account:"
+                }
+        }
+    }
+
+    const { preview, heading, description } = getContent()
+
+    return (
+        <Html>
+            <Head />
+            <Preview>{preview}</Preview>
+            <Body style={main}>
+                <Container style={container}>
+                    <Section>
+                        <Text style={headingStyle}>{heading}</Text>
+                        <Text style={text}>Hi,</Text>
+                        <Text style={text}>{description}</Text>
+                        <Text style={otpCode}>{otp}</Text>
+                        <Text style={text}>
+                            This code will expire in 5 minutes for security reasons.
+                        </Text>
+                        <Text style={text}>
+                            If you didn't request this code, you can safely ignore this email.
+                        </Text>
+                    </Section>
+                </Container>
+            </Body>
+        </Html>
+    )
+}
+
 // Simple, clean styles
 const main = {
     backgroundColor: "#f6f9fc",
@@ -118,4 +174,27 @@ const footer = {
     fontSize: "14px",
     lineHeight: "1.4",
     margin: "16px 0 0"
+}
+
+const headingStyle = {
+    color: "#32325d",
+    fontSize: "24px",
+    fontWeight: "600",
+    lineHeight: "1.25",
+    margin: "0 0 20px"
+}
+
+const otpCode = {
+    backgroundColor: "#f8f9fa",
+    border: "2px dashed #dee2e6",
+    borderRadius: "8px",
+    color: "#212529",
+    display: "inline-block",
+    fontSize: "32px",
+    fontWeight: "700",
+    letterSpacing: "8px",
+    margin: "20px 0",
+    padding: "16px 24px",
+    textAlign: "center" as const,
+    fontFamily: "Consolas, Monaco, 'Courier New', monospace"
 }
