@@ -18,6 +18,7 @@ import { Route as SettingsUsageRouteImport } from './routes/settings/usage'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsModelsProvidersRouteImport } from './routes/settings/models-providers'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
+import { Route as SettingsAiOptionsRouteImport } from './routes/settings/ai-options'
 import { Route as AuthPathnameRouteImport } from './routes/auth/$pathname'
 import { Route as ChatThreadThreadIdRouteImport } from './routes/_chat.thread.$threadId'
 import { Route as ChatSSharedThreadIdRouteImport } from './routes/_chat.s.$sharedThreadId'
@@ -59,6 +60,11 @@ const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   path: '/appearance',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
+const SettingsAiOptionsRoute = SettingsAiOptionsRouteImport.update({
+  id: '/ai-options',
+  path: '/ai-options',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
 const AuthPathnameRoute = AuthPathnameRouteImport.update({
   id: '/auth/$pathname',
   path: '/auth/$pathname',
@@ -83,6 +89,7 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/models-providers': typeof SettingsModelsProvidersRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/models-providers': typeof SettingsModelsProvidersRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteRouteWithChildren
   '/_chat': typeof ChatRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/models-providers': typeof SettingsModelsProvidersRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/settings'
     | '/auth/$pathname'
+    | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/models-providers'
     | '/settings/profile'
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
   to:
     | '/settings'
     | '/auth/$pathname'
+    | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/models-providers'
     | '/settings/profile'
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/_chat'
     | '/auth/$pathname'
+    | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/models-providers'
     | '/settings/profile'
@@ -230,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAppearanceRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/ai-options': {
+      id: '/settings/ai-options'
+      path: '/ai-options'
+      fullPath: '/settings/ai-options'
+      preLoaderRoute: typeof SettingsAiOptionsRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/auth/$pathname': {
       id: '/auth/$pathname'
       path: '/auth/$pathname'
@@ -266,6 +285,7 @@ declare module '@tanstack/react-start/server' {
 }
 
 interface SettingsRouteRouteChildren {
+  SettingsAiOptionsRoute: typeof SettingsAiOptionsRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsModelsProvidersRoute: typeof SettingsModelsProvidersRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
@@ -273,6 +293,7 @@ interface SettingsRouteRouteChildren {
 }
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
+  SettingsAiOptionsRoute: SettingsAiOptionsRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsModelsProvidersRoute: SettingsModelsProvidersRoute,
   SettingsProfileRoute: SettingsProfileRoute,

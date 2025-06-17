@@ -71,50 +71,11 @@ function AIOptionsSettings() {
 
     const updateSettings = useConvexMutation(api.settings.updateUserSettings)
 
-    if (!session.user?.id) {
-        return (
-            <SettingsLayout
-                title="AI Options"
-                description="Configure AI search and web search preferences."
-            >
-                <div className="flex items-center justify-center py-12">
-                    <p className="text-muted-foreground">Sign in to manage your AI options.</p>
-                </div>
-            </SettingsLayout>
-        )
-    }
-
-    if (!userSettings) {
-        return (
-            <SettingsLayout
-                title="AI Options"
-                description="Configure AI search and web search preferences."
-            >
-                <div className="flex items-center justify-center py-12">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <div className="size-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-                        Loading settings...
-                    </div>
-                </div>
-            </SettingsLayout>
-        )
-    }
-
-    if ("error" in userSettings) {
-        return (
-            <SettingsLayout
-                title="AI Options"
-                description="Configure AI search and web search preferences."
-            >
-                <div className="flex items-center justify-center py-12">
-                    <p className="text-muted-foreground">Error loading AI options.</p>
-                </div>
-            </SettingsLayout>
-        )
-    }
+    if (!session.user?.id || !userSettings) return null
 
     const handleSearchProviderChange = async (provider: SearchProvider) => {
         if (provider === userSettings.searchProvider) return
+        if (!session.user) return
 
         setIsLoading(true)
         try {
@@ -152,10 +113,6 @@ function AIOptionsSettings() {
                 coreProviders,
                 customProviders
             })
-
-            toast.success(
-                `Search provider updated to ${provider === "firecrawl" ? "Firecrawl" : "Brave"}`
-            )
         } catch (error) {
             toast.error("Failed to update search provider")
             console.error(error)
@@ -258,7 +215,7 @@ function AIOptionsSettings() {
                         </p>
                     </div>
 
-                    <Card className="border-0 bg-muted/20 p-4">
+                    <Card className="border-0 bg-muted p-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="flex size-8 items-center justify-center rounded-full bg-background">
@@ -281,27 +238,6 @@ function AIOptionsSettings() {
                             />
                         </div>
                     </Card>
-                </div>
-
-                {/* Info Section */}
-                <div className="rounded-lg border border-border/50 bg-muted/20 p-4">
-                    <div className="flex items-start gap-3">
-                        <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">
-                            <Search className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="space-y-1">
-                            <h4 className="font-medium text-foreground text-sm">
-                                About Web Search
-                            </h4>
-                            <p className="text-muted-foreground text-sm leading-relaxed">
-                                These settings control how the AI assistant performs web searches.
-                                Firecrawl provides more detailed content extraction but may be
-                                slower, while Brave Search offers faster results with privacy focus.
-                                Source inclusion can help with factual verification but increases
-                                response length.
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </SettingsLayout>
