@@ -164,15 +164,15 @@ export const Codeblock = memo(
                 )}
 
                 {!expanded && lineNumber > 17 && (
-                    <div className="absolute bottom-0 flex h-12 w-full items-end justify-center rounded-b-lg bg-gradient-to-b from-transparent to-background pb-2">
+                    <div className="absolute right-0 bottom-0 left-0 flex h-16 justify-center rounded-b-md bg-gradient-to-t from-sidebar via-sidebar/80 to-transparent">
                         <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
                             onClick={() => setExpanded(true)}
-                            className="h-[1.5rem] gap-1.5 rounded-full text-muted-foreground shadow-lg"
+                            className="h-[1.5rem] gap-1.5 rounded-md shadow-lg"
                         >
                             {lineNumber - 17} more lines
-                            <ArrowDownSquareIcon />
+                            <ArrowDownSquareIcon className="!size-3" />
                         </Button>
                     </div>
                 )}
