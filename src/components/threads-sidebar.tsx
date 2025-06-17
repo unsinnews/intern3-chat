@@ -1,3 +1,4 @@
+import { CommandK } from "@/components/commandk"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -8,14 +9,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
     Sidebar,
     SidebarContent,
@@ -36,7 +36,7 @@ import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { Loader2, MoreHorizontal, Pin, Plus, Search, Trash2 } from "lucide-react"
+import { Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -224,8 +224,8 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export function ThreadsSidebar() {
-    const [searchQuery, setSearchQuery] = useState("")
     const [showGradient, setShowGradient] = useState(false)
+    const [commandKOpen, setCommandKOpen] = useState(false)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const { data: session } = authClient.useSession()
 
@@ -256,16 +256,9 @@ export function ThreadsSidebar() {
     const hasError = false // Remove error handling since we return empty results instead
     const threadsData = Array.isArray(threads) ? threads : []
 
-    const filteredThreads = useMemo(() => {
-        if (!searchQuery) return threadsData
-        return threadsData.filter((thread: Thread) =>
-            thread.title.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    }, [threadsData, searchQuery])
-
     const groupedThreads = useMemo(() => {
-        return groupThreadsByTime(filteredThreads)
-    }, [filteredThreads])
+        return groupThreadsByTime(threadsData)
+    }, [threadsData])
 
     useEffect(() => {
         const container = scrollContainerRef.current
@@ -303,8 +296,8 @@ export function ThreadsSidebar() {
             return <></>
         }
 
-        if (filteredThreads.length === 0 && searchQuery) {
-            return <EmptyState message="No threads match your search" />
+        if (threadsData.length === 0) {
+            return <EmptyState message="No threads found" />
         }
 
         return (
@@ -343,7 +336,7 @@ export function ThreadsSidebar() {
 
     return (
         <Sidebar variant="inset">
-            <SidebarHeader className="mt-1 gap-4">
+            <SidebarHeader className="mt-1 gap-3">
                 <div className="flex items-center justify-between">
                     <div className="cursor-default select-none font-medium text-sidebar-foreground text-xl">
                         intern3.chat
@@ -352,26 +345,26 @@ export function ThreadsSidebar() {
                 <div className="h-px w-full bg-border" />
                 <Link
                     to="/"
-                    className={cn(buttonVariants({ variant: "default" }), "w-full justify-start")}
+                    className={cn(buttonVariants({ variant: "default" }), "w-full justify-center")}
                 >
-                    <Plus />
                     New Chat
                 </Link>
-                <div className="relative">
-                    <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search your threads..."
-                        className="pl-8"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
+                <Button onClick={() => setCommandKOpen(true)} variant="outline">
+                    <Search className="h-4 w-4" />
+                    Search chats
+                    <div className="ml-auto flex items-center gap-1 text-xs">
+                        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-muted-foreground">
+                            <span className="text-sm">⌘</span>
+                            <span className="text-xs">K</span>
+                        </kbd>
+                    </div>
+                </Button>
             </SidebarHeader>
             <SidebarContent ref={scrollContainerRef}>{renderContent()}</SidebarContent>
             {showGradient && (
                 <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
             )}
+            <CommandK open={commandKOpen} onOpenChange={setCommandKOpen} />
         </Sidebar>
     )
 }

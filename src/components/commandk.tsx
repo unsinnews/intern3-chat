@@ -3,7 +3,7 @@
 import { useRouter } from "@tanstack/react-router"
 import { useQuery as useConvexQuery } from "convex/react"
 import { formatDistanceToNow } from "date-fns"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import {
     Command,
@@ -24,12 +24,22 @@ interface Thread {
     authorId: string
 }
 
-export function CommandK() {
-    const [open, setOpen] = useState(false)
+interface CommandKProps {
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+}
+
+export function CommandK({ open: controlledOpen, onOpenChange }: CommandKProps = {}) {
+    const [internalOpen, setInternalOpen] = useState(false)
     const [query, setQuery] = useState("")
     const [debouncedQuery, setDebouncedQuery] = useState("")
     const { data: session } = authClient.useSession()
     const router = useRouter()
+    const commandRef = useRef<HTMLDivElement>(null)
+
+    const isControlled = controlledOpen !== undefined
+    const open = isControlled ? controlledOpen : internalOpen
+    const setOpen = isControlled ? onOpenChange || (() => {}) : setInternalOpen
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -53,13 +63,13 @@ export function CommandK() {
         const down = (e: KeyboardEvent) => {
             if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault()
-                setOpen((open) => !open)
+                setOpen(!open)
             }
         }
 
         document.addEventListener("keydown", down)
         return () => document.removeEventListener("keydown", down)
-    }, [])
+    }, [open, setOpen])
 
     const threads = useMemo(() => {
         if (!searchResults || "error" in searchResults) return []
@@ -70,6 +80,19 @@ export function CommandK() {
         setOpen(false)
         setQuery("")
         router.navigate({ to: "/thread/$threadId", params: { threadId } })
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" && query.trim() === "") {
+            const selectedItem = commandRef.current?.querySelector('[data-selected="true"]')
+            if (selectedItem) {
+                return
+            }
+            e.preventDefault()
+            setOpen(false)
+            setQuery("")
+            router.navigate({ to: "/" })
+        }
     }
 
     const formatRelativeTime = (timestamp: number) => {
@@ -86,13 +109,14 @@ export function CommandK() {
 
     return (
         <CommandDialog open={open} onOpenChange={setOpen} className="top-[30%] translate-y-0">
-            <Command shouldFilter={false}>
+            <Command ref={commandRef} shouldFilter={false} disablePointerSelection value={"-"}>
                 <CommandInput
-                    placeholder="Search chats..."
+                    placeholder="Search chats or press Enter to start a new chat..."
                     value={query}
                     onValueChange={setQuery}
+                    onKeyDown={handleKeyDown}
                 />
-                <CommandList className="pr-0">
+                <CommandList>
                     <CommandEmpty>No chats found.</CommandEmpty>
                     {threads.length > 0 && (
                         <CommandGroup heading="Chats">
@@ -101,7 +125,7 @@ export function CommandK() {
                                     key={thread._id}
                                     value={thread._id}
                                     onSelect={() => handleSelect(thread._id)}
-                                    className="h-9"
+                                    className="h-9 hover:bg-accent/80"
                                 >
                                     <div className="flex w-full items-center justify-between gap-4">
                                         <div className="flex min-w-0 flex-1 items-center gap-2">
