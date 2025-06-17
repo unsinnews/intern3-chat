@@ -13,6 +13,7 @@ import { AnimatePresence, motion } from "motion/react"
 import { useMemo } from "react"
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom"
 import { MultimodalInput } from "./multimodal-input"
+import { SignupMessagePrompt } from "./signup-message-prompt"
 import { StickToBottomButton } from "./stick-to-bottom-button"
 
 interface ChatProps {
@@ -51,6 +52,14 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
 
     const isEmpty = !threadId && messages.length === 0
     const userName = session?.user?.name
+
+    if (!session?.user) {
+        return (
+            <div className="relative flex h-[calc(100vh-64px)] items-center justify-center">
+                <SignupMessagePrompt />
+            </div>
+        )
+    }
 
     return (
         <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
