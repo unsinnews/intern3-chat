@@ -3,11 +3,19 @@ import { R2 } from "@convex-dev/r2"
 import { v } from "convex/values"
 import { components } from "./_generated/api"
 import { httpAction, mutation, query } from "./_generated/server"
+import { getUserIdentity } from "./lib/identity"
 
 export const r2 = new R2(components.r2)
 // Direct file upload HTTP action for files under 5MB
 export const uploadFile = httpAction(async (ctx, request) => {
     try {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), {
+                status: 401,
+                headers: { "Content-Type": "application/json" }
+            })
+        }
         const formData = await request.formData()
         const file = formData.get("file") as File
 
@@ -33,7 +41,7 @@ export const uploadFile = httpAction(async (ctx, request) => {
         }
 
         // Generate unique key for the file
-        const key = `attachments/${Date.now()}-${crypto.randomUUID()}-${file.name}`
+        const key = `attachments/${user.id}/${Date.now()}-${crypto.randomUUID()}-${file.name}`
 
         // Convert file to ArrayBuffer then to Uint8Array
         const arrayBuffer = await file.arrayBuffer()
