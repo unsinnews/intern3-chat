@@ -407,7 +407,7 @@ export function MultimodalInput({
     return (
         <>
             <div
-                className="@container w-full"
+                className="@container w-full md:px-2"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -416,7 +416,7 @@ export function MultimodalInput({
                     ref={promptInputRef}
                     onSubmit={handleSubmit}
                     className={cn(
-                        "mx-auto w-full max-w-2xl md:min-w-2xl",
+                        "mx-auto w-full max-w-2xl",
                         dragActive && "rounded-lg ring-2 ring-primary ring-offset-2"
                     )}
                 >
@@ -487,7 +487,7 @@ export function MultimodalInput({
                                         )
                                     }}
                                     className={cn(
-                                        "h-9 w-9",
+                                        "size-8 shrink-0",
                                         !enabledTools.includes("web_search") &&
                                             "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
                                     )}
@@ -501,7 +501,7 @@ export function MultimodalInput({
                             <Button
                                 variant="default"
                                 size="icon"
-                                className="h-8 w-8 rounded-md"
+                                className="size-8 shrink-0 rounded-md"
                                 disabled={status === "submitted" || uploading}
                                 onClick={handleSubmit}
                                 type="submit"
