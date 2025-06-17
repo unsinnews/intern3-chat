@@ -35,7 +35,7 @@ import { authClient } from "@/lib/auth-client"
 import { useDiskCachedPaginatedQuery } from "@/lib/convex-cached-query"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { useNavigate } from "@tanstack/react-router"
+import { useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { ArrowBigUp, Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
@@ -55,6 +55,8 @@ function ThreadItem({ thread }: { thread: Thread }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const deleteThreadMutation = useMutation(api.threads.deleteThread)
     const togglePinMutation = useMutation(api.threads.togglePinThread)
+    const params = useParams({ strict: false }) as { threadId?: string }
+    const isActive = params.threadId === thread._id
 
     const handleDelete = async () => {
         try {
@@ -82,10 +84,14 @@ function ThreadItem({ thread }: { thread: Thread }) {
                 <div
                     className={cn(
                         "group/item flex w-full items-center rounded-sm hover:bg-accent/50",
-                        isMenuOpen && "bg-accent/50"
+                        isMenuOpen && "bg-accent/50",
+                        isActive && "bg-accent/60"
                     )}
                 >
-                    <SidebarMenuButton asChild className="flex-1 hover:bg-transparent">
+                    <SidebarMenuButton
+                        asChild
+                        className={cn("flex-1 hover:bg-transparent", isActive && "text-foreground")}
+                    >
                         <Link to="/thread/$threadId" params={{ threadId: thread._id }}>
                             <span className="truncate">{thread.title}</span>
                         </Link>
