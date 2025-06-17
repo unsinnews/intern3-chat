@@ -49,6 +49,7 @@ export const uploadFile = httpAction(async (ctx, request) => {
 
         // Store file directly in R2
         const storedKey = await r2.store(ctx, uint8Array, {
+            authorId: user.id,
             key,
             type: file.type
         })
@@ -81,25 +82,21 @@ export const uploadFile = httpAction(async (ctx, request) => {
     }
 })
 
-// Query to get file URL for serving
-export const getFileUrl = query({
-    args: { key: v.string() },
-    handler: async (ctx, args) => {
-        try {
-            const url = await r2.getUrl(args.key)
-            return { url, key: args.key }
-        } catch (error) {
-            console.error("Error getting file URL:", error)
-            return null
-        }
-    }
-})
-
-// Get file metadata
+// Get file metadata - now with auth check
 export const getFileMetadata = query({
     args: { key: v.string() },
     handler: async (ctx, args) => {
         try {
+            const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+            if ("error" in user) {
+                throw new Error("Unauthorized")
+            }
+
+            // Check if user owns the file
+            if (!args.key.startsWith(`attachments/${user.id}/`)) {
+                throw new Error("Access denied: File does not belong to user")
+            }
+
             const metadata = await r2.getMetadata(ctx, args.key)
             return metadata
         } catch (error) {
@@ -109,11 +106,27 @@ export const getFileMetadata = query({
     }
 })
 
-// Mutation to delete file
+// Mutation to delete file - now with auth check
 export const deleteFile = mutation({
     args: { key: v.string() },
     handler: async (ctx, args) => {
         try {
+            const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+            if ("error" in user) {
+                return {
+                    success: false,
+                    error: "Unauthorized"
+                }
+            }
+
+            // Check if user owns the file
+            if (!args.key.startsWith(`attachments/${user.id}/`)) {
+                return {
+                    success: false,
+                    error: "Access denied: File does not belong to user"
+                }
+            }
+
             // Delete file from R2 storage
             await ctx.runMutation(components.r2.lib.deleteObject, {
                 key: args.key,
@@ -121,7 +134,7 @@ export const deleteFile = mutation({
                 endpoint: process.env.R2_ENDPOINT!,
                 accessKeyId: process.env.R2_ACCESS_KEY_ID!,
                 secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-                forcePathStyle: process.env.R2_FORCE_PATH_STYLE || "false"
+                forcePathStyle: process.env.R2_FORCE_PATH_STYLE === "true"
             })
 
             // Also delete metadata
@@ -142,14 +155,19 @@ export const deleteFile = mutation({
     }
 })
 
-// List all files with pagination
+// List files for current user only
 export const listFiles = query({
     args: {
         limit: v.optional(v.number())
     },
     handler: async (ctx, args) => {
         try {
-            return await r2.listMetadata(ctx, args.limit || 50)
+            const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+            if ("error" in user) {
+                return []
+            }
+
+            return await r2.listMetadata(ctx, user.id, args.limit || 50)
         } catch (error) {
             console.error("Error listing files:", error)
             return []

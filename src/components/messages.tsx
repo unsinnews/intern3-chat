@@ -57,6 +57,7 @@ const FileAttachment = memo(
     }) => {
         const { isImage } = getFileType(part)
         const fileName = part.filename || "Unknown file"
+        const [imageError, setImageError] = useState(false)
 
         const handleInteraction = () => {
             if (onPreview) {
@@ -71,7 +72,30 @@ const FileAttachment = memo(
             }
         }
 
+        const handleImageError = () => {
+            setImageError(true)
+        }
+
         if (isImage) {
+            if (imageError) {
+                return (
+                    <div className="group relative flex w-full max-w-md items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 p-8 transition-colors">
+                        <div className="text-center">
+                            <ImageIcon className="mx-auto mb-2 h-12 w-12 text-destructive/70" />
+                            <p className="font-medium text-destructive text-sm">
+                                Image unavailable
+                            </p>
+                            <p className="mt-1 text-muted-foreground text-xs">
+                                File may have been deleted
+                            </p>
+                            {fileName !== "Unknown file" && (
+                                <p className="mt-1 text-muted-foreground text-xs">{fileName}</p>
+                            )}
+                        </div>
+                    </div>
+                )
+            }
+
             return (
                 <div className="group relative">
                     <img
@@ -80,6 +104,7 @@ const FileAttachment = memo(
                         className="w-full max-w-md cursor-pointer rounded-lg object-contain transition-opacity hover:opacity-90"
                         onClick={handleInteraction}
                         onKeyDown={handleKeyDown}
+                        onError={handleImageError}
                         tabIndex={onPreview ? 0 : -1}
                         role={onPreview ? "button" : undefined}
                     />
@@ -187,6 +212,45 @@ const EditableMessage = memo(
                 onCancel()
             }
         }
+        const renderFilePreview = () => {
+            if (!previewFile) return null
+
+            const { isImage, isText } = getFileType(previewFile)
+            const fileName = previewFile.filename || "Unknown file"
+
+            return (
+                <div className="max-h-[70vh] overflow-auto">
+                    {isImage ? (
+                        <img
+                            src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${previewFile.data}`}
+                            alt={fileName}
+                            className="h-auto w-full rounded object-contain"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.style.display = "none"
+                                const errorDiv = target.nextElementSibling as HTMLElement
+                                if (errorDiv) errorDiv.style.display = "flex"
+                            }}
+                        />
+                    ) : isText ? (
+                        <div className="rounded bg-muted p-4 text-sm">
+                            <p className="text-muted-foreground">
+                                File preview not available in edit mode
+                            </p>
+                            <p className="font-medium">{fileName}</p>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center p-8 text-muted-foreground">
+                            <div className="text-center">
+                                <FileType className="mx-auto mb-2 size-12" />
+                                <p>Binary file: {fileName}</p>
+                                <p className="mt-1 text-xs">Preview not available</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )
+        }
 
         return (
             <div className="rounded-2xl bg-primary">
@@ -272,11 +336,28 @@ export function Messages({
                         src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${previewFile.data}`}
                         alt={fileName}
                         className="h-auto w-full rounded object-contain"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = "none"
+                            const errorDiv = target.nextElementSibling as HTMLElement
+                            if (errorDiv) errorDiv.style.display = "flex"
+                        }}
                     />
                 ) : (
                     <div className="rounded bg-muted p-4 text-sm">
                         <p className="text-muted-foreground">File content preview not supported</p>
                         <p className="font-medium">{fileName}</p>
+                    </div>
+                )}
+                {isImage && (
+                    <div className="hidden items-center justify-center p-8 text-destructive">
+                        <div className="text-center">
+                            <ImageIcon className="mx-auto mb-2 size-12 text-destructive/70" />
+                            <p className="font-medium">Image unavailable</p>
+                            <p className="mt-1 text-muted-foreground text-sm">
+                                File may have been deleted: {fileName}
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>

@@ -34,13 +34,32 @@ export const dbMessagesToCore = async (
                 }
                 if (p.type === "file") {
                     if (p.mimeType?.startsWith("image/")) {
-                        const fileUrl = await r2.getUrl(p.data)
-                        const data = await fetch(fileUrl)
-                        const blob = await data.blob()
-                        mapped_content.push({
-                            type: "image",
-                            image: await blob.arrayBuffer()
-                        })
+                        try {
+                            const fileUrl = await r2.getUrl(p.data)
+                            const data = await fetch(fileUrl)
+
+                            if (data.ok) {
+                                const blob = await data.blob()
+                                mapped_content.push({
+                                    type: "image",
+                                    image: await blob.arrayBuffer()
+                                })
+                            } else {
+                                console.warn(
+                                    `[cvx][chat] Failed to fetch file ${p.data}: ${data.status} ${data.statusText}`
+                                )
+                                mapped_content.push({
+                                    type: "text",
+                                    text: `<internal-system-error>Failed to fetch file ${p.data}: HTTP ${data.status}. Maybe there was an issue or the file was deleted.</internal-system-error>`
+                                })
+                            }
+                        } catch (error) {
+                            console.warn(`[cvx][chat] Error processing file ${p.data}:`, error)
+                            mapped_content.push({
+                                type: "text",
+                                text: `<internal-system-error>Failed to fetch file ${p.data}: ${error}. Maybe there was an issue or the file was deleted.</internal-system-error>`
+                            })
+                        }
                     }
                 }
                 //  todo: handle images,files
