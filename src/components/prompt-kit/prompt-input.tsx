@@ -66,6 +66,7 @@ const PromptInput = forwardRef<PromptInputRef, PromptInputProps>(
                 clear: () => {
                     if (textareaRef.current) {
                         textareaRef.current.value = ""
+                        localStorage.removeItem("user-input")
                     }
                 },
                 focus: () => {

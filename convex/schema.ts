@@ -10,7 +10,11 @@ export { Thread, Message, SharedThread, UsageEvent, UserSettings }
 export default defineSchema({
     threads: defineTable(Thread)
         .index("byAuthor", ["authorId", "createdAt"])
-        .index("byAuthorTitle", ["title"]),
+        .index("byAuthorTitle", ["title"])
+        .searchIndex("search_title", {
+            searchField: "title",
+            filterFields: ["authorId"]
+        }),
 
     messages: defineTable(Message)
         .index("byThreadId", ["threadId"])

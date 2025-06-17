@@ -166,6 +166,8 @@ class EmailService {
             })
         )
 
+        console.debug(`Sending verification email to ${data.user.email} with URL: ${data.url}`)
+
         await this.sendEmail({
             to: data.user.email,
             subject: "Verify your email address - Intern3 Chat",

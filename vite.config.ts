@@ -19,7 +19,23 @@ export default defineConfig({
             target: "vercel",
             react: {
                 babel: {
-                    plugins: [["babel-plugin-react-compiler", {}]]
+                    plugins: [
+                        [
+                            "babel-plugin-react-compiler",
+                            {
+                                sources: (filename: string) => {
+                                    if (
+                                        // https://github.com/lucide-icons/lucide/issues/2386
+                                        filename.includes("email")
+                                    ) {
+                                        return false
+                                    }
+
+                                    return true
+                                }
+                            }
+                        ]
+                    ]
                 }
             }
         }),
