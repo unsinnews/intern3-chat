@@ -452,7 +452,7 @@ export function MultimodalInput({
                                     variant="ghost"
                                     onClick={() => uploadInputRef.current?.click()}
                                     className={cn(
-                                        "flex h-9 w-9 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
+                                        "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
                                     )}
                                 >
                                     <input
