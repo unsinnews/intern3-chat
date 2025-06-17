@@ -1,13 +1,12 @@
 "use client"
 
 import { useRouter } from "@tanstack/react-router"
-import { search } from "@zanreal/search"
 import { useQuery as useConvexQuery } from "convex/react"
 import { formatDistanceToNow } from "date-fns"
-import { Calendar, MessageSquare } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import {
+    Command,
     CommandDialog,
     CommandEmpty,
     CommandGroup,
@@ -28,12 +27,26 @@ interface Thread {
 export function CommandK() {
     const [open, setOpen] = useState(false)
     const [query, setQuery] = useState("")
+    const [debouncedQuery, setDebouncedQuery] = useState("")
     const { data: session } = authClient.useSession()
     const router = useRouter()
 
-    const threads = useConvexQuery(
-        api.threads.getAllUserThreadsForSearch,
-        session?.user?.id ? {} : "skip"
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedQuery(query)
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [query])
+
+    const searchResults = useConvexQuery(
+        api.threads.searchUserThreads,
+        session?.user?.id
+            ? {
+                  query: debouncedQuery,
+                  paginationOpts: { numItems: 10, cursor: null }
+              }
+            : "skip"
     )
 
     useEffect(() => {
@@ -48,16 +61,10 @@ export function CommandK() {
         return () => document.removeEventListener("keydown", down)
     }, [])
 
-    const searchResults =
-        query && threads && !("error" in threads)
-            ? search(threads, query, {
-                  fields: ["title"],
-                  fuzzyThreshold: 0.3,
-                  limit: 20
-              }).map((result) => result.item)
-            : threads && !("error" in threads)
-              ? threads.slice(0, 10)
-              : []
+    const threads = useMemo(() => {
+        if (!searchResults || "error" in searchResults) return []
+        return searchResults.page || []
+    }, [searchResults])
 
     const handleSelect = (threadId: string) => {
         setOpen(false)
@@ -67,9 +74,9 @@ export function CommandK() {
 
     const formatRelativeTime = (timestamp: number) => {
         try {
-            return formatDistanceToNow(new Date(timestamp), { addSuffix: true })
+            return formatDistanceToNow(new Date(timestamp), { addSuffix: false })
         } catch {
-            return "Unknown time"
+            return null
         }
     }
 
@@ -78,33 +85,40 @@ export function CommandK() {
     }
 
     return (
-        <CommandDialog open={open} onOpenChange={setOpen}>
-            <CommandInput placeholder="Search chats..." value={query} onValueChange={setQuery} />
-            <CommandList>
-                <CommandEmpty>No chats found.</CommandEmpty>
-                {searchResults.length > 0 && (
-                    <CommandGroup heading="Chats">
-                        {searchResults.map((thread: Thread) => (
-                            <CommandItem
-                                key={thread._id}
-                                value={thread._id}
-                                onSelect={() => handleSelect(thread._id)}
-                            >
-                                <div className="flex w-full items-center gap-3">
-                                    <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                                    <div className="min-w-0 flex-1">
-                                        <div className="truncate font-medium">{thread.title}</div>
-                                        <div className="flex items-center gap-1 text-muted-foreground text-sm">
-                                            <Calendar className="h-3 w-3" />
+        <CommandDialog open={open} onOpenChange={setOpen} className="top-[30%] translate-y-0">
+            <Command shouldFilter={false}>
+                <CommandInput
+                    placeholder="Search chats..."
+                    value={query}
+                    onValueChange={setQuery}
+                />
+                <CommandList className="pr-0">
+                    <CommandEmpty>No chats found.</CommandEmpty>
+                    {threads.length > 0 && (
+                        <CommandGroup heading="Chats">
+                            {threads.map((thread: Thread) => (
+                                <CommandItem
+                                    key={thread._id}
+                                    value={thread._id}
+                                    onSelect={() => handleSelect(thread._id)}
+                                    className="h-9"
+                                >
+                                    <div className="flex w-full items-center justify-between gap-4">
+                                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                                            <div className="truncate font-medium">
+                                                {thread.title}
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0 text-muted-foreground text-xs">
                                             {formatRelativeTime(thread.createdAt)}
                                         </div>
                                     </div>
-                                </div>
-                            </CommandItem>
-                        ))}
-                    </CommandGroup>
-                )}
-            </CommandList>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    )}
+                </CommandList>
+            </Command>
         </CommandDialog>
     )
 }

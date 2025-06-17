@@ -204,31 +204,41 @@ export const getThreadMessages = query({
     }
 })
 
-// Non-paginated query for command palette and search
-export const getAllUserThreadsForSearch = query({
-    args: {},
-    handler: async ({ db, auth }) => {
+// Paginated search query for command palette and search
+export const searchUserThreads = query({
+    args: {
+        query: v.string(),
+        paginationOpts: paginationOptsValidator
+    },
+    handler: async ({ db, auth }, { query, paginationOpts }) => {
         const user = await getUserIdentity(auth, {
             allowAnons: true
         })
 
-        if ("error" in user) return { error: user.error }
+        if ("error" in user) {
+            return {
+                page: [],
+                isDone: true,
+                continueCursor: ""
+            }
+        }
 
-        const threads = await db
+        if (!query.trim()) {
+            // If no search query, return recent threads with pagination
+            return await db
+                .query("threads")
+                .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+                .order("desc")
+                .paginate(paginationOpts)
+        }
+
+        // Use search index for text search
+        return await db
             .query("threads")
-            .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
-            .order("desc")
-            .collect()
-
-        // Sort threads: pinned threads first, then by updatedAt descending
-        return threads.sort((a, b) => {
-            // First, sort by pinned status (pinned threads first)
-            if (a.pinned && !b.pinned) return -1
-            if (!a.pinned && b.pinned) return 1
-
-            // If both have same pinned status, sort by updatedAt descending
-            return b.updatedAt - a.updatedAt
-        })
+            .withSearchIndex("search_title", (q) =>
+                q.search("title", query.trim()).eq("authorId", user.id)
+            )
+            .paginate(paginationOpts)
     }
 })
 
