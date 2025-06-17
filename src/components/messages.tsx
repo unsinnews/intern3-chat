@@ -11,6 +11,7 @@ import { StickToBottom } from "use-stick-to-bottom"
 import { ChatActions } from "./chat-actions"
 import { MemoizedMarkdown } from "./memoized-markdown"
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "./reasoning"
+import { GenericToolRenderer } from "./renderers/generic-tool"
 import { WebSearchToolRenderer } from "./renderers/web-search-ui"
 import { Button } from "./ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -166,7 +167,8 @@ const PartsRenderer = memo(
             case "tool-invocation":
                 if (part.toolInvocation.toolName === "web_search")
                     return <WebSearchToolRenderer toolInvocation={part.toolInvocation} />
-                return null
+
+                return <GenericToolRenderer toolInvocation={part.toolInvocation} />
             case "file":
                 return <FileAttachment part={part} onPreview={() => onFilePreview?.(part)} />
         }

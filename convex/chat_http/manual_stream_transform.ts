@@ -172,6 +172,7 @@ export const manualStreamTransform = (
                 }
 
                 case "error": {
+                    console.log("chunk.error", chunk.error)
                     console.error(`[cvx][chat][stream] Error: ${chunk.error}`)
                     let error_message = "An error occurred"
                     if (typeof chunk.error === "string") {
