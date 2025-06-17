@@ -22,7 +22,6 @@ export const ChatActions = memo(
 
         const modelName: string | undefined = useMemo(() => {
             if (message.role !== "assistant") return undefined
-            console.log(message)
             if ("metadata" in message && message.metadata) {
                 const casted = message.metadata as { modelName?: string }
                 if (casted.modelName) return casted.modelName
@@ -38,7 +37,10 @@ export const ChatActions = memo(
                 return found.content?.toString()
             }
             return undefined
-        }, [message.annotations, (message as { metadata?: { modelName?: string } }).metadata])
+        }, [
+            message.annotations?.length,
+            (message as { metadata?: { modelName?: string } }).metadata
+        ])
 
         const handleCopy = async () => {
             const textContent = message.parts
