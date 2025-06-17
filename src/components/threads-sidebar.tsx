@@ -360,7 +360,9 @@ export function ThreadsSidebar() {
                     </div>
                 </Button>
             </SidebarHeader>
-            <SidebarContent ref={scrollContainerRef}>{renderContent()}</SidebarContent>
+            <SidebarContent ref={scrollContainerRef} className="scrollbar-hide">
+                {renderContent()}
+            </SidebarContent>
             {showGradient && (
                 <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
             )}
