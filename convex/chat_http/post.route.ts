@@ -135,7 +135,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 maxSteps: 100,
                 abortSignal: remoteCancel.signal,
                 experimental_transform: smoothStream(),
-                tools: getToolkit(ctx, body.enabledTools),
+                tools: getToolkit(ctx, body.enabledTools, settings),
                 messages: [
                     {
                         role: "system",

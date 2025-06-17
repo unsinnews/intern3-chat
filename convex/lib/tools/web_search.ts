@@ -8,6 +8,8 @@ export const WebSearchTool = {
     build(params: ConditionalToolParams) {
         if (!params.enabledTools.includes("web_search")) return
 
+        const { userSettings } = params
+
         return tool({
             description:
                 "Search the web for information. Optionally scrape content from results for detailed information.",
@@ -15,14 +17,13 @@ export const WebSearchTool = {
                 query: z.string().describe("The search query"),
                 scrapeContent: z
                     .boolean()
-                    .default(false)
+                    .default(userSettings.searchIncludeSourcesByDefault)
                     .describe("Whether to scrape and include content from search results")
             }),
             execute: async ({ query, scrapeContent }) => {
                 try {
                     const searchProvider = new SearchProvider({
-                        // provider: scrapeContent ? "firecrawl" : "brave"
-                        provider: "brave"
+                        provider: userSettings.searchProvider
                     })
 
                     const results = await searchProvider.search(query, {
