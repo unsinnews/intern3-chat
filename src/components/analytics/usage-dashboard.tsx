@@ -62,13 +62,6 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
         <div className={cn("space-y-6", className)}>
             {/* Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 className="font-semibold text-2xl tracking-tight">Usage Analytics</h2>
-                    <p className="text-muted-foreground">
-                        Track your API usage, token consumption, and model performance.
-                    </p>
-                </div>
-
                 {/* Timeframe selector */}
                 <Tabs
                     value={timeframe}
