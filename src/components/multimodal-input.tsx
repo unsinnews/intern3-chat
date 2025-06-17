@@ -8,6 +8,7 @@ import {
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useToken } from "@/hooks/auth-hooks"
 import { browserEnv } from "@/lib/browser-env"
 import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
@@ -41,6 +42,8 @@ export function MultimodalInput({
     onSubmit: (input?: string, files?: UploadedFile[]) => void
     status: ReturnType<typeof useChat>["status"]
 }) {
+    const { token } = useToken()
+
     const { selectedModel, setSelectedModel, enabledTools, setEnabledTools } = useModelStore()
     const { uploadedFiles, addUploadedFile, removeUploadedFile, uploading, setUploading } =
         useChatStore()
@@ -127,26 +130,32 @@ export function MultimodalInput({
         })
     }, [])
 
-    const uploadFile = useCallback(async (file: File): Promise<ExtendedUploadedFile> => {
-        const formData = new FormData()
-        formData.append("file", file)
+    const uploadFile = useCallback(
+        async (file: File): Promise<ExtendedUploadedFile> => {
+            const formData = new FormData()
+            formData.append("file", file)
 
-        const response = await fetch(`${browserEnv("VITE_CONVEX_API_URL")}/upload`, {
-            method: "POST",
-            body: formData
-        })
+            const response = await fetch(`${browserEnv("VITE_CONVEX_API_URL")}/upload`, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
 
-        if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.error || "Upload failed")
-        }
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || "Upload failed")
+            }
 
-        const result = await response.json()
-        return {
-            ...result,
-            file
-        }
-    }, [])
+            const result = await response.json()
+            return {
+                ...result,
+                file
+            }
+        },
+        [token]
+    )
 
     const handleFileUpload = useCallback(
         async (filesToUpload: File[]) => {

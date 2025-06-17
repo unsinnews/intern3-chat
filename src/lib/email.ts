@@ -8,7 +8,7 @@ import {
 } from "./email-templates"
 
 // Email provider types
-type EmailProvider = "resend" | "ses"
+type EmailProvider = "resend" | "ses" | "local-only-mock"
 
 interface EmailConfig {
     provider: EmailProvider
@@ -149,6 +149,16 @@ class EmailService {
 
             if (this.config.provider === "ses") {
                 return await this.sendWithSES(options)
+            }
+
+            if (this.config.provider === "local-only-mock") {
+                if (process.env.NODE_ENV !== "development") {
+                    throw new Error(
+                        "Local mock email provider is only available in development mode"
+                    )
+                }
+                console.log("Sending email with local mock:", options)
+                return {}
             }
 
             throw new Error(`Unsupported email provider: ${this.config.provider}`)

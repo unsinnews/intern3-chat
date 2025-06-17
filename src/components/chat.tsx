@@ -77,10 +77,10 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                             transition={{ duration: 0.2 }}
                             className="mb-8 text-center"
                         >
-                            <h1 className="font-medium text-2xl text-foreground">
+                            <h1 className="font-medium text-3xl text-foreground">
                                 {userName
-                                    ? `How can I help you, ${userName?.split(" ")[0]}?`
-                                    : "How can I help you?"}
+                                    ? `What do you want to explore, ${userName?.split(" ")[0]}?`
+                                    : "What do you want to explore?"}
                             </h1>
                         </motion.div>
 
