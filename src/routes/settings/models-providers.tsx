@@ -1,3 +1,7 @@
+import Claude from "@/assets/claude.svg"
+import Google from "@/assets/gemini.svg"
+import OpenAI from "@/assets/openai.svg"
+import OpenRouter from "@/assets/openrouter.svg"
 import { SettingsLayout } from "@/components/settings/settings-layout"
 import {
     AlertDialog,
@@ -33,6 +37,7 @@ import {
 import type { ModelAbility, UserSettings } from "@/convex/schema/settings"
 import { useSession } from "@/hooks/auth-hooks"
 import { cn } from "@/lib/utils"
+import Logo from "@/logo.svg"
 import { useConvexQuery } from "@convex-dev/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
@@ -48,9 +53,10 @@ import {
     Plus,
     RotateCcw,
     Server,
+    Settings2,
+    SquarePen,
     Trash2,
-    X,
-    Zap
+    X
 } from "lucide-react"
 import { memo, useState } from "react"
 import { toast } from "sonner"
@@ -134,28 +140,28 @@ const CORE_PROVIDERS: CoreProviderInfo[] = [
         name: "OpenAI",
         description: "Access GPT-4, GPT-4o, o3, and other OpenAI models",
         placeholder: "sk-...",
-        icon: Key
+        icon: OpenAI
     },
     {
         id: "anthropic",
         name: "Anthropic",
         description: "Access Claude Sonnet, Opus, and other Anthropic models",
         placeholder: "sk-ant-...",
-        icon: Key
+        icon: Claude
     },
     {
         id: "google",
         name: "Google",
         description: "Access Gemini 2.5, 2.0 Flash and other Google AI models",
         placeholder: "AIza...",
-        icon: Key
+        icon: Google
     },
     {
         id: "openrouter",
         name: "OpenRouter",
         description: "Access a wide variety of models through OpenRouter",
         placeholder: "sk-or-...",
-        icon: Server
+        icon: OpenRouter
     }
 ]
 
@@ -224,107 +230,119 @@ const ProviderCard = memo(({ provider, currentProvider, onSave, loading }: Provi
 
     return (
         <Card className="p-4 shadow-xs">
-            <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                        <div className="flex size-8 items-center justify-center rounded-lg bg-muted">
-                            <Icon className="size-5" />
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-sm">{provider.name}</h4>
-                            <p className="mt-0.5 text-muted-foreground text-xs">
-                                {provider.description}
-                            </p>
-                        </div>
-                    </div>
-
-                    {isEnabled && (
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-green-500" />
-                            <span className="text-muted-foreground text-xs">Active</span>
-                        </div>
-                    )}
+            <div className="flex items-start gap-2 space-y-4">
+                <div className="flex size-8 items-center justify-center rounded-lg">
+                    <Icon className="size-5" />
                 </div>
-
-                {isEditing ? (
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-2">
-                            <Switch
-                                id={`${provider.id}-enabled`}
-                                checked={enabled}
-                                onCheckedChange={setEnabled}
-                            />
-                            <Label htmlFor={`${provider.id}-enabled`}>Enable {provider.name}</Label>
+                <div className="flex-1">
+                    <div className="mb-4 flex items-start justify-between">
+                        <div className="flex items-start gap-2">
+                            <div>
+                                <h4 className="font-semibold text-sm">{provider.name}</h4>
+                                <p className="mt-0.5 text-muted-foreground text-xs">
+                                    {provider.description}
+                                </p>
+                            </div>
                         </div>
 
-                        {enabled && (
-                            <div className="space-y-3">
-                                {hasExistingKey && (
-                                    <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                                        <div className="flex items-center gap-2">
-                                            <Key className="h-4 w-4 text-green-600" />
-                                            <span className="text-sm">API key configured</span>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setRotatingKey(!rotatingKey)}
-                                        >
-                                            <RotateCcw className="mr-2 h-4 w-4" />
-                                            {rotatingKey ? "Keep existing" : "Rotate key"}
-                                        </Button>
-                                    </div>
-                                )}
-
-                                {(!hasExistingKey || rotatingKey) && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor={`${provider.id}-key`}>
-                                            {rotatingKey ? "New API Key" : "API Key"}
-                                        </Label>
-                                        <Input
-                                            id={`${provider.id}-key`}
-                                            type="password"
-                                            value={newKey}
-                                            onChange={(e) => setNewKey(e.target.value)}
-                                            placeholder={provider.placeholder}
-                                            className="font-mono"
-                                        />
-                                        {rotatingKey && (
-                                            <p className="text-muted-foreground text-xs">
-                                                Leave empty to keep existing key
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-
-                                {enabled && !hasExistingKey && !newKey.trim() && (
-                                    <div className="flex items-center gap-2 text-amber-600">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <span className="text-sm">
-                                            API key required to enable provider
-                                        </span>
-                                    </div>
-                                )}
+                        {isEnabled && (
+                            <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-green-500" />
+                                <span className="text-muted-foreground text-xs">Active</span>
                             </div>
                         )}
-
-                        <div className="flex gap-2">
-                            <Button onClick={handleSave} disabled={loading || !canSave} size="sm">
-                                <Check className="mr-2 h-4 w-4" />
-                                {loading ? "Saving..." : "Save"}
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={handleCancel}>
-                                <X className="mr-2 h-4 w-4" />
-                                Cancel
-                            </Button>
-                        </div>
                     </div>
-                ) : (
-                    <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                        <Edit2 className="mr-2 h-4 w-4" />
-                        {isEnabled ? "Edit" : "Setup BYOK"}
-                    </Button>
-                )}
+
+                    {isEditing ? (
+                        <div className="space-y-4">
+                            <div className="flex items-center space-x-2">
+                                <Switch
+                                    id={`${provider.id}-enabled`}
+                                    checked={enabled}
+                                    onCheckedChange={setEnabled}
+                                />
+                                <Label htmlFor={`${provider.id}-enabled`}>
+                                    Enable {provider.name}
+                                </Label>
+                            </div>
+
+                            {enabled && (
+                                <div className="space-y-3">
+                                    {hasExistingKey && (
+                                        <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+                                            <div className="flex items-center gap-2">
+                                                <Key className="h-4 w-4 text-green-600" />
+                                                <span className="text-sm">API key configured</span>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setRotatingKey(!rotatingKey)}
+                                            >
+                                                <RotateCcw className="h-4 w-4" />
+                                                {rotatingKey ? "Keep existing" : "Rotate key"}
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {(!hasExistingKey || rotatingKey) && (
+                                        <div className="space-y-2">
+                                            <Label htmlFor={`${provider.id}-key`}>
+                                                {rotatingKey ? "New API Key" : "API Key"}
+                                            </Label>
+                                            <Input
+                                                id={`${provider.id}-key`}
+                                                type="password"
+                                                value={newKey}
+                                                onChange={(e) => setNewKey(e.target.value)}
+                                                placeholder={provider.placeholder}
+                                                className="font-mono"
+                                            />
+                                            {rotatingKey && (
+                                                <p className="text-muted-foreground text-xs">
+                                                    Leave empty to keep existing key
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {enabled && !hasExistingKey && !newKey.trim() && (
+                                        <div className="flex items-center gap-2 text-amber-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span className="text-sm">
+                                                API key required to enable provider
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={handleSave}
+                                    disabled={loading || !canSave}
+                                    size="sm"
+                                >
+                                    <Check className="h-4 w-4" />
+                                    {loading ? "Saving..." : "Save"}
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={handleCancel}>
+                                    <X className="h-4 w-4" />
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                            {isEnabled ? (
+                                <SquarePen className="size-4" />
+                            ) : (
+                                <Settings2 className="size-4" />
+                            )}
+                            {isEnabled ? "Edit" : "Setup BYOK"}
+                        </Button>
+                    )}
+                </div>
             </div>
         </Card>
     )
@@ -1219,10 +1237,10 @@ function ModelsProvidersSettings() {
                         <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3">
                                 <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-                                    <Zap className="size-5 text-primary" />
+                                    <Logo />
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-sm">intern3-chat Built-in</h4>
+                                    <h4 className="font-semibold text-sm">intern3.chat Built-in</h4>
                                     <p className="mt-0.5 text-muted-foreground text-xs">
                                         Access built-in models without needing API keys. Rate limits
                                         may apply.
