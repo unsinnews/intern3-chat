@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 import { useQuery } from "convex/react"
 import { Activity, BarChart3, TrendingUp, Zap } from "lucide-react"
 import { useMemo, useState } from "react"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, XAxis, YAxis } from "recharts"
 
 // Enhanced color palette for better model distinction
 const MODEL_COLORS = [
@@ -139,7 +139,7 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
 
             {/* Key Metrics Cards - Compact */}
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <Card className="gap-3 p-3">
+                <Card className="gap-3 p-4">
                     <CardHeader className="flex flex-row items-center px-0">
                         <Activity className="size-3 text-muted-foreground sm:size-4" />
                         <CardTitle className="font-medium text-xs sm:text-sm">
@@ -158,7 +158,7 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                     </CardContent>
                 </Card>
 
-                <Card className="gap-3 p-3">
+                <Card className="gap-3 p-4">
                     <CardHeader className="flex flex-row items-center px-0">
                         <Zap className="size-3 text-muted-foreground sm:size-4" />
                         <CardTitle className="font-medium text-xs sm:text-sm">
@@ -173,7 +173,7 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                     </CardContent>
                 </Card>
 
-                <Card className="gap-3 p-3">
+                <Card className="gap-3 p-4">
                     <CardHeader className="flex flex-row items-center px-0">
                         <BarChart3 className="size-3 text-muted-foreground sm:size-4" />
                         <CardTitle className="font-medium text-xs sm:text-sm">
@@ -188,7 +188,7 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                     </CardContent>
                 </Card>
 
-                <Card className="gap-3 p-3">
+                <Card className="gap-3 p-4">
                     <CardHeader className="flex flex-row items-center px-0">
                         <TrendingUp className="size-3 text-muted-foreground sm:size-4" />
                         <CardTitle className="font-medium text-xs sm:text-sm">
@@ -211,7 +211,7 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
             {/* Charts */}
             <div className="grid gap-4">
                 {/* Stacked Model Usage Chart */}
-                <Card className="gap-3 p-3">
+                <Card className="gap-3 p-4">
                     <CardHeader className="gap-0 px-0 pb-3">
                         <CardTitle className="text-base sm:text-lg">Token Usage by Model</CardTitle>
                         <CardDescription className="text-xs sm:text-sm">
@@ -223,68 +223,67 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                             config={modelChartConfig}
                             className="h-[250px] w-full sm:h-[300px]"
                         >
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={modelUsageData}>
-                                    <XAxis
-                                        dataKey="date"
-                                        tickFormatter={(value) => {
-                                            const date = new Date(value)
-                                            if (timeframe === "1d") {
-                                                return date.toLocaleTimeString([], {
-                                                    hour: "numeric",
-                                                    hour12: true
-                                                })
-                                            }
-                                            return isMobile
-                                                ? `${date.getMonth() + 1}/${date.getDate()}`
-                                                : date.toLocaleDateString()
-                                        }}
-                                        fontSize={isMobile ? 10 : 12}
-                                    />
-                                    <YAxis
-                                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
-                                        fontSize={isMobile ? 10 : 12}
-                                    />
-                                    <ChartTooltip
-                                        content={<ChartTooltipContent />}
-                                        labelFormatter={(value) => {
-                                            const date = new Date(value)
-                                            if (timeframe === "1d") {
-                                                return date.toLocaleString([], {
-                                                    month: "short",
-                                                    day: "numeric",
-                                                    hour: "numeric",
-                                                    minute: "2-digit",
-                                                    hour12: true
-                                                })
-                                            }
-                                            return date.toLocaleDateString([], {
-                                                weekday: "short",
-                                                month: "short",
-                                                day: "numeric"
+                            <BarChart data={modelUsageData}>
+                                <XAxis
+                                    dataKey="date"
+                                    tickFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleTimeString([], {
+                                                hour: "numeric",
+                                                hour12: true
                                             })
-                                        }}
-                                        formatter={(value, name) => [
-                                            `${Number(value).toLocaleString()} tokens - `,
-                                            modelChartConfig[name as string]?.label || name
-                                        ]}
+                                        }
+                                        return isMobile
+                                            ? `${date.getMonth() + 1}/${date.getDate()}`
+                                            : date.toLocaleDateString()
+                                    }}
+                                    fontSize={isMobile ? 10 : 12}
+                                />
+                                <YAxis
+                                    width={30}
+                                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                                    fontSize={isMobile ? 10 : 12}
+                                />
+                                <ChartTooltip
+                                    content={<ChartTooltipContent />}
+                                    labelFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleString([], {
+                                                month: "short",
+                                                day: "numeric",
+                                                hour: "numeric",
+                                                minute: "2-digit",
+                                                hour12: true
+                                            })
+                                        }
+                                        return date.toLocaleDateString([], {
+                                            weekday: "short",
+                                            month: "short",
+                                            day: "numeric"
+                                        })
+                                    }}
+                                    formatter={(value, name) => [
+                                        `${Number(value).toLocaleString()} tokens - `,
+                                        modelChartConfig[name as string]?.label || name
+                                    ]}
+                                />
+                                {modelIds.map((modelId) => (
+                                    <Bar
+                                        key={modelId}
+                                        dataKey={modelId}
+                                        stackId="models"
+                                        fill={modelChartConfig[modelId]?.color}
                                     />
-                                    {modelIds.map((modelId) => (
-                                        <Bar
-                                            key={modelId}
-                                            dataKey={modelId}
-                                            stackId="models"
-                                            fill={modelChartConfig[modelId]?.color}
-                                        />
-                                    ))}
-                                </BarChart>
-                            </ResponsiveContainer>
+                                ))}
+                            </BarChart>
                         </ChartContainer>
                     </CardContent>
                 </Card>
 
                 {/* Token Type Distribution Chart */}
-                <Card className="gap-3 p-3">
+                <Card className="gap-3 p-4">
                     <CardHeader className="gap-0 px-0 pb-3">
                         <CardTitle className="text-base sm:text-lg">
                             Token Type Distribution
@@ -298,77 +297,68 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                             config={tokenChartConfig}
                             className="h-[250px] w-full sm:h-[300px]"
                         >
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={tokenTypeData}>
-                                    <XAxis
-                                        dataKey="date"
-                                        tickFormatter={(value) => {
-                                            const date = new Date(value)
-                                            if (timeframe === "1d") {
-                                                return date.toLocaleTimeString([], {
-                                                    hour: "numeric",
-                                                    hour12: true
-                                                })
-                                            }
-                                            return isMobile
-                                                ? `${date.getMonth() + 1}/${date.getDate()}`
-                                                : date.toLocaleDateString()
-                                        }}
-                                        fontSize={isMobile ? 10 : 12}
-                                    />
-                                    <YAxis
-                                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
-                                        fontSize={isMobile ? 10 : 12}
-                                    />
-                                    <ChartTooltip
-                                        content={<ChartTooltipContent />}
-                                        labelFormatter={(value) => {
-                                            const date = new Date(value)
-                                            if (timeframe === "1d") {
-                                                return date.toLocaleString([], {
-                                                    month: "short",
-                                                    day: "numeric",
-                                                    hour: "numeric",
-                                                    minute: "2-digit",
-                                                    hour12: true
-                                                })
-                                            }
-                                            return date.toLocaleDateString([], {
-                                                weekday: "short",
-                                                month: "short",
-                                                day: "numeric"
+                            <BarChart data={tokenTypeData} margin={{ left: 0 }}>
+                                <XAxis
+                                    dataKey="date"
+                                    tickFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleTimeString([], {
+                                                hour: "numeric",
+                                                hour12: true
                                             })
-                                        }}
-                                        formatter={(value, name) => [
-                                            `${Number(value).toLocaleString()} `,
-                                            tokenChartConfig[name as keyof typeof tokenChartConfig]
-                                                ?.label || name
-                                        ]}
-                                    />
-                                    <Bar
-                                        dataKey="prompt"
-                                        stackId="tokens"
-                                        fill={"var(--chart-1)"}
-                                    />
-                                    <Bar
-                                        dataKey="completion"
-                                        stackId="tokens"
-                                        fill={"var(--chart-2)"}
-                                    />
-                                    <Bar
-                                        dataKey="reasoning"
-                                        stackId="tokens"
-                                        fill={"var(--chart-3)"}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
+                                        }
+                                        return isMobile
+                                            ? `${date.getMonth() + 1}/${date.getDate()}`
+                                            : date.toLocaleDateString()
+                                    }}
+                                    fontSize={isMobile ? 10 : 12}
+                                />
+                                <YAxis
+                                    width={30}
+                                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                                    fontSize={isMobile ? 10 : 12}
+                                />
+                                <ChartTooltip
+                                    content={<ChartTooltipContent />}
+                                    labelFormatter={(value) => {
+                                        const date = new Date(value)
+                                        if (timeframe === "1d") {
+                                            return date.toLocaleString([], {
+                                                month: "short",
+                                                day: "numeric",
+                                                hour: "numeric",
+                                                minute: "2-digit",
+                                                hour12: true
+                                            })
+                                        }
+                                        return date.toLocaleDateString([], {
+                                            weekday: "short",
+                                            month: "short",
+                                            day: "numeric"
+                                        })
+                                    }}
+                                    formatter={(value, name) => [
+                                        `${Number(value).toLocaleString()} `,
+                                        tokenChartConfig[name as keyof typeof tokenChartConfig]
+                                            ?.label || name
+                                    ]}
+                                />
+                                <Bar dataKey="prompt" stackId="tokens" fill={"var(--chart-1)"} />
+                                <Bar
+                                    dataKey="completion"
+                                    stackId="tokens"
+                                    fill={"var(--chart-2)"}
+                                />
+                                <Bar dataKey="reasoning" stackId="tokens" fill={"var(--chart-3)"} />
+                            </BarChart>
                         </ChartContainer>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Model Details - Non-chart breakdown */}
-            <Card className="gap-3 p-3">
+            <Card className="gap-3 p-4">
                 <CardHeader className="gap-0 px-0">
                     <CardTitle className="text-base sm:text-lg">Model Usage Details</CardTitle>
                     <CardDescription className="text-xs sm:text-sm">

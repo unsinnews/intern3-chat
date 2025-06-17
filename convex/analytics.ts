@@ -1,4 +1,3 @@
-import { ChatError } from "@/lib/errors"
 import { v } from "convex/values"
 import { query } from "./_generated/server"
 import { getUserIdentity } from "./lib/identity"
@@ -16,7 +15,14 @@ export const getMyUsageStats = query({
     },
     handler: async (ctx, { timeframe }) => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
-        if ("error" in user) throw new ChatError("unauthorized:chat")
+        if ("error" in user) {
+            return {
+                modelStats: [],
+                timeframe,
+                totalRequests: 0,
+                totalTokens: 0
+            }
+        }
 
         const days = timeframe === "1d" ? 1 : timeframe === "7d" ? 7 : 30
         const startDay = getDaysSinceEpoch(days)
