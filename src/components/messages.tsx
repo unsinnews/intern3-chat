@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
 import { RotateCcw } from "lucide-react"
 import { memo, useState } from "react"
+import { StickToBottom } from "use-stick-to-bottom"
 import { ChatActions } from "./chat-actions"
 import { MemoizedMarkdown } from "./memoized-markdown"
 import { WebSearchToolRenderer } from "./renderers/web-search-ui"
 import { Button } from "./ui/button"
 import { Loader } from "./ui/loader"
-import { ScrollArea } from "./ui/scroll-area"
 import { Textarea } from "./ui/textarea"
 
 const PartsRenderer = memo(
@@ -178,85 +178,87 @@ export function Messages({
     const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")
 
     return (
-        <ScrollArea className="h-full p-4 pt-0">
-            <div className="mx-auto max-w-2xl space-y-3 pb-40">
-                {messages.map((message) => (
-                    <div
-                        key={message.id}
-                        className={cn(
-                            "prose relative prose-ol:my-2 prose-p:my-0 prose-pre:my-2 prose-ul:my-2 prose-li:mt-1 prose-li:mb-0 max-w-none prose-pre:bg-transparent prose-pre:p-0 font-claude-message prose-headings:font-semibold prose-strong:font-medium prose-pre:text-foreground leading-[1.65rem] [&>div>div>:is(p,blockquote,h1,h2,h3,h4,h5,h6)]:pl-2 [&>div>div>:is(p,blockquote,ul,ol,h1,h2,h3,h4,h5,h6)]:pr-8 [&_.ignore-pre-bg>div]:bg-transparent [&_pre>div]:border-0.5 [&_pre>div]:border-border [&_pre>div]:bg-background",
-                            "group prose-code:before:hidden prose-code:after:hidden",
-                            "mb-8",
-                            message.role === "user" &&
-                                targetFromMessageId !== message.id &&
-                                "my-12 ml-auto w-fit max-w-md rounded-md border border-border bg-secondary/50 px-4 py-2 text-foreground"
-                        )}
-                    >
-                        {targetFromMessageId === message.id && targetMode === "edit" ? (
-                            <EditableMessage
-                                message={message}
-                                onSave={handleSaveEdit}
-                                onCancel={handleCancelEdit}
-                            />
-                        ) : (
-                            <>
-                                <div className="prose-p:not-last:mb-4">
-                                    {message.parts.map((part, index) => (
-                                        <PartsRenderer
-                                            key={`${message.id}-${index}`}
-                                            part={part}
-                                            markdown={message.role === "assistant"}
-                                            id={`${message.id}-${index}`}
+        <StickToBottom.Content>
+            <div className="p-4 pt-0">
+                <div className="mx-auto max-w-2xl space-y-3 pb-40">
+                    {messages.map((message) => (
+                        <div
+                            key={message.id}
+                            className={cn(
+                                "prose relative prose-ol:my-2 prose-p:my-0 prose-pre:my-2 prose-ul:my-2 prose-li:mt-1 prose-li:mb-0 max-w-none prose-pre:bg-transparent prose-pre:p-0 font-claude-message prose-headings:font-semibold prose-strong:font-medium prose-pre:text-foreground leading-[1.65rem] [&>div>div>:is(p,blockquote,h1,h2,h3,h4,h5,h6)]:pl-2 [&>div>div>:is(p,blockquote,ul,ol,h1,h2,h3,h4,h5,h6)]:pr-8 [&_.ignore-pre-bg>div]:bg-transparent [&_pre>div]:border-0.5 [&_pre>div]:border-border [&_pre>div]:bg-background",
+                                "group prose-code:before:hidden prose-code:after:hidden",
+                                "mb-8",
+                                message.role === "user" &&
+                                    targetFromMessageId !== message.id &&
+                                    "my-12 ml-auto w-fit max-w-md rounded-md border border-border bg-secondary/50 px-4 py-2 text-foreground"
+                            )}
+                        >
+                            {targetFromMessageId === message.id && targetMode === "edit" ? (
+                                <EditableMessage
+                                    message={message}
+                                    onSave={handleSaveEdit}
+                                    onCancel={handleCancelEdit}
+                                />
+                            ) : (
+                                <>
+                                    <div className="prose-p:not-last:mb-4">
+                                        {message.parts.map((part, index) => (
+                                            <PartsRenderer
+                                                key={`${message.id}-${index}`}
+                                                part={part}
+                                                markdown={message.role === "assistant"}
+                                                id={`${message.id}-${index}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    {message.role === "user" ? (
+                                        <ChatActions
+                                            role={message.role}
+                                            message={message}
+                                            onRetry={onRetry}
+                                            onEdit={handleEdit}
                                         />
-                                    ))}
-                                </div>
-                                {message.role === "user" ? (
-                                    <ChatActions
-                                        role={message.role}
-                                        message={message}
-                                        onRetry={onRetry}
-                                        onEdit={handleEdit}
-                                    />
-                                ) : (
-                                    <ChatActions
-                                        role={message.role}
-                                        message={message}
-                                        onRetry={undefined}
-                                        onEdit={undefined}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </div>
-                ))}
-
-                {status === "error" && (
-                    <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive p-4">
-                        <div className="flex w-full items-center justify-between">
-                            <p className="text-destructive-foreground">
-                                Oops! Something went wrong.
-                            </p>
-                            {lastUserMessage && (
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => onRetry?.(lastUserMessage)}
-                                    className="text-destructive-foreground hover:text-destructive-foreground/80"
-                                >
-                                    <RotateCcw />
-                                    Retry
-                                </Button>
+                                    ) : (
+                                        <ChatActions
+                                            role={message.role}
+                                            message={message}
+                                            onRetry={undefined}
+                                            onEdit={undefined}
+                                        />
+                                    )}
+                                </>
                             )}
                         </div>
-                    </div>
-                )}
+                    ))}
 
-                {showTypingLoader && (
-                    <div className="flex items-center gap-2 py-4">
-                        <Loader variant="typing" size="md" />
-                    </div>
-                )}
+                    {status === "error" && (
+                        <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive p-4">
+                            <div className="flex w-full items-center justify-between">
+                                <p className="text-destructive-foreground">
+                                    Oops! Something went wrong.
+                                </p>
+                                {lastUserMessage && (
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => onRetry?.(lastUserMessage)}
+                                        className="text-destructive-foreground hover:text-destructive-foreground/80"
+                                    >
+                                        <RotateCcw />
+                                        Retry
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {showTypingLoader && (
+                        <div className="flex items-center gap-2 py-4">
+                            <Loader variant="typing" size="md" />
+                        </div>
+                    )}
+                </div>
             </div>
-        </ScrollArea>
+        </StickToBottom.Content>
     )
 }

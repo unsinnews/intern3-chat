@@ -111,6 +111,7 @@
         "tailwindcss": "^4.1.4",
         "tailwindcss-safe-area": "^0.6.0",
         "ts-dedent": "^2.2.0",
+        "use-stick-to-bottom": "^1.1.1",
         "vaul": "^1.1.2",
         "vite": "^6.3.5",
         "zod": "^3.25.63",
