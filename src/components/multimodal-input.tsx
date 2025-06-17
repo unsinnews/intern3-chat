@@ -12,6 +12,7 @@ import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
+import { useLocation } from "@tanstack/react-router"
 import { ArrowUp, Globe, Loader2, Paperclip, Square, Upload, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
@@ -138,9 +139,21 @@ export function MultimodalInput({
     }
 
     const [isClient, setIsClient] = useState(false)
+    const location = useLocation()
+
     useEffect(() => {
         setIsClient(true)
     }, [])
+
+    // Focus textarea when thread route changes
+    useEffect(() => {
+        if (location.pathname.includes("/thread/")) {
+            const timer = setTimeout(() => {
+                promptInputRef.current?.focus()
+            }, 100)
+            return () => clearTimeout(timer)
+        }
+    }, [location.pathname])
 
     if (!isClient) return null
 
@@ -182,7 +195,7 @@ export function MultimodalInput({
                         ))}
                     </div>
                 )}
-                <PromptInputTextarea placeholder="Ask me anything..." />
+                <PromptInputTextarea autoFocus placeholder="Ask me anything..." />
 
                 <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
                     <div className="flex items-center gap-2">
