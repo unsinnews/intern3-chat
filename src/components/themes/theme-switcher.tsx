@@ -206,26 +206,29 @@ export function ThemeSwitcher() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="mt-2 mb-6">
-                                            <h4 className="mb-1 text-muted-foreground text-xs">
-                                                My Themes
-                                            </h4>
-                                            <div className="mt-1 grid grid-cols-1 gap-2">
-                                                {filteredThemes
-                                                    .filter((theme) => theme.type === "custom")
-                                                    .map((theme) => (
-                                                        <ThemeButton
-                                                            key={theme.url}
-                                                            theme={theme}
-                                                            isSelected={
-                                                                selectedThemeUrl === theme.url
-                                                            }
-                                                            onSelect={handleThemeSelect}
-                                                            currentMode={themeState.currentMode}
-                                                        />
-                                                    ))}
+                                        {filteredThemes.filter((theme) => theme.type === "custom")
+                                            .length > 0 && (
+                                            <div className="mt-2 mb-6">
+                                                <h4 className="mb-1 text-muted-foreground text-xs">
+                                                    My Themes
+                                                </h4>
+                                                <div className="mt-1 grid grid-cols-1 gap-2">
+                                                    {filteredThemes
+                                                        .filter((theme) => theme.type === "custom")
+                                                        .map((theme) => (
+                                                            <ThemeButton
+                                                                key={theme.url}
+                                                                theme={theme}
+                                                                isSelected={
+                                                                    selectedThemeUrl === theme.url
+                                                                }
+                                                                onSelect={handleThemeSelect}
+                                                                currentMode={themeState.currentMode}
+                                                            />
+                                                        ))}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                         <div className="mb-2">
                                             <h4 className="mb-1 text-muted-foreground text-xs">
                                                 Built-in Themes
