@@ -4,7 +4,7 @@ import { useChatStore } from "@/lib/chat-store"
 import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
 import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
-import { Code, FileType, Image as ImageIcon, RotateCcw, X } from "lucide-react"
+import { Code, FileType, Image as ImageIcon, RotateCcw } from "lucide-react"
 import { memo, useState } from "react"
 import { StickToBottom } from "use-stick-to-bottom"
 import { ChatActions } from "./chat-actions"
@@ -55,7 +55,7 @@ const FileAttachment = memo(
         part: { data: string; filename?: string; mimeType?: string }
         onPreview?: () => void
     }) => {
-        const { isImage, isText } = getFileType(part)
+        const { isImage } = getFileType(part)
         const fileName = part.filename || "Unknown file"
 
         const handleInteraction = () => {
@@ -102,9 +102,7 @@ const FileAttachment = memo(
                     {getFileIcon(part)}
                     <div className="flex flex-col">
                         <span className="font-medium text-sm">{fileName}</span>
-                        <span className="text-muted-foreground text-xs">
-                            {isText ? "Text file" : "File"}
-                        </span>
+                        <span className="text-muted-foreground text-xs">File</span>
                     </div>
                 </div>
             </div>
@@ -166,10 +164,7 @@ const EditableMessage = memo(
         onCancel
     }: {
         message: UIMessage
-        onSave: (
-            newContent: string,
-            fileParts: Array<{ data: string; filename?: string; mimeType?: string }>
-        ) => void
+        onSave: (newContent: string) => void
         onCancel: () => void
     }) => {
         const textContent = message.parts
@@ -177,24 +172,10 @@ const EditableMessage = memo(
             .map((part) => part.text)
             .join("\n")
 
-        const fileParts = message.parts.filter((part) => part.type === "file") as Array<{
-            type: "file"
-            data: string
-            filename?: string
-            mimeType?: string
-        }>
-
         const [editedContent, setEditedContent] = useState(textContent)
-        const [editedFileParts, setEditedFileParts] = useState(fileParts)
-        const [removedFiles, setRemovedFiles] = useState<string[]>([])
-        const [previewFile, setPreviewFile] = useState<{
-            data: string
-            filename?: string
-            mimeType?: string
-        } | null>(null)
 
         const handleSave = () => {
-            onSave(editedContent, editedFileParts)
+            onSave(editedContent)
         }
 
         const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -207,117 +188,29 @@ const EditableMessage = memo(
             }
         }
 
-        const handleRemoveFile = (index: number) => {
-            const fileToRemove = editedFileParts[index]
-            if (fileToRemove) {
-                setRemovedFiles((prev) => [...prev, fileToRemove.data])
-            }
-            setEditedFileParts((prev) => prev.filter((_, i) => i !== index))
-        }
-
-        const renderFilePreview = () => {
-            if (!previewFile) return null
-
-            const { isImage, isText } = getFileType(previewFile)
-            const fileName = previewFile.filename || "Unknown file"
-
-            return (
-                <div className="max-h-[70vh] overflow-auto">
-                    {isImage ? (
-                        <img
-                            src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${previewFile.data}`}
-                            alt={fileName}
-                            className="h-auto w-full rounded object-contain"
-                        />
-                    ) : isText ? (
-                        <div className="rounded bg-muted p-4 text-sm">
-                            <p className="text-muted-foreground">
-                                File preview not available in edit mode
-                            </p>
-                            <p className="font-medium">{fileName}</p>
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center p-8 text-muted-foreground">
-                            <div className="text-center">
-                                <FileType className="mx-auto mb-2 size-12" />
-                                <p>Binary file: {fileName}</p>
-                                <p className="mt-1 text-xs">Preview not available</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )
-        }
-
         return (
-            <>
-                <div className="rounded-2xl bg-primary">
-                    <Textarea
-                        value={editedContent}
-                        onChange={(e) => setEditedContent(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="w-full resize-none border-none bg-transparent p-4 pb-2 text-primary-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        autoFocus
-                    />
-                    {editedFileParts.length > 0 && (
-                        <div className="flex flex-wrap gap-3 px-4 pb-2">
-                            {editedFileParts.map((filePart, index) => (
-                                <div key={index} className="group relative">
-                                    <FileAttachment
-                                        part={filePart}
-                                        onPreview={() => setPreviewFile(filePart)}
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleRemoveFile(index)}
-                                        className="-right-2 absolute top-0 h-5 w-5 rounded-full bg-destructive p-0 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive/80 group-hover:opacity-100"
-                                    >
-                                        <X className="size-3" />
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    <div className="flex justify-end gap-2 px-4 pb-3">
-                        <Button variant="ghost" size="sm" onClick={onCancel} className="rounded-md">
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={handleSave}
-                            className="rounded-md"
-                        >
-                            Send
-                        </Button>
-                    </div>
+            <div className="rounded-2xl bg-primary">
+                <Textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="w-full resize-none border-none bg-transparent p-4 pb-2 text-primary-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    autoFocus
+                />
+                <div className="flex justify-end gap-2 px-4 pb-3">
+                    <Button variant="ghost" size="sm" onClick={onCancel} className="rounded-md">
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleSave}
+                        className="rounded-md"
+                    >
+                        Send
+                    </Button>
                 </div>
-
-                <Dialog
-                    open={!!previewFile}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setTimeout(() => setPreviewFile(null), 150)
-                        }
-                    }}
-                >
-                    <DialogContent className="max-h-[90vh] max-w-4xl">
-                        {previewFile && (
-                            <>
-                                <DialogHeader>
-                                    <DialogTitle className="flex items-center gap-2">
-                                        {getFileIcon(previewFile)}
-                                        {previewFile.filename || "Unknown file"}
-                                    </DialogTitle>
-                                </DialogHeader>
-                                {renderFilePreview()}
-                            </>
-                        )}
-                    </DialogContent>
-                </Dialog>
-            </>
+            </div>
         )
     }
 )
@@ -331,11 +224,7 @@ export function Messages({
 }: {
     messages: UIMessage[]
     onRetry?: (message: UIMessage) => void
-    onEditAndRetry?: (
-        messageId: string,
-        newContent: string,
-        fileParts?: Array<{ data: string; filename?: string; mimeType?: string }>
-    ) => void
+    onEditAndRetry?: (messageId: string, newContent: string) => void
     status: ReturnType<typeof useChatIntegration>["status"]
 }) {
     const { setTargetFromMessageId, targetFromMessageId, setTargetMode, targetMode } =
@@ -353,12 +242,9 @@ export function Messages({
         setTargetMode("edit")
     }
 
-    const handleSaveEdit = (
-        newContent: string,
-        fileParts: Array<{ data: string; filename?: string; mimeType?: string }>
-    ) => {
+    const handleSaveEdit = (newContent: string) => {
         if (targetFromMessageId && onEditAndRetry) {
-            onEditAndRetry(targetFromMessageId, newContent, fileParts)
+            onEditAndRetry(targetFromMessageId, newContent)
         }
         setTargetFromMessageId(undefined)
         setTargetMode("normal")
@@ -376,7 +262,7 @@ export function Messages({
     const renderFilePreview = () => {
         if (!previewFile) return null
 
-        const { isImage, isText } = getFileType(previewFile)
+        const { isImage } = getFileType(previewFile)
         const fileName = previewFile.filename || "Unknown file"
 
         return (
@@ -387,20 +273,10 @@ export function Messages({
                         alt={fileName}
                         className="h-auto w-full rounded object-contain"
                     />
-                ) : isText ? (
-                    <div className="rounded bg-muted p-4 text-sm">
-                        <p className="text-muted-foreground">
-                            Text file content preview not available
-                        </p>
-                        <p className="font-medium">{fileName}</p>
-                    </div>
                 ) : (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                        <div className="text-center">
-                            <FileType className="mx-auto mb-2 size-12" />
-                            <p>Binary file: {fileName}</p>
-                            <p className="mt-1 text-xs">Preview not available</p>
-                        </div>
+                    <div className="rounded bg-muted p-4 text-sm">
+                        <p className="text-muted-foreground">File content preview not supported</p>
+                        <p className="font-medium">{fileName}</p>
                     </div>
                 )}
             </div>
@@ -428,11 +304,11 @@ export function Messages({
             <StickToBottom.Content>
                 <div className="p-4 pt-0">
                     <div
-                    className={cn(
-                        "mx-auto space-y-3 pb-40",
-                        getChatWidthClass(chatWidthState.chatWidth)
-                    )}
-                >
+                        className={cn(
+                            "mx-auto space-y-3 pb-40",
+                            getChatWidthClass(chatWidthState.chatWidth)
+                        )}
+                    >
                         {messages.map((message) => (
                             <div
                                 key={message.id}
@@ -488,7 +364,13 @@ export function Messages({
                                                 role={message.role}
                                                 message={message}
                                                 onRetry={onRetry}
-                                                onEdit={handleEdit}
+                                                onEdit={
+                                                    message.parts.some(
+                                                        (part) => part.type === "file"
+                                                    )
+                                                        ? undefined
+                                                        : handleEdit
+                                                }
                                             />
                                         ) : (
                                             <ChatActions
