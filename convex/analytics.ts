@@ -7,6 +7,9 @@ import { MODELS_SHARED } from "./lib/models"
 const getDaysSinceEpoch = (daysAgo: number) =>
     Math.floor(Date.now() / (24 * 60 * 60 * 1000)) - daysAgo
 
+const getHoursSinceEpoch = (hoursAgo: number) =>
+    Math.floor(Date.now() / (60 * 60 * 1000)) - hoursAgo
+
 export const getMyUsageStats = query({
     args: {
         timeframe: v.union(v.literal("1d"), v.literal("7d"), v.literal("30d"))
@@ -59,7 +62,8 @@ export const getMyUsageChartData = query({
         { timeframe }
     ): Promise<
         {
-            daysSinceEpoch: number
+            daysSinceEpoch?: number
+            hoursSinceEpoch?: number
             date: string
             totalRequests: number
             totalTokens: number
@@ -78,7 +82,66 @@ export const getMyUsageChartData = query({
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
         if ("error" in user) return []
 
-        const days = timeframe === "1d" ? 1 : timeframe === "7d" ? 7 : 30
+        // For 1d, we want hourly granularity
+        if (timeframe === "1d") {
+            const hours = 24
+            const startTime = Date.now() - hours * 60 * 60 * 1000
+
+            // Get user's events in the last 24 hours
+            const events = await ctx.db
+                .query("usageEvents")
+                .withIndex("byUserDay", (q) => q.eq("userId", user.id))
+                .filter((q) => q.gte(q.field("_creationTime"), startTime))
+                .collect()
+
+            // Group by hour
+            const chartData = []
+            for (let i = hours - 1; i >= 0; i--) {
+                const hourStart = Date.now() - i * 60 * 60 * 1000
+                const hourEnd = Date.now() - (i - 1) * 60 * 60 * 1000
+                const hourEvents = events.filter(
+                    (e) => e._creationTime >= hourStart && e._creationTime < hourEnd
+                )
+
+                const hourData = {
+                    hoursSinceEpoch: Math.floor(hourStart / (60 * 60 * 1000)),
+                    date: new Date(hourStart).toISOString(),
+                    totalRequests: hourEvents.length,
+                    totalTokens: hourEvents.reduce((sum, e) => sum + e.p + e.c + e.r, 0),
+                    models: {} as Record<
+                        string,
+                        {
+                            requests: number
+                            tokens: number
+                            promptTokens: number
+                            completionTokens: number
+                            reasoningTokens: number
+                        }
+                    >
+                }
+
+                // Post-filter by model for this hour
+                MODELS_SHARED.forEach((model) => {
+                    const modelEvents = hourEvents.filter((e) => e.modelId === model.id)
+                    if (modelEvents.length > 0) {
+                        hourData.models[model.id] = {
+                            requests: modelEvents.length,
+                            tokens: modelEvents.reduce((sum, e) => sum + e.p + e.c + e.r, 0),
+                            promptTokens: modelEvents.reduce((sum, e) => sum + e.p, 0),
+                            completionTokens: modelEvents.reduce((sum, e) => sum + e.c, 0),
+                            reasoningTokens: modelEvents.reduce((sum, e) => sum + e.r, 0)
+                        }
+                    }
+                })
+
+                chartData.push(hourData)
+            }
+
+            return chartData
+        }
+
+        // Original daily logic for 7d and 30d
+        const days = timeframe === "7d" ? 7 : 30
         const startDay = getDaysSinceEpoch(days)
 
         // Get user's events in time range
@@ -138,7 +201,16 @@ export const getMyModelUsage = query({
     },
     handler: async (ctx, { modelId, timeframe }) => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
-        if ("error" in user) throw new ChatError("unauthorized:api")
+        if ("error" in user) {
+            return {
+                modelId,
+                requests: 0,
+                promptTokens: 0,
+                completionTokens: 0,
+                reasoningTokens: 0,
+                totalTokens: 0
+            }
+        }
 
         const days = timeframe === "1d" ? 1 : timeframe === "7d" ? 7 : 30
         const startDay = getDaysSinceEpoch(days)
