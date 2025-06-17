@@ -1,18 +1,30 @@
 import { AuthCard } from "@/components/auth/auth-card"
 import { ShaderBackground } from "@/components/auth/shader-background"
 import { ThemeSwitcher } from "@/components/themes/theme-switcher"
-import { createFileRoute } from "@tanstack/react-router"
+import { Button } from "@/components/ui/button"
+import { Link, createFileRoute } from "@tanstack/react-router"
+import { ArrowLeft } from "lucide-react"
 
 export const Route = createFileRoute("/auth/$pathname")({
     component: RouteComponent
 })
 
 function RouteComponent() {
-    const { pathname } = Route.useParams()
-
     return (
         <main className="relative flex min-h-screen flex-col items-center justify-center gap-4 p-4">
             <ShaderBackground />
+            <div className="absolute top-4 left-4">
+                <Link to="/">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back
+                    </Button>
+                </Link>
+            </div>
             <div className="absolute top-4 right-4">
                 <ThemeSwitcher />
             </div>

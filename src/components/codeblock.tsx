@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useCodeHighlighter } from "@/hooks/use-code-highlighter"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { cn } from "@/lib/utils"
 import { copyToClipboard } from "@/lib/utils"
-import { AlignLeft, ArrowDownSquareIcon, ArrowsUpFromLine, CheckIcon, CopyIcon } from "lucide-react"
+import { AlignLeft, CheckIcon, ChevronDown, ChevronUp, CopyIcon, WrapText } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 
 export const Codeblock = memo(
@@ -45,7 +45,6 @@ export const Codeblock = memo(
         const [didRecentlyCopied, setDidRecentlyCopied] = useState(false)
         const [expanded, setExpanded] = useState(defaultProps?.expand ?? false)
         const [wrapped, setWrapped] = useState(defaultProps?.wrap ?? false)
-        const isDesktop = useMediaQuery("(min-width: 768px)")
 
         const codeString = useMemo(() => {
             return [...(Array.isArray(children) ? children : [children])]
@@ -53,7 +52,7 @@ export const Codeblock = memo(
                 .join("")
         }, [children])
 
-        const { highlightedCode, isHighlighting } = useCodeHighlighter({
+        const { highlightedCode } = useCodeHighlighter({
             codeString,
             language,
             expanded,
@@ -65,8 +64,8 @@ export const Codeblock = memo(
         if (!children) return null
 
         return !inline && (match || isMultiLine) ? (
-            <div className="relative mt-1 mb-1 flex flex-col rounded-lg border border-border">
-                <div className="flex items-center rounded-t-md border-border border-b bg-muted px-2 py-1">
+            <div className="relative mt-1 mb-1 flex flex-col overflow-hidden rounded-lg border border-border">
+                <div className="flex items-center gap-2 rounded-t-md border-border border-b bg-muted px-2 py-1">
                     <span className="pl-2 font-mono text-muted-foreground text-xs">{language}</span>
                     {lineNumber >= 16 && (
                         <span className="pt-0.5 pl-2 font-mono text-muted-foreground/50 text-xs">
@@ -75,104 +74,90 @@ export const Codeblock = memo(
                     )}
                     <div className="flex-grow" />
                     {lineNumber >= 16 && !disable?.expand && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-[1.5rem] gap-1 font-sans text-muted-foreground md:w-auto md:px-2"
-                            onClick={() => setExpanded((t) => !t)}
-                        >
-                            {expanded ? (
-                                <>
-                                    <ArrowsUpFromLine className="!size-3" />
-                                    {isDesktop && (
-                                        <span className="ml-1 hidden text-xs md:inline">
-                                            Collapse
-                                        </span>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-[1.5rem] w-[1.5rem] text-muted-foreground"
+                                    onClick={() => setExpanded((t) => !t)}
+                                >
+                                    {expanded ? (
+                                        <ChevronUp className="!size-4" />
+                                    ) : (
+                                        <ChevronDown className="!size-4" />
                                     )}
-                                </>
-                            ) : (
-                                <>
-                                    <ArrowDownSquareIcon className="!size-3" />
-                                    {isDesktop && (
-                                        <span className="ml-1 hidden text-xs md:inline">
-                                            Expand
-                                        </span>
-                                    )}
-                                </>
-                            )}
-                        </Button>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{expanded ? "Collapse" : "Expand"}</TooltipContent>
+                        </Tooltip>
                     )}
                     {!disable?.wrap && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-[1.5rem] gap-1 font-sans text-muted-foreground md:w-auto md:px-2"
-                            onClick={() => setWrapped((t) => !t)}
-                        >
-                            <AlignLeft className="!size-3" />
-                            {isDesktop && (
-                                <span className="ml-1 hidden text-xs md:inline">Wrap</span>
-                            )}
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-[1.5rem] w-[1.5rem] text-muted-foreground"
+                                    onClick={() => setWrapped((t) => !t)}
+                                >
+                                    {wrapped ? (
+                                        <WrapText className="!size-4" />
+                                    ) : (
+                                        <AlignLeft className="!size-4" />
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {wrapped ? "Unwrap lines" : "Wrap lines"}
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                     {!disable?.copy && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-[1.5rem] gap-1 font-sans text-muted-foreground md:w-auto md:px-2"
-                            onClick={() => {
-                                copyToClipboard(codeString)
-                                setDidRecentlyCopied(true)
-                                setTimeout(() => {
-                                    setDidRecentlyCopied(false)
-                                }, 1000)
-                            }}
-                        >
-                            {didRecentlyCopied ? (
-                                <>
-                                    <CheckIcon className="size-3" />
-                                    {isDesktop && (
-                                        <span className="ml-1 hidden text-xs md:inline">
-                                            Copied
-                                        </span>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-[1.5rem] w-[1.5rem] text-muted-foreground"
+                                    onClick={() => {
+                                        copyToClipboard(codeString)
+                                        setDidRecentlyCopied(true)
+                                        setTimeout(() => {
+                                            setDidRecentlyCopied(false)
+                                        }, 1000)
+                                    }}
+                                >
+                                    {didRecentlyCopied ? (
+                                        <CheckIcon className="size-4" />
+                                    ) : (
+                                        <CopyIcon className="size-4" />
                                     )}
-                                </>
-                            ) : (
-                                <>
-                                    <CopyIcon className="size-3" />
-                                    {isDesktop && (
-                                        <span className="ml-1 hidden text-xs md:inline">Copy</span>
-                                    )}
-                                </>
-                            )}
-                        </Button>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {didRecentlyCopied ? "Copied!" : "Copy code"}
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
 
-                {isHighlighting ? (
-                    <div className="relative my-0 max-w-full animate-pulse resize-none overflow-x-auto overflow-y-auto text-wrap rounded-t-none rounded-b-lg bg-[#0d1117] py-3 ps-[0.75rem] pe-[0.75rem] text-[#e6edf3] text-[0.8125rem] leading-4">
-                        <div className="mb-2 h-4 w-3/4 rounded bg-gray-600" />
-                        <div className="mb-2 h-4 w-1/2 rounded bg-gray-600" />
-                        <div className="h-4 w-5/6 rounded bg-gray-600" />
-                    </div>
-                ) : (
-                    <div
-                        // biome-ignore lint/security/noDangerouslySetInnerHtml: shiki!!
-                        dangerouslySetInnerHTML={{ __html: highlightedCode }}
-                        className="shiki-container pl-2 font-mono"
-                    />
-                )}
+                <div
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: shiki!!
+                    dangerouslySetInnerHTML={{ __html: highlightedCode }}
+                    className="shiki-container pl-2 font-mono"
+                />
 
                 {!expanded && lineNumber > 17 && (
-                    <div className="absolute bottom-0 flex h-12 w-full items-end justify-center rounded-b-lg bg-gradient-to-b from-transparent to-background pb-2">
+                    <div className="absolute right-0 bottom-0 left-0 flex h-16 justify-center rounded-b-md bg-gradient-to-t from-sidebar via-sidebar/80 to-transparent">
                         <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
                             onClick={() => setExpanded(true)}
-                            className="h-[1.5rem] gap-1.5 rounded-full text-muted-foreground shadow-lg"
+                            className="h-[1.5rem] gap-1.5 rounded-md shadow-lg"
                         >
                             {lineNumber - 17} more lines
-                            <ArrowDownSquareIcon />
+                            <ChevronDown className="!size-4" />
                         </Button>
                     </div>
                 )}

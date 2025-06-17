@@ -1,6 +1,5 @@
 import { SettingsLayout } from "@/components/settings/settings-layout"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import { useSession } from "@/hooks/auth-hooks"
@@ -38,7 +37,7 @@ const settingsNavItems = [
 export const Route = createFileRoute("/settings")({
     beforeLoad: ({ location }) => {
         // Redirect to profile page if we're at /settings exactly
-        if (location.pathname === "/settings/") {
+        if (location.pathname === "/settings") {
             throw redirect({
                 to: "/settings/profile"
             })
@@ -91,8 +90,8 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
     const location = useLocation()
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-background">
-            <div className="container mx-auto flex max-w-6xl flex-1 flex-col overflow-hidden p-6">
+        <div className="flex h-screen flex-col overflow-y-auto bg-background">
+            <div className="container mx-auto flex max-w-6xl flex-1 flex-col p-6">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="mb-6 flex items-center gap-4">
@@ -116,7 +115,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 overflow-hidden lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
                     {/* Navigation */}
                     <div className="flex-shrink-0 lg:w-64">
                         <nav className="space-y-1">
@@ -144,11 +143,11 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
                     </div>
 
                     {/* Main Content */}
-                    <ScrollArea className="col-span-3 flex-1 overflow-hidden">
+                    <div className="col-span-3 flex-1">
                         <div className="space-y-6 pr-4">
                             <Inner />
                         </div>
-                    </ScrollArea>
+                    </div>
                 </div>
             </div>
         </div>

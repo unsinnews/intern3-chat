@@ -1,3 +1,4 @@
+import { getCSSCustomProperty, parseOklchColor } from "@/lib/color-utils"
 import { useEffect, useRef } from "react"
 
 const vertexShaderSource = `
@@ -12,12 +13,11 @@ precision mediump float;
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform vec3 uPrimaryGlowColor;
+uniform vec3 uSecondaryGlowColor;
 
-const vec3 PURPLE_GLOW_COLOR = vec3(0.35, 0.10, 0.70);
-const vec3 EDGE_GLOW_COLOR = vec3(0.90, 0.85, 1.00);
-
-const float PURPLE_CONCENTRATION = 1.0;
-const float EDGE_CONCENTRATION = 4.0;
+const float PRIMARY_CONCENTRATION = 1.0;
+const float SECONDARY_CONCENTRATION = 4.0;
 
 const float NOISE_SCALE = 1.5;
 const float NOISE_SPEED = 1.0;
@@ -42,16 +42,16 @@ float noise(vec2 p) {
 void main() {
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
     
-    float purpleIntensity = pow(1.0 - uv.y, PURPLE_CONCENTRATION);
-    float edgeIntensity = pow(1.0 - uv.y, EDGE_CONCENTRATION);
+    float primaryIntensity = pow(1.0 - uv.y, PRIMARY_CONCENTRATION);
+    float secondaryIntensity = pow(1.0 - uv.y, SECONDARY_CONCENTRATION);
     
     vec2 noiseUV = uv * NOISE_SCALE;
     noiseUV.x += iTime * NOISE_SPEED;
     float shimmer = noise(noiseUV) * FLICKER_STRENGTH;
     vec3 color = vec3(0.0);
-    color += PURPLE_GLOW_COLOR * (purpleIntensity + purpleIntensity * shimmer);
+    color += uPrimaryGlowColor * (primaryIntensity + primaryIntensity * shimmer);
 
-    color += EDGE_GLOW_COLOR * edgeIntensity;
+    color += uSecondaryGlowColor * secondaryIntensity;
     gl_FragColor = vec4(color, 1.0);
 }
 `
@@ -127,6 +127,28 @@ export function ShaderBackground() {
         const positionLocation = gl.getAttribLocation(program, "a_position")
         const timeLocation = gl.getUniformLocation(program, "iTime")
         const resolutionLocation = gl.getUniformLocation(program, "iResolution")
+        const primaryGlowColorLocation = gl.getUniformLocation(program, "uPrimaryGlowColor")
+        const secondaryGlowColorLocation = gl.getUniformLocation(program, "uSecondaryGlowColor")
+
+        // Get colors from CSS custom properties
+        const getShaderColors = () => {
+            try {
+                const primaryColorValue = getCSSCustomProperty("--primary")
+                const secondaryColorValue = getCSSCustomProperty("--accent")
+
+                const primaryRgb = parseOklchColor(primaryColorValue)
+                const secondaryRgb = parseOklchColor(secondaryColorValue)
+
+                return { primaryRgb, secondaryRgb }
+            } catch (error) {
+                console.warn("Error getting CSS colors, using fallbacks:", error)
+                // Fallback colors
+                return {
+                    primaryRgb: [0.35, 0.1, 0.7] as [number, number, number],
+                    secondaryRgb: [0.9, 0.85, 1.0] as [number, number, number]
+                }
+            }
+        }
 
         function resizeCanvas() {
             if (!canvas || !gl) return
@@ -138,6 +160,8 @@ export function ShaderBackground() {
         function render(time: number) {
             if (!canvas || !gl) return
 
+            const { primaryRgb, secondaryRgb } = getShaderColors()
+
             gl.useProgram(program)
 
             gl.enableVertexAttribArray(positionLocation)
@@ -146,6 +170,13 @@ export function ShaderBackground() {
 
             gl.uniform1f(timeLocation, time * 0.001)
             gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
+            gl.uniform3f(primaryGlowColorLocation, primaryRgb[0], primaryRgb[1], primaryRgb[2])
+            gl.uniform3f(
+                secondaryGlowColorLocation,
+                secondaryRgb[0],
+                secondaryRgb[1],
+                secondaryRgb[2]
+            )
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 

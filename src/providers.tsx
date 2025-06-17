@@ -1,14 +1,12 @@
+import { ThemeProvider } from "@/components/theme-provider"
+import { authClient } from "@/lib/auth-client"
+import { ConvexQueryClient } from "@convex-dev/react-query"
 import { AuthQueryProvider } from "@daveyplate/better-auth-tanstack"
 import { AuthUIProviderTanstack } from "@daveyplate/better-auth-ui/tanstack"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Link, useRouter } from "@tanstack/react-router"
 import { type ReactNode, useEffect } from "react"
 import { Toaster } from "sonner"
-
-import { CommandK } from "@/components/commandk"
-import { ThemeProvider } from "@/components/theme-provider"
-import { authClient } from "@/lib/auth-client"
-import { ConvexQueryClient } from "@convex-dev/react-query"
 import { browserEnv } from "./lib/browser-env"
 
 export const convexQueryClient = new ConvexQueryClient(browserEnv("VITE_CONVEX_URL"))
@@ -50,7 +48,6 @@ export function Providers({
                     >
                         {children}
 
-                        <CommandK />
                         <Toaster />
                     </AuthUIProviderTanstack>
                 </ThemeProvider>

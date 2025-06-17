@@ -27,15 +27,14 @@ export const auth = betterAuth({
         genericOAuth({
             config: [
                 {
-                    providerId: "atlassian",
-                    clientId: process.env.ATLASSIAN_CLIENT_ID as string,
-                    clientSecret: process.env.ATLASSIAN_CLIENT_SECRET as string,
+                    providerId: "twitch",
+                    clientId: process.env.TWITCH_CLIENT_ID as string,
+                    clientSecret: process.env.TWITCH_CLIENT_SECRET as string,
 
-                    authorizationUrl:
-                        "https://auth.atlassian.com/authorize?audience=api.atlassian.com&prompt=consent",
-                    tokenUrl: "https://auth.atlassian.com/oauth/token",
-                    redirectURI: "https://intern3.chat/api/auth/oauth2/callback/atlassian",
-                    scopes: ["read:me"]
+                    authorizationUrl: "https://id.twitch.tv/oauth2/authorize",
+                    tokenUrl: "https://id.twitch.tv/oauth2/token",
+                    redirectURI: "https://intern3.chat/api/auth/oauth2/callback/twitch",
+                    scopes: ["user:read:email"]
                 }
             ]
         }),
