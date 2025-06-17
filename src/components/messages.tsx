@@ -428,11 +428,11 @@ export function Messages({
             <StickToBottom.Content>
                 <div className="p-4 pt-0">
                     <div
-                    className={cn(
-                        "mx-auto space-y-3 pb-40",
-                        getChatWidthClass(chatWidthState.chatWidth)
-                    )}
-                >
+                        className={cn(
+                            "mx-auto space-y-3 pb-40",
+                            getChatWidthClass(chatWidthState.chatWidth)
+                        )}
+                    >
                         {messages.map((message) => (
                             <div
                                 key={message.id}
