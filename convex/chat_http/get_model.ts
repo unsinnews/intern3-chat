@@ -119,6 +119,7 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
         model: finalModel as
             | (LanguageModelV1 & { modelType: "text" })
             | (ImageModelV1 & { modelType: "image" }),
+        abilities: model.abilities,
         registry,
         modelName: model.name ?? model.id
     }

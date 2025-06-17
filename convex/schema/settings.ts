@@ -21,7 +21,8 @@ export const CustomAIProvider = v.object({
 const ModelAbilitySchema = v.union(
     v.literal("reasoning"),
     v.literal("vision"),
-    v.literal("function_calling")
+    v.literal("function_calling"),
+    v.literal("pdf")
 )
 export type ModelAbility = Infer<typeof ModelAbilitySchema>
 

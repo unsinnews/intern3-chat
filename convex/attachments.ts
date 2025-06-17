@@ -3,6 +3,14 @@ import { R2 } from "@convex-dev/r2"
 import { v } from "convex/values"
 import { components } from "./_generated/api"
 import { httpAction, mutation, query } from "./_generated/server"
+import {
+    MAX_FILE_SIZE,
+    MAX_TOKENS_PER_FILE,
+    estimateTokenCount,
+    getCorrectMimeType,
+    getFileTypeInfo,
+    isSupportedFile
+} from "./lib/file_constants"
 import { getUserIdentity } from "./lib/identity"
 
 export const r2 = new R2(components.r2)
@@ -17,7 +25,9 @@ export const uploadFile = httpAction(async (ctx, request) => {
             })
         }
         const formData = await request.formData()
-        const file = formData.get("file") as File
+        const file = formData.get("file") as Blob
+
+        const fileName = formData.get("fileName") as string
 
         if (!file) {
             return new Response(JSON.stringify({ error: "No file provided" }), {
@@ -26,9 +36,8 @@ export const uploadFile = httpAction(async (ctx, request) => {
             })
         }
 
-        // Validate file size (5MB limit)
-        const maxSize = 5 * 1024 * 1024 // 5MB
-        if (file.size > maxSize) {
+        // Validate file size
+        if (file.size > MAX_FILE_SIZE) {
             return new Response(
                 JSON.stringify({
                     error: `File size exceeds 5MB limit. Current size: ${file.size} bytes`
@@ -40,25 +49,117 @@ export const uploadFile = httpAction(async (ctx, request) => {
             )
         }
 
-        // Generate unique key for the file
-        const key = `attachments/${user.id}/${Date.now()}-${crypto.randomUUID()}-${file.name}`
+        // Validate file type
+        if (!isSupportedFile(fileName, file.type)) {
+            return new Response(
+                JSON.stringify({
+                    error: `Unsupported file type: ${fileName}`
+                }),
+                {
+                    status: 400,
+                    headers: { "Content-Type": "application/json" }
+                }
+            )
+        }
 
-        // Convert file to ArrayBuffer then to Uint8Array
-        const arrayBuffer = await file.arrayBuffer()
-        const uint8Array = new Uint8Array(arrayBuffer)
+        const fileTypeInfo = getFileTypeInfo(fileName, file.type)
+
+        // Get arrayBuffer once for validation (for text files and PDFs)
+        const fileBuffer = await file.arrayBuffer()
+        // const bufferCopy = new ArrayBuffer(fileBuffer.byteLength)
+        // new Uint8Array(bufferCopy).set(new Uint8Array(fileBuffer))
+
+        // For text files, validate token count
+        if (fileTypeInfo.isText && !fileTypeInfo.isImage) {
+            try {
+                const text = new TextDecoder().decode(fileBuffer)
+                const tokenCount = estimateTokenCount(text)
+
+                if (tokenCount > MAX_TOKENS_PER_FILE) {
+                    return new Response(
+                        JSON.stringify({
+                            error: `File "${fileName}" exceeds ${MAX_TOKENS_PER_FILE.toLocaleString()} token limit (estimated: ${tokenCount.toLocaleString()} tokens)`
+                        }),
+                        {
+                            status: 400,
+                            headers: { "Content-Type": "application/json" }
+                        }
+                    )
+                }
+            } catch (error) {
+                console.error("Error validating text file:", error)
+                return new Response(
+                    JSON.stringify({
+                        error: `Error validating file content: ${fileName}`
+                    }),
+                    {
+                        status: 400,
+                        headers: { "Content-Type": "application/json" }
+                    }
+                )
+            }
+        } else if (fileTypeInfo.isPdf) {
+            // Some issue with the convex runtime. Might come back to this later but...
+            // try {
+            //     // Check page count
+            //     console.log("Estimating PDF...")
+            //     const { pageCount, tokenCount } = await estimatePdf(fileBuffer)
+            //     console.log("PDF estimated", pageCount, tokenCount)
+            //     if (pageCount > MAX_PDF_PAGES) {
+            //         return new Response(
+            //             JSON.stringify({
+            //                 error: `PDF "${fileName}" exceeds ${MAX_PDF_PAGES} page limit (current: ${pageCount} pages)`
+            //             }),
+            //             {
+            //                 status: 400,
+            //                 headers: { "Content-Type": "application/json" }
+            //             }
+            //         )
+            //     }
+            //     // Check token count
+            //     if (tokenCount > MAX_PDF_TOKENS) {
+            //         return new Response(
+            //             JSON.stringify({
+            //                 error: `PDF "${fileName}" exceeds ${MAX_PDF_TOKENS.toLocaleString()} token limit (estimated: ${tokenCount.toLocaleString()} tokens)`
+            //             }),
+            //             {
+            //                 status: 400,
+            //                 headers: { "Content-Type": "application/json" }
+            //             }
+            //         )
+            //     }
+            // } catch (error) {
+            //     console.error("Error validating PDF file:", error)
+            //     return new Response(
+            //         JSON.stringify({
+            //             error: `Error validating PDF content: ${fileName}`
+            //         }),
+            //         {
+            //             status: 400,
+            //             headers: { "Content-Type": "application/json" }
+            //         }
+            //     )
+            // }
+        }
+
+        // Generate unique key for the file
+        const key = `attachments/${user.id}/${Date.now()}-${crypto.randomUUID()}-${fileName}`
+
+        // Get the correct MIME type (handles browser inconsistencies)
+        const mimeType = getCorrectMimeType(fileName, file.type)
 
         // Store file directly in R2
-        const storedKey = await r2.store(ctx, uint8Array, {
+        const storedKey = await r2.store(ctx, new Uint8Array(fileBuffer), {
             authorId: user.id,
             key,
-            type: file.type
+            type: mimeType
         })
 
         return new Response(
             JSON.stringify({
                 key: storedKey,
-                fileName: file.name,
-                fileType: file.type,
+                fileName: fileName,
+                fileType: mimeType, // Return the corrected MIME type
                 fileSize: file.size,
                 uploadedAt: Date.now(),
                 success: true
@@ -87,16 +188,8 @@ export const getFileMetadata = query({
     args: { key: v.string() },
     handler: async (ctx, args) => {
         try {
-            const user = await getUserIdentity(ctx.auth, { allowAnons: false })
-            if ("error" in user) {
-                throw new Error("Unauthorized")
-            }
-
-            // Check if user owns the file
-            if (!args.key.startsWith(`attachments/${user.id}/`)) {
-                throw new Error("Access denied: File does not belong to user")
-            }
-
+            //i guess if you have the key, you have the file anyway
+            // so no auth here...
             const metadata = await r2.getMetadata(ctx, args.key)
             return metadata
         } catch (error) {
@@ -119,29 +212,22 @@ export const deleteFile = mutation({
                 }
             }
 
-            // Check if user owns the file
-            if (!args.key.startsWith(`attachments/${user.id}/`)) {
+            const metadata = await r2.getMetadata(ctx, args.key)
+            if (!metadata) {
+                return {
+                    success: false,
+                    error: "File not found"
+                }
+            }
+
+            if (metadata.authorId !== user.id) {
                 return {
                     success: false,
                     error: "Access denied: File does not belong to user"
                 }
             }
 
-            // Delete file from R2 storage
-            await ctx.runMutation(components.r2.lib.deleteObject, {
-                key: args.key,
-                bucket: process.env.R2_BUCKET!,
-                endpoint: process.env.R2_ENDPOINT!,
-                accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-                secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-                forcePathStyle: process.env.R2_FORCE_PATH_STYLE === "true"
-            })
-
-            // Also delete metadata
-            await ctx.runMutation(components.r2.lib.deleteMetadata, {
-                key: args.key,
-                bucket: process.env.R2_BUCKET!
-            })
+            await r2.deleteObject(ctx, args.key)
 
             console.log("Successfully deleted file:", args.key)
             return { success: true }

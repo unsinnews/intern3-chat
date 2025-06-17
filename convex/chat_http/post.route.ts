@@ -61,7 +61,17 @@ export const chatPOST = httpAction(async (ctx, req) => {
         threadId: mutationResult.threadId
     })
 
-    const mapped_messages = await dbMessagesToCore(dbMessages)
+    const modelData = await getModel(ctx, body.model)
+    if (modelData instanceof ChatError) return modelData.toResponse()
+    const { model, modelName } = modelData
+    if (model.modelType === "image") {
+        return new ChatError(
+            "bad_request:api",
+            "Image models are not supported yet..."
+        ).toResponse()
+    }
+
+    const mapped_messages = await dbMessagesToCore(dbMessages, modelData.abilities)
 
     const streamStartTime = Date.now()
 
@@ -73,16 +83,6 @@ export const chatPOST = httpAction(async (ctx, req) => {
         | FileUIPart
         | Infer<typeof ErrorUIPart>
     > = []
-
-    const modelData = await getModel(ctx, body.model)
-    if (modelData instanceof ChatError) return modelData.toResponse()
-    const { model, modelName } = modelData
-    if (model.modelType === "image") {
-        return new ChatError(
-            "bad_request:api",
-            "Image models are not supported yet..."
-        ).toResponse()
-    }
 
     const settings = await ctx.runQuery(internal.settings.getUserSettingsInternal, {
         userId: user.id

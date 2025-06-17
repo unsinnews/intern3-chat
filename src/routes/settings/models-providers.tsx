@@ -49,6 +49,7 @@ import {
     Check,
     Code,
     Eye,
+    File,
     Key,
     Plus,
     RotateCcw,
@@ -130,7 +131,7 @@ type CoreProviderInfo = {
     name: string
     description: string
     placeholder: string
-    icon: React.ComponentType<{ className?: string }>
+    icon: React.ComponentType<{ className?: string }> | string
 }
 
 const CORE_PROVIDERS: CoreProviderInfo[] = [
@@ -172,6 +173,8 @@ const getAbilityIcon = (ability: ModelAbility) => {
             return Brain
         case "function_calling":
             return Code
+        case "pdf":
+            return File
         default:
             return Key
     }
@@ -185,6 +188,8 @@ const getAbilityLabel = (ability: ModelAbility) => {
             return "Vision"
         case "reasoning":
             return "Reasoning"
+        case "pdf":
+            return "PDF"
         default:
             return ability
     }

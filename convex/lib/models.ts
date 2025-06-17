@@ -31,13 +31,13 @@ export const MODELS_SHARED: SharedModel[] = [
         id: "gpt-4o",
         name: "GPT 4o",
         adapters: ["i3-openai:gpt-4o", "openai:gpt-4o", "openrouter:openai/gpt-4o"],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gpt-4o-mini",
         name: "GPT 4o mini",
         adapters: ["i3-openai:gpt-4o-mini", "openai:gpt-4o-mini", "openrouter:openai/gpt-4o-mini"],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "o3-mini",
@@ -49,25 +49,25 @@ export const MODELS_SHARED: SharedModel[] = [
         id: "o4-mini",
         name: "o4 mini",
         adapters: ["i3-openai:o4-mini", "openai:o4-mini", "openrouter:openai/o4-mini"],
-        abilities: ["reasoning", "vision", "function_calling"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf"]
     },
     {
         id: "o3",
         name: "o3",
         adapters: ["openai:o3", "openrouter:openai/o3"],
-        abilities: ["reasoning", "vision", "function_calling"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf"]
     },
     {
         id: "o3-pro",
         name: "o3 pro",
         adapters: ["openai:o3-pro", "openrouter:openai/o3-pro"],
-        abilities: ["reasoning", "vision", "function_calling"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf"]
     },
     {
         id: "gpt-4.1",
         name: "GPT 4.1",
         adapters: ["i3-openai:gpt-4.1", "openai:gpt-4.1", "openrouter:openai/gpt-4.1"],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gpt-4.1-mini",
@@ -77,7 +77,7 @@ export const MODELS_SHARED: SharedModel[] = [
             "openai:gpt-4.1-mini",
             "openrouter:openai/gpt-4.1-mini"
         ],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gpt-4.1-nano",
@@ -87,31 +87,31 @@ export const MODELS_SHARED: SharedModel[] = [
             "openai:gpt-4.1-nano",
             "openrouter:openai/gpt-4.1-nano"
         ],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "claude-opus-4",
         name: "Claude Opus 4",
         adapters: ["anthropic:claude-opus-4-0", "openrouter:anthropic/claude-opus-4"],
-        abilities: ["reasoning", "vision", "function_calling"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf"]
     },
     {
         id: "claude-sonnet-4",
         name: "Claude Sonnet 4",
         adapters: ["anthropic:claude-sonnet-4-0", "openrouter:anthropic/claude-sonnet-4"],
-        abilities: ["reasoning", "vision", "function_calling"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf"]
     },
     {
         id: "claude-3-7-sonnet",
         name: "Claude Sonnet 3.7",
         adapters: ["anthropic:claude-3-7-sonnet", "openrouter:anthropic/claude-3.7-sonnet"],
-        abilities: ["reasoning", "vision", "function_calling"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf"]
     },
     {
         id: "claude-3-5-sonnet",
         name: "Claude Sonnet 3.5",
         adapters: ["anthropic:claude-3-5-sonnet", "openrouter:anthropic/claude-3.5-sonnet"],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gemini-2.0-flash-lite",
@@ -121,7 +121,7 @@ export const MODELS_SHARED: SharedModel[] = [
             "google:gemini-2.0-flash-lite",
             "openrouter:google/gemini-2.0-flash-lite-001"
         ],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gemini-2.5-flash",
@@ -131,7 +131,7 @@ export const MODELS_SHARED: SharedModel[] = [
             "google:gemini-2.5-flash",
             "openrouter:google/gemini-2.5-flash"
         ],
-        abilities: ["vision", "function_calling", "reasoning"]
+        abilities: ["vision", "function_calling", "reasoning", "pdf"]
     },
     {
         id: "gemini-2.5-flash-lite",
@@ -141,7 +141,7 @@ export const MODELS_SHARED: SharedModel[] = [
             "google:gemini-2.5-flash-lite-preview-06-17",
             "openrouter:google/gemini-2.5-flash-lite-preview-06-17"
         ],
-        abilities: ["vision", "function_calling", "reasoning"]
+        abilities: ["vision", "function_calling", "reasoning", "pdf"]
     },
     {
         id: "gemini-2.0-flash",
@@ -151,13 +151,13 @@ export const MODELS_SHARED: SharedModel[] = [
             "google:gemini-2.0-flash",
             "openrouter:google/gemini-2.0-flash-001"
         ],
-        abilities: ["vision", "function_calling"]
+        abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gemini-2.5-pro",
         name: "Gemini 2.5 Pro",
         adapters: ["google:gemini-2.5-pro", "openrouter:google/gemini-2.5-pro"],
-        abilities: ["reasoning", "vision", "function_calling"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf"]
     }
 ] as const
 

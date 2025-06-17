@@ -8,10 +8,21 @@ import {
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { MODELS_SHARED } from "@/convex/lib/models"
 import { useToken } from "@/hooks/auth-hooks"
 import { browserEnv } from "@/lib/browser-env"
 import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
+import {
+    MAX_FILE_SIZE,
+    MAX_TOKENS_PER_FILE,
+    estimateTokenCount,
+    getFileAcceptAttribute,
+    getFileTypeInfo,
+    isImageMimeType,
+    isSupportedFile,
+    isTextMimeType
+} from "@/lib/file_constants"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
@@ -28,7 +39,7 @@ import {
     Upload,
     X
 } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 interface ExtendedUploadedFile extends UploadedFile {
@@ -62,6 +73,13 @@ export function MultimodalInput({
     const [dialogOpen, setDialogOpen] = useState(false)
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
 
+    // Check if current model supports vision
+    const modelSupportsVision = useMemo(() => {
+        if (!selectedModel) return false
+        const model = MODELS_SHARED.find((m) => m.id === selectedModel)
+        return model?.abilities.includes("vision") ?? false
+    }, [selectedModel])
+
     useEffect(() => {
         setExtendedFiles(uploadedFiles.map((file) => ({ ...file })))
     }, [uploadedFiles])
@@ -88,41 +106,9 @@ export function MultimodalInput({
             }
             reader.onerror = () => resolve("Error reading file")
 
-            if (file.type.startsWith("image/")) {
+            if (isImageMimeType(file.type)) {
                 reader.readAsDataURL(file)
-            } else if (
-                file.type.startsWith("text/") ||
-                file.type === "application/json" ||
-                file.type === "application/javascript" ||
-                file.type === "application/typescript" ||
-                file.name.endsWith(".md") ||
-                file.name.endsWith(".mdx") ||
-                file.name.endsWith(".txt") ||
-                file.name.endsWith(".js") ||
-                file.name.endsWith(".ts") ||
-                file.name.endsWith(".jsx") ||
-                file.name.endsWith(".tsx") ||
-                file.name.endsWith(".css") ||
-                file.name.endsWith(".scss") ||
-                file.name.endsWith(".html") ||
-                file.name.endsWith(".xml") ||
-                file.name.endsWith(".json") ||
-                file.name.endsWith(".yaml") ||
-                file.name.endsWith(".yml") ||
-                file.name.endsWith(".py") ||
-                file.name.endsWith(".java") ||
-                file.name.endsWith(".c") ||
-                file.name.endsWith(".cpp") ||
-                file.name.endsWith(".go") ||
-                file.name.endsWith(".rs") ||
-                file.name.endsWith(".php") ||
-                file.name.endsWith(".rb") ||
-                file.name.endsWith(".swift") ||
-                file.name.endsWith(".kt") ||
-                file.name.endsWith(".dart") ||
-                file.name.endsWith(".vue") ||
-                file.name.endsWith(".svelte")
-            ) {
+            } else if (isTextMimeType(file.type) || getFileTypeInfo(file.name, file.type).isText) {
                 reader.readAsText(file)
             } else {
                 resolve(`Binary file: ${file.name}`)
@@ -134,6 +120,7 @@ export function MultimodalInput({
         async (file: File): Promise<ExtendedUploadedFile> => {
             const formData = new FormData()
             formData.append("file", file)
+            formData.append("fileName", file.name)
 
             const response = await fetch(`${browserEnv("VITE_CONVEX_API_URL")}/upload`, {
                 method: "POST",
@@ -161,9 +148,60 @@ export function MultimodalInput({
         async (filesToUpload: File[]) => {
             if (filesToUpload.length === 0) return
 
+            // Validate files before uploading
+            const validFiles: File[] = []
+            const errors: string[] = []
+
+            for (const file of filesToUpload) {
+                // Check file size
+                if (file.size > MAX_FILE_SIZE) {
+                    errors.push(`${file.name}: File size exceeds 5MB limit`)
+                    continue
+                }
+
+                // Check if file type is supported
+                if (!isSupportedFile(file.name, file.type)) {
+                    errors.push(`${file.name}: Unsupported file type`)
+                    continue
+                }
+
+                const fileTypeInfo = getFileTypeInfo(file.name, file.type)
+
+                // If file is an image but model doesn't support vision, reject it
+                if (fileTypeInfo.isImage && !modelSupportsVision) {
+                    errors.push(`${file.name}: Current model doesn't support image files`)
+                    continue
+                }
+
+                // For text files, check token count
+                if (fileTypeInfo.isText && !fileTypeInfo.isImage) {
+                    try {
+                        const content = await readFileContent(file)
+                        const tokenCount = estimateTokenCount(content)
+                        if (tokenCount > MAX_TOKENS_PER_FILE) {
+                            errors.push(
+                                `${file.name}: File exceeds ${MAX_TOKENS_PER_FILE.toLocaleString()} token limit`
+                            )
+                            continue
+                        }
+                    } catch (error) {
+                        errors.push(`${file.name}: Error reading file content`)
+                        continue
+                    }
+                }
+
+                validFiles.push(file)
+            }
+
+            // Show validation errors
+            if (errors.length > 0) {
+                toast.error(`File validation failed:\n${errors.join("\n")}`)
+                if (validFiles.length === 0) return
+            }
+
             setUploading(true)
             try {
-                const uploadPromises = filesToUpload.map((file) => uploadFile(file))
+                const uploadPromises = validFiles.map((file) => uploadFile(file))
                 const uploadedResults = await Promise.all(uploadPromises)
 
                 for (const result of uploadedResults) {
@@ -187,7 +225,7 @@ export function MultimodalInput({
                 setUploading(false)
             }
         },
-        [uploadFile, addUploadedFile, setUploading, readFileContent]
+        [uploadFile, addUploadedFile, setUploading, readFileContent, modelSupportsVision]
     )
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,24 +310,8 @@ export function MultimodalInput({
     const getFileType = (
         uploadedFile: ExtendedUploadedFile
     ): { isImage: boolean; isCode: boolean; isText: boolean } => {
-        const fileName = uploadedFile.fileName.toLowerCase()
         const fileType = uploadedFile.file?.type || uploadedFile.fileType
-
-        const isImage =
-            fileType.startsWith("image/") ||
-            !!fileName.match(/\.(png|jpg|jpeg|gif|svg|webp|bmp|ico)$/)
-
-        const isCode =
-            !!fileName.match(
-                /\.(js|jsx|ts|tsx|py|java|c|cpp|go|rs|php|rb|swift|kt|dart|vue|svelte|css|scss|html|xml|json|yaml|yml)$/
-            ) ||
-            fileType === "application/javascript" ||
-            fileType === "application/typescript" ||
-            fileType === "application/json"
-
-        const isText = fileType.startsWith("text/") || !!fileName.match(/\.(md|mdx|txt)$/) || isCode
-
-        return { isImage, isCode, isText }
+        return getFileTypeInfo(uploadedFile.fileName, fileType)
     }
 
     const getFileIcon = (uploadedFile: ExtendedUploadedFile) => {
@@ -316,7 +338,10 @@ export function MultimodalInput({
                         })
                         setDialogOpen(true)
                     }}
-                    className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border-2 border-border bg-secondary/50 transition-colors hover:bg-secondary/80"
+                    className={cn(
+                        "relative flex h-12 items-center justify-center overflow-hidden rounded-lg border-2 border-border bg-secondary/50 transition-colors hover:bg-secondary/80",
+                        isImage && "w-12"
+                    )}
                 >
                     {content && isImage ? (
                         <img
@@ -325,8 +350,16 @@ export function MultimodalInput({
                             className="h-full w-full rounded-md object-cover"
                         />
                     ) : (
-                        <div className="flex items-center justify-center">
+                        <div className="flex items-center justify-center gap-2 px-2 font-medium text-sm">
                             {getFileIcon(uploadedFile)}
+                            <div className="flex flex-col items-start">
+                                <span className="truncate text-ellipsis">
+                                    {uploadedFile.fileName}
+                                </span>
+                                <span className="text-muted-foreground text-xs">
+                                    {formatFileSize(uploadedFile.fileSize)}
+                                </span>
+                            </div>
                         </div>
                     )}
                 </button>
@@ -350,17 +383,12 @@ export function MultimodalInput({
     const renderDialogContent = () => {
         if (!dialogFile) return null
 
-        const isImage = dialogFile.fileType.startsWith("image/")
-        const isText =
-            dialogFile.fileType.startsWith("text/") ||
-            !!dialogFile.fileName
-                .toLowerCase()
-                .match(
-                    /\.(md|mdx|txt|js|jsx|ts|tsx|py|java|c|cpp|go|rs|php|rb|swift|kt|dart|vue|svelte|css|scss|html|xml|json|yaml|yml)$/
-                )
+        const fileTypeInfo = getFileTypeInfo(dialogFile.fileName, dialogFile.fileType)
+        const isImage = fileTypeInfo.isImage
+        const isText = fileTypeInfo.isText
 
         return (
-            <div className="max-h-[70vh] overflow-auto">
+            <div className="max-h-[70vh] w-full overflow-auto">
                 {isImage ? (
                     <img
                         src={dialogFile.content}
@@ -474,7 +502,7 @@ export function MultimodalInput({
                                         onChange={handleFileChange}
                                         className="hidden"
                                         ref={uploadInputRef}
-                                        accept="image/*,.txt,.md,.mdx,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.go,.rs,.php,.rb,.swift,.kt,.dart,.vue,.svelte,.css,.scss,.html,.xml,.json,.yaml,.yml"
+                                        accept={getFileAcceptAttribute(modelSupportsVision)}
                                     />
                                     {uploading ? (
                                         <Loader2 className="size-4 animate-spin text-foreground" />
@@ -541,7 +569,7 @@ export function MultimodalInput({
                     }
                 }}
             >
-                <DialogContent className="max-h-[90vh] max-w-4xl">
+                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90vh] max-w-full">
                     {dialogFile && (
                         <>
                             <DialogHeader>

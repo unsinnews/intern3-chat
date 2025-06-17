@@ -2,9 +2,10 @@ import type { useChatIntegration } from "@/hooks/use-chat-integration"
 import { browserEnv } from "@/lib/browser-env"
 import { useChatStore } from "@/lib/chat-store"
 import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
+import { getFileTypeInfo } from "@/lib/file_constants"
 import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
-import { Code, FileType, Image as ImageIcon, RotateCcw } from "lucide-react"
+import { Code, FileType, FileType2, Image as ImageIcon, RotateCcw } from "lucide-react"
 import { memo, useState } from "react"
 import { StickToBottom } from "use-stick-to-bottom"
 import { ChatActions } from "./chat-actions"
@@ -15,35 +16,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Loader } from "./ui/loader"
 import { Textarea } from "./ui/textarea"
 
-const getFileType = (part: { data: string; filename?: string; mimeType?: string }): {
-    isImage: boolean
-    isCode: boolean
-    isText: boolean
-} => {
-    const fileName = part.filename?.toLowerCase() || ""
-    const mimeType = part.mimeType || ""
-
-    const isImage =
-        mimeType.startsWith("image/") || !!fileName.match(/\.(png|jpg|jpeg|gif|svg|webp|bmp|ico)$/)
-
-    const isCode =
-        !!fileName.match(
-            /\.(js|jsx|ts|tsx|py|java|c|cpp|go|rs|php|rb|swift|kt|dart|vue|svelte|css|scss|html|xml|json|yaml|yml)$/
-        ) ||
-        mimeType === "application/javascript" ||
-        mimeType === "application/typescript" ||
-        mimeType === "application/json"
-
-    const isText = mimeType.startsWith("text/") || !!fileName.match(/\.(md|mdx|txt)$/) || isCode
-
-    return { isImage, isCode, isText }
+const extractFileName = (data: string) => {
+    const _extract = data.startsWith("attachments/") ? (data.split("/").pop() ?? "") : ""
+    return _extract.length > 51 ? _extract.slice(51) : _extract
 }
 
 const getFileIcon = (part: { data: string; filename?: string; mimeType?: string }) => {
-    const { isImage, isCode } = getFileType(part)
+    const { isImage, isCode, isPdf } = getFileTypeInfo(extractFileName(part.data), part.mimeType)
 
     if (isImage) return <ImageIcon className="size-4 text-blue-500" />
     if (isCode) return <Code className="size-4 text-green-500" />
+    if (isPdf) return <FileType2 className="size-4 text-gray-500" />
     return <FileType className="size-4 text-gray-500" />
 }
 
@@ -55,8 +38,11 @@ const FileAttachment = memo(
         part: { data: string; filename?: string; mimeType?: string }
         onPreview?: () => void
     }) => {
-        const { isImage } = getFileType(part)
-        const fileName = part.filename || "Unknown file"
+        const { isImage } = getFileTypeInfo(extractFileName(part.data), part.mimeType)
+
+        const extractedFileName = extractFileName(part.data)
+
+        const fileName = part.filename || extractedFileName
         const [imageError, setImageError] = useState(false)
 
         const handleInteraction = () => {
@@ -108,9 +94,6 @@ const FileAttachment = memo(
                         tabIndex={onPreview ? 0 : -1}
                         role={onPreview ? "button" : undefined}
                     />
-                    {fileName !== "Unknown file" && (
-                        <p className="mt-1 text-muted-foreground text-xs">{fileName}</p>
-                    )}
                 </div>
             )
         }
@@ -256,6 +239,7 @@ export function Messages({
         useChatStore()
     const { chatWidthState } = useChatWidthStore()
 
+    const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
     const [previewFile, setPreviewFile] = useState<{
         data: string
         filename?: string
@@ -282,17 +266,19 @@ export function Messages({
 
     const handleFilePreview = (part: { data: string; filename?: string; mimeType?: string }) => {
         setPreviewFile(part)
+        setPreviewDialogOpen(true)
     }
+
+    const fileName = previewFile?.filename || extractFileName(previewFile?.data || "")
 
     const renderFilePreview = () => {
         if (!previewFile) return null
 
-        const { isImage } = getFileType(previewFile)
-        const fileName = previewFile.filename || "Unknown file"
+        const { isImage, isText, isPdf } = getFileTypeInfo(fileName, previewFile.mimeType)
 
         return (
-            <div className="max-h-[70vh] overflow-auto">
-                {isImage ? (
+            <div className="max-h-full overflow-auto">
+                {isImage && (
                     <img
                         src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${previewFile.data}`}
                         alt={fileName}
@@ -304,22 +290,14 @@ export function Messages({
                             if (errorDiv) errorDiv.style.display = "flex"
                         }}
                     />
-                ) : (
-                    <div className="rounded bg-muted p-4 text-sm">
-                        <p className="text-muted-foreground">File content preview not supported</p>
-                        <p className="font-medium">{fileName}</p>
-                    </div>
                 )}
-                {isImage && (
-                    <div className="hidden items-center justify-center p-8 text-destructive">
-                        <div className="text-center">
-                            <ImageIcon className="mx-auto mb-2 size-12 text-destructive/70" />
-                            <p className="font-medium">Image unavailable</p>
-                            <p className="mt-1 text-muted-foreground text-sm">
-                                File may have been deleted: {fileName}
-                            </p>
-                        </div>
-                    </div>
+
+                {(isText || isPdf) && (
+                    <iframe
+                        src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${previewFile.data}`}
+                        className="h-[69vh] w-full rounded border-0"
+                        title={fileName}
+                    />
                 )}
             </div>
         )
@@ -456,20 +434,21 @@ export function Messages({
             </StickToBottom.Content>
 
             <Dialog
-                open={!!previewFile}
+                open={previewDialogOpen}
                 onOpenChange={(open) => {
+                    setPreviewDialogOpen(open)
                     if (!open) {
-                        setTimeout(() => setPreviewFile(null), 150)
+                        setTimeout(() => setPreviewFile(null), 100)
                     }
                 }}
             >
-                <DialogContent className="max-h-[90vh] max-w-4xl">
+                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90vh]">
                     {previewFile && (
                         <>
                             <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">
                                     {getFileIcon(previewFile)}
-                                    {previewFile.filename || "Unknown file"}
+                                    {fileName || "Unknown file"}
                                 </DialogTitle>
                             </DialogHeader>
                             {renderFilePreview()}
