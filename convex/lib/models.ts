@@ -129,7 +129,17 @@ export const MODELS_SHARED: SharedModel[] = [
         adapters: [
             "i3-google:gemini-2.5-flash",
             "google:gemini-2.5-flash",
-            "openrouter:google/gemini-2.5-flash-preview"
+            "openrouter:google/gemini-2.5-flash"
+        ],
+        abilities: ["function_calling", "reasoning"]
+    },
+    {
+        id: "gemini-2.5-flash-lite",
+        name: "Gemini 2.5 Flash Lite",
+        adapters: [
+            "i3-google:gemini-2.5-flash-lite-preview-06-17",
+            "google:gemini-2.5-flash-lite-preview-06-17",
+            "openrouter:google/gemini-2.5-flash-lite-preview-06-17"
         ],
         abilities: ["function_calling", "reasoning"]
     },
@@ -146,10 +156,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gemini-2.5-pro",
         name: "Gemini 2.5 Pro",
-        adapters: [
-            "google:gemini-2.5-pro-preview-06-05",
-            "openrouter:google/gemini-2.5-pro-preview"
-        ],
+        adapters: ["google:gemini-2.5-pro", "openrouter:google/gemini-2.5-pro"],
         abilities: ["reasoning", "vision", "function_calling"]
     }
 ] as const
