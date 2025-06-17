@@ -33,3 +33,4 @@ yarn-error.log*
 .tanstack
 yarn.lock
 .vercel
+.env.local

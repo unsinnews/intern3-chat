@@ -24,6 +24,7 @@ import { Route as SettingsAiOptionsRouteImport } from './routes/settings/ai-opti
 import { Route as AuthPathnameRouteImport } from './routes/auth/$pathname'
 import { Route as ChatThreadThreadIdRouteImport } from './routes/_chat.thread.$threadId'
 import { Route as ChatSSharedThreadIdRouteImport } from './routes/_chat.s.$sharedThreadId'
+import { ServerRoute as ApiPhrSplatServerRouteImport } from './routes/api/phr/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
 const rootServerRouteImport = createServerRootRoute()
@@ -91,6 +92,11 @@ const ChatSSharedThreadIdRoute = ChatSSharedThreadIdRouteImport.update({
   id: '/s/$sharedThreadId',
   path: '/s/$sharedThreadId',
   getParentRoute: () => ChatRoute,
+} as any)
+const ApiPhrSplatServerRoute = ApiPhrSplatServerRouteImport.update({
+  id: '/api/phr/$',
+  path: '/api/phr/$',
+  getParentRoute: () => rootServerRouteImport,
 } as any)
 const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
   id: '/api/auth/$',
@@ -196,24 +202,28 @@ export interface RootRouteChildren {
 }
 export interface FileServerRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatServerRoute
+  '/api/phr/$': typeof ApiPhrSplatServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatServerRoute
+  '/api/phr/$': typeof ApiPhrSplatServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/auth/$': typeof ApiAuthSplatServerRoute
+  '/api/phr/$': typeof ApiPhrSplatServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/auth/$'
+  fullPaths: '/api/auth/$' | '/api/phr/$'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/auth/$'
-  id: '__root__' | '/api/auth/$'
+  to: '/api/auth/$' | '/api/phr/$'
+  id: '__root__' | '/api/auth/$' | '/api/phr/$'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
   ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
+  ApiPhrSplatServerRoute: typeof ApiPhrSplatServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -313,6 +323,13 @@ declare module '@tanstack/react-router' {
 }
 declare module '@tanstack/react-start/server' {
   interface ServerFileRoutesByPath {
+    '/api/phr/$': {
+      id: '/api/phr/$'
+      path: '/api/phr/$'
+      fullPath: '/api/phr/$'
+      preLoaderRoute: typeof ApiPhrSplatServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -370,6 +387,7 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
+  ApiPhrSplatServerRoute: ApiPhrSplatServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport
   ._addFileChildren(rootServerRouteChildren)

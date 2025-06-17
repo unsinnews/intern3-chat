@@ -5,6 +5,7 @@ import { AuthQueryProvider } from "@daveyplate/better-auth-tanstack"
 import { AuthUIProviderTanstack } from "@daveyplate/better-auth-ui/tanstack"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Link, useRouter } from "@tanstack/react-router"
+import { PostHogProvider } from "posthog-js/react"
 import { type ReactNode, useEffect } from "react"
 import { Toaster } from "sonner"
 import { browserEnv } from "./lib/browser-env"
@@ -38,20 +39,29 @@ export function Providers({
 
     return (
         <QueryClientProvider client={queryClient}>
-            <AuthQueryProvider>
-                <ThemeProvider>
-                    <AuthUIProviderTanstack
-                        authClient={authClient}
-                        navigate={(href) => router.navigate({ href })}
-                        replace={(href) => router.navigate({ href, replace: true })}
-                        Link={({ href, ...props }) => <Link to={href} {...props} />}
-                    >
-                        {children}
+            <PostHogProvider
+                apiKey={browserEnv("VITE_POSTHOG_KEY")}
+                options={{
+                    api_host: "/api/phr",
+                    capture_exceptions: true,
+                    debug: import.meta.env.MODE === "development"
+                }}
+            >
+                <AuthQueryProvider>
+                    <ThemeProvider>
+                        <AuthUIProviderTanstack
+                            authClient={authClient}
+                            navigate={(href) => router.navigate({ href })}
+                            replace={(href) => router.navigate({ href, replace: true })}
+                            Link={({ href, ...props }) => <Link to={href} {...props} />}
+                        >
+                            {children}
 
-                        <Toaster />
-                    </AuthUIProviderTanstack>
-                </ThemeProvider>
-            </AuthQueryProvider>
+                            <Toaster />
+                        </AuthUIProviderTanstack>
+                    </ThemeProvider>
+                </AuthQueryProvider>
+            </PostHogProvider>
         </QueryClientProvider>
     )
 }
