@@ -9,6 +9,7 @@ import { memo, useState } from "react"
 import { StickToBottom } from "use-stick-to-bottom"
 import { ChatActions } from "./chat-actions"
 import { MemoizedMarkdown } from "./memoized-markdown"
+import { Reasoning, ReasoningContent, ReasoningTrigger } from "./reasoning"
 import { WebSearchToolRenderer } from "./renderers/web-search-ui"
 import { Button } from "./ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -141,12 +142,14 @@ const PartsRenderer = memo(
         part,
         markdown,
         id,
-        onFilePreview
+        onFilePreview,
+        isStreaming
     }: {
         part: UIMessage["parts"][number]
         markdown: boolean
         id: string
         onFilePreview?: (part: { data: string; filename?: string; mimeType?: string }) => void
+        isStreaming?: boolean
     }) => {
         switch (part.type) {
             case "text":
@@ -159,18 +162,24 @@ const PartsRenderer = memo(
                         ))}
                     </div>
                 )
-            case "reasoning":
-                return markdown ? (
-                    <div className="prose prose-p:my-0 prose-pre:my-2 prose-ul:my-2 prose-li:mt-1 mb-12 prose-li:mb-0 max-w-none rounded-lg border bg-muted/50 prose-pre:bg-transparent p-4 prose-pre:p-0 font-claude-message prose-headings:font-semibold prose-strong:font-medium prose-pre:text-foreground leading-[1.65rem] [&>div>div>:is(p,blockquote,h1,h2,h3,h4,h5,h6)]:pl-2 [&>div>div>:is(p,blockquote,ul,ol,h1,h2,h3,h4,h5,h6)]:pr-8 [&_.ignore-pre-bg>div]:bg-transparent [&_pre>div]:border-0.5 [&_pre>div]:border-border [&_pre>div]:bg-background">
-                        <MemoizedMarkdown content={part.reasoning} id={id} />
-                    </div>
-                ) : (
-                    <div className="rounded-lg border bg-muted/50 p-4">
-                        {part.reasoning.split("\n").map((line, index) => (
-                            <div key={index}>{line}</div>
-                        ))}
-                    </div>
+            case "reasoning": {
+                const hasReasoningContent = part.reasoning && part.reasoning.trim() !== ""
+                const isReasoningStreaming =
+                    isStreaming && (!hasReasoningContent || part.reasoning.endsWith(""))
+
+                return (
+                    <Reasoning className="mb-12" isStreaming={isReasoningStreaming}>
+                        <ReasoningTrigger className="mb-4">Reasoning</ReasoningTrigger>
+                        <ReasoningContent
+                            markdown={markdown}
+                            className="rounded-lg border bg-muted/50"
+                            contentClassName="prose prose-p:my-0 prose-pre:my-2 prose-ul:my-2 prose-li:mt-1 prose-li:mb-0 max-w-none prose-pre:bg-transparent p-4 prose-pre:p-0 font-claude-message prose-headings:font-semibold prose-strong:font-medium prose-pre:text-foreground leading-[1.65rem] [&>div>div>:is(p,blockquote,h1,h2,h3,h4,h5,h6)]:pl-2 [&>div>div>:is(p,blockquote,ul,ol,h1,h2,h3,h4,h5,h6)]:pr-8 [&_.ignore-pre-bg>div]:bg-transparent [&_pre>div]:border-0.5 [&_pre>div]:border-border [&_pre>div]:bg-background"
+                        >
+                            {hasReasoningContent ? part.reasoning : ""}
+                        </ReasoningContent>
+                    </Reasoning>
                 )
+            }
             case "tool-invocation":
                 if (part.toolInvocation.toolName === "web_search")
                     return <WebSearchToolRenderer toolInvocation={part.toolInvocation} />
@@ -381,6 +390,10 @@ export function Messages({
                                                         markdown={message.role === "assistant"}
                                                         id={`${message.id}-text-${index}`}
                                                         onFilePreview={handleFilePreview}
+                                                        isStreaming={
+                                                            status === "streaming" &&
+                                                            message === lastMessage
+                                                        }
                                                     />
                                                 ))}
                                         </div>
@@ -396,6 +409,10 @@ export function Messages({
                                                             markdown={message.role === "assistant"}
                                                             id={`${message.id}-file-${index}`}
                                                             onFilePreview={handleFilePreview}
+                                                            isStreaming={
+                                                                status === "streaming" &&
+                                                                message === lastMessage
+                                                            }
                                                         />
                                                     ))}
                                             </div>
