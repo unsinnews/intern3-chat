@@ -252,11 +252,9 @@ export function Messages({
                         </div>
                     )}
 
-                    {showTypingLoader && (
-                        <div className="flex items-center gap-2 py-4">
-                            <Loader variant="typing" size="md" />
-                        </div>
-                    )}
+                    <div className="flex min-h-[3rem] items-center gap-2 py-4">
+                        {showTypingLoader && <Loader variant="typing" size="md" />}
+                    </div>
                 </div>
             </div>
         </StickToBottom.Content>
