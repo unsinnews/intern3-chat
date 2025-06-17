@@ -70,7 +70,7 @@ export function MultimodalInput({
         }
 
         promptInputRef.current?.clear()
-        localStorage.setItem("user-input", inputValue)
+        localStorage.removeItem("user-input")
         onSubmit(inputValue, uploadedFiles)
     }
 
