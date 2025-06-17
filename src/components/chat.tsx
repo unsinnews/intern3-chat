@@ -1,5 +1,6 @@
 import { Messages } from "@/components/messages"
 import { MODELS_SHARED } from "@/convex/lib/models"
+import { useSession } from "@/hooks/auth-hooks"
 import { useChatActions } from "@/hooks/use-chat-actions"
 import { useChatDataProcessor } from "@/hooks/use-chat-data-processor"
 import { useChatIntegration } from "@/hooks/use-chat-integration"
@@ -8,6 +9,7 @@ import { useThreadSync } from "@/hooks/use-thread-sync"
 import type { UploadedFile } from "@/lib/chat-store"
 // import { useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
+import { AnimatePresence, motion } from "motion/react"
 import { useMemo } from "react"
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom"
 import { MultimodalInput } from "./multimodal-input"
@@ -22,6 +24,7 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
     const { threadId } = useThreadSync({ routeThreadId })
     const { scrollToBottom } = useStickToBottomContext()
     // const { setTargetFromMessageId } = useChatStore()
+    const { data: session } = useSession()
 
     useDynamicTitle({ threadId })
 
@@ -46,6 +49,9 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
         scrollToBottom({ animation: "instant" })
     }
 
+    const isEmpty = !threadId && messages.length === 0
+    const userName = session?.user?.name
+
     return (
         <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
             <Messages
@@ -54,10 +60,56 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                 onEditAndRetry={handleEditAndRetry}
                 status={status}
             />
-            <div className="-bottom-[3.875rem] md:-bottom-10 absolute right-0 left-0 z-[10] flex flex-col items-center justify-center gap-2">
-                <StickToBottomButton />
-                <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
-            </div>
+
+            <AnimatePresence mode="sync">
+                {isEmpty ? (
+                    <motion.div
+                        key="centered-input"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="absolute inset-0 flex flex-col items-center justify-center"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="mb-8 text-center"
+                        >
+                            <h1 className="font-medium text-2xl text-foreground">
+                                {userName
+                                    ? `How can I help you, ${userName?.split(" ")[0]}?`
+                                    : "How can I help you?"}
+                            </h1>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                            className="w-full max-w-4xl px-4"
+                        >
+                            <MultimodalInput
+                                onSubmit={handleInputSubmitWithScroll}
+                                status={status}
+                            />
+                        </motion.div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="bottom-input"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="-bottom-[3.875rem] md:-bottom-10 absolute right-0 left-0 z-[10] flex flex-col items-center justify-center gap-2"
+                    >
+                        <StickToBottomButton />
+                        <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
