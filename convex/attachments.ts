@@ -105,9 +105,32 @@ export const getFileMetadata = query({
 export const deleteFile = mutation({
     args: { key: v.string() },
     handler: async (ctx, args) => {
-        // TODO: Implement file deletion once R2 delete method is confirmed
-        console.log("Delete file requested for key:", args.key)
-        return { success: false, error: "Delete functionality not yet implemented" }
+        try {
+            // Delete file from R2 storage
+            await ctx.runMutation(components.r2.lib.deleteObject, {
+                key: args.key,
+                bucket: process.env.R2_BUCKET!,
+                endpoint: process.env.R2_ENDPOINT!,
+                accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+                secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+                forcePathStyle: process.env.R2_FORCE_PATH_STYLE || "false"
+            })
+
+            // Also delete metadata
+            await ctx.runMutation(components.r2.lib.deleteMetadata, {
+                key: args.key,
+                bucket: process.env.R2_BUCKET!
+            })
+
+            console.log("Successfully deleted file:", args.key)
+            return { success: true }
+        } catch (error) {
+            console.error("Error deleting file:", error)
+            return {
+                success: false,
+                error: `Failed to delete file: ${error instanceof Error ? error.message : "Unknown error"}`
+            }
+        }
     }
 })
 
