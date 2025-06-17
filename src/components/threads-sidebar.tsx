@@ -27,6 +27,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem
 } from "@/components/ui/sidebar"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
@@ -34,9 +35,10 @@ import { authClient } from "@/lib/auth-client"
 import { useDiskCachedPaginatedQuery } from "@/lib/convex-cached-query"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
+import { ArrowBigUp, Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -228,6 +230,7 @@ export function ThreadsSidebar() {
     const [commandKOpen, setCommandKOpen] = useState(false)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const { data: session } = authClient.useSession()
+    const navigate = useNavigate()
 
     const {
         results: threads,
@@ -259,6 +262,19 @@ export function ThreadsSidebar() {
     const groupedThreads = useMemo(() => {
         return groupThreadsByTime(threadsData)
     }, [threadsData])
+
+    // Keyboard shortcut for new chat (Cmd+Shift+O)
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.metaKey && event.shiftKey && event.key.toLowerCase() === "o") {
+                event.preventDefault()
+                navigate({ to: "/" })
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown)
+        return () => document.removeEventListener("keydown", handleKeyDown)
+    }, [navigate])
 
     useEffect(() => {
         const container = scrollContainerRef.current
@@ -343,12 +359,28 @@ export function ThreadsSidebar() {
                     </div>
                 </div>
                 <div className="h-px w-full bg-border" />
-                <Link
-                    to="/"
-                    className={cn(buttonVariants({ variant: "default" }), "w-full justify-center")}
-                >
-                    New Chat
-                </Link>
+                <Tooltip>
+                    <TooltipTrigger>
+                        <Link
+                            to="/"
+                            className={cn(
+                                buttonVariants({ variant: "default" }),
+                                "w-full justify-center"
+                            )}
+                        >
+                            New Chat
+                        </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                        <div className="flex items-center gap-1">
+                            <span className="w-3.5 text-sm">
+                                <ArrowBigUp className="size-4" />
+                            </span>
+                            <span className="text-sm">⌘</span>
+                            <span className="text-sm">O</span>
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
                 <Button onClick={() => setCommandKOpen(true)} variant="outline">
                     <Search className="h-4 w-4" />
                     Search chats
