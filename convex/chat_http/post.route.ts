@@ -140,7 +140,9 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 abortSignal: remoteCancel.signal,
                 experimental_transform: smoothStream(),
                 toolCallStreaming: true,
-                tools: getToolkit(ctx, body.enabledTools, settings),
+                tools: modelData.abilities.includes("function_calling")
+                    ? getToolkit(ctx, body.enabledTools, settings)
+                    : undefined,
                 messages: [
                     {
                         role: "system",

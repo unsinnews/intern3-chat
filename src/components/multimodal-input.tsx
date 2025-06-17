@@ -74,15 +74,24 @@ export function MultimodalInput({
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
 
     // Check if current model supports vision
-    const modelSupportsVision = useMemo(() => {
-        if (!selectedModel) return false
+    const [modelSupportsVision, modelSupportsFunctionCalling] = useMemo(() => {
+        if (!selectedModel) return [false, false]
         const model = MODELS_SHARED.find((m) => m.id === selectedModel)
-        return model?.abilities.includes("vision") ?? false
+        return [
+            model?.abilities.includes("vision") ?? false,
+            model?.abilities.includes("function_calling") ?? false
+        ]
     }, [selectedModel])
 
     useEffect(() => {
         setExtendedFiles(uploadedFiles.map((file) => ({ ...file })))
     }, [uploadedFiles])
+
+    useEffect(() => {
+        if (!modelSupportsFunctionCalling && enabledTools.includes("web_search")) {
+            setEnabledTools(enabledTools.filter((tool) => tool !== "web_search"))
+        }
+    }, [modelSupportsFunctionCalling, enabledTools, setEnabledTools])
 
     const handleSubmit = async () => {
         const inputValue = promptInputRef.current?.getValue() || ""
@@ -512,25 +521,36 @@ export function MultimodalInput({
                                 </Button>
                             </PromptInputAction>
 
-                            <PromptInputAction tooltip="Search the web">
+                            <PromptInputAction
+                                tooltip={
+                                    modelSupportsFunctionCalling
+                                        ? "Search the web"
+                                        : "Current model doesn't support function calling"
+                                }
+                            >
                                 <Button
                                     type="button"
                                     variant={
                                         enabledTools.includes("web_search") ? "default" : "ghost"
                                     }
+                                    disabled={!modelSupportsFunctionCalling}
                                     onClick={() => {
-                                        setEnabledTools(
-                                            enabledTools.includes("web_search")
-                                                ? enabledTools.filter(
-                                                      (tool) => tool !== "web_search"
-                                                  )
-                                                : [...enabledTools, "web_search"]
-                                        )
+                                        if (modelSupportsFunctionCalling) {
+                                            setEnabledTools(
+                                                enabledTools.includes("web_search")
+                                                    ? enabledTools.filter(
+                                                          (tool) => tool !== "web_search"
+                                                      )
+                                                    : [...enabledTools, "web_search"]
+                                            )
+                                        }
                                     }}
                                     className={cn(
                                         "size-8 shrink-0",
                                         !enabledTools.includes("web_search") &&
-                                            "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
+                                            "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
+                                        !modelSupportsFunctionCalling &&
+                                            "cursor-not-allowed opacity-50"
                                     )}
                                 >
                                     <Globe className="size-4" />
