@@ -310,6 +310,11 @@
         @apply bg-background text-foreground;
     }
 
+    ::selection {
+        background-color: var(--primary);
+        color: var(--primary-foreground);
+    }
+
     ::-webkit-scrollbar {
         width: 0.5rem;
         scrollbar-width: thin;
