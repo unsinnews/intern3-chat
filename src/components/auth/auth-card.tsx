@@ -24,7 +24,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { AtlassianIcon, GithubIcon, GoogleIcon } from "../brand-icons"
+import { GithubIcon, GoogleIcon, TwitchIcon } from "../brand-icons"
 
 const emailSchema = z.object({
     email: z.string().email({
@@ -151,7 +151,7 @@ export function AuthCard() {
     })
 
     const socialSignInMutation = useMutation({
-        mutationFn: async (provider: "google" | "github" | "atlassian") => {
+        mutationFn: async (provider: "google" | "github" | "twitch") => {
             return await authClient.signIn.social({
                 provider
             })
@@ -265,15 +265,15 @@ export function AuthCard() {
                                         <Button
                                             variant="outline"
                                             className="h-10 w-full gap-2"
-                                            onClick={() => socialSignInMutation.mutate("atlassian")}
+                                            onClick={() => socialSignInMutation.mutate("twitch")}
                                             disabled={socialSignInMutation.isPending}
                                         >
                                             {socialSignInMutation.isPending ? (
                                                 <Loader2 className="size-4 shrink-0 animate-spin" />
                                             ) : (
-                                                <AtlassianIcon className="size-4 shrink-0" />
+                                                <TwitchIcon className="size-5 shrink-0" />
                                             )}
-                                            Continue with Atlassian
+                                            Continue with Twitch
                                         </Button>
                                     </motion.div>
 

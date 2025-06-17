@@ -48,35 +48,19 @@ export function GithubIcon(props: SVGProps<SVGSVGElement>) {
     )
 }
 
-export function AtlassianIcon(props: SVGProps<SVGSVGElement>) {
+export function TwitchIcon(props: SVGProps<SVGSVGElement>) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="1em"
             height="1em"
-            viewBox="0 0 256 256"
+            viewBox="0 0 24 24"
             {...props}
         >
-            {/* Icon from SVG Logos by Gil Barbara - https://raw.githubusercontent.com/gilbarbara/logos/master/LICENSE.txt */}
-            <defs>
-                <linearGradient
-                    id="logosAtlassian0"
-                    x1="99.687%"
-                    x2="39.836%"
-                    y1="15.801%"
-                    y2="97.438%"
-                >
-                    <stop offset="0%" stopColor="#0052CC" />
-                    <stop offset="92.3%" stopColor="#2684FF" />
-                </linearGradient>
-            </defs>
+            {/* Icon from Material Design Icons by Pictogrammers - https://github.com/Templarian/MaterialDesign/blob/master/LICENSE */}
             <path
-                fill="url(#logosAtlassian0)"
-                d="M75.793 117.95c-3.82-4.08-9.77-3.85-12.367 1.342L.791 244.565a7.488 7.488 0 0 0 6.697 10.838h87.228a7.22 7.22 0 0 0 6.699-4.14c18.808-38.89 7.413-98.018-25.622-133.314"
-            />
-            <path
-                fill="#2681FF"
-                d="M121.756 4.011c-35.033 55.505-32.721 116.979-9.646 163.13l42.06 84.121a7.49 7.49 0 0 0 6.697 4.14h87.227a7.488 7.488 0 0 0 6.697-10.838S137.445 9.837 134.493 3.964c-2.64-5.258-9.344-5.33-12.737.047"
+                fill="currentColor"
+                d="M11.64 5.93h1.43v4.28h-1.43m3.93-4.28H17v4.28h-1.43M7 2L3.43 5.57v12.86h4.28V22l3.58-3.57h2.85L20.57 12V2m-1.43 9.29l-2.85 2.85h-2.86l-2.5 2.5v-2.5H7.71V3.43h11.43Z"
             />
         </svg>
     )

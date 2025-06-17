@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { emailOTP, genericOAuth } from "better-auth/plugins"
+import { emailOTP } from "better-auth/plugins"
 
 import { db } from "@/database/db"
 import * as schema from "@/database/schema"
@@ -8,6 +8,8 @@ import { jwt } from "better-auth/plugins/jwt"
 import { sendOTPEmail } from "./email"
 
 export const auth = betterAuth({
+    baseURL:
+        process.env.NODE_ENV === "production" ? "https://intern3.chat" : "http://localhost:3000",
     database: drizzleAdapter(db, {
         provider: "pg",
         usePlural: true,
@@ -21,23 +23,13 @@ export const auth = betterAuth({
         github: {
             clientId: process.env.GITHUB_CLIENT_ID || "",
             clientSecret: process.env.GITHUB_CLIENT_SECRET || ""
+        },
+        twitch: {
+            clientId: process.env.TWITCH_CLIENT_ID as string,
+            clientSecret: process.env.TWITCH_CLIENT_SECRET as string
         }
     },
     plugins: [
-        genericOAuth({
-            config: [
-                {
-                    providerId: "twitch",
-                    clientId: process.env.TWITCH_CLIENT_ID as string,
-                    clientSecret: process.env.TWITCH_CLIENT_SECRET as string,
-
-                    authorizationUrl: "https://id.twitch.tv/oauth2/authorize",
-                    tokenUrl: "https://id.twitch.tv/oauth2/token",
-                    redirectURI: "https://intern3.chat/api/auth/oauth2/callback/twitch",
-                    scopes: ["user:read:email"]
-                }
-            ]
-        }),
         emailOTP({
             async sendVerificationOTP({ email, otp, type }) {
                 await sendOTPEmail({ email, otp, type })
