@@ -27,6 +27,7 @@ import {
     X
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
 interface ExtendedUploadedFile extends UploadedFile {
     file?: File
@@ -170,7 +171,7 @@ export function MultimodalInput({
                     uploadInputRef.current.value = ""
                 }
             } catch (error) {
-                console.error("Upload failed:", error)
+                toast.error(error instanceof Error ? error.message : "Upload failed")
             } finally {
                 setUploading(false)
             }
