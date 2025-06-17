@@ -296,14 +296,23 @@ export function ThreadsSidebar() {
         handleScroll() // Initial check
         container.addEventListener("scroll", handleScroll)
 
+        // Watch for container size changes
         const resizeObserver = new ResizeObserver(handleScroll)
         resizeObserver.observe(container)
+
+        // Watch for DOM content changes (threads added/removed)
+        const mutationObserver = new MutationObserver(handleScroll)
+        mutationObserver.observe(container, {
+            childList: true,
+            subtree: true
+        })
 
         return () => {
             container.removeEventListener("scroll", handleScroll)
             resizeObserver.disconnect()
+            mutationObserver.disconnect()
         }
-    }, [threadsData])
+    }, [])
 
     const renderContent = () => {
         if (!isAuthenticated) {
