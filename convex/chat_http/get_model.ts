@@ -37,7 +37,6 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
 
     let finalModel: LanguageModelV1 | ImageModelV1 | undefined = undefined
 
-    console.log(model)
     for (const adapter of sortedAdapters) {
         const providerIdRaw = model.customProviderId ?? adapter.split(":")[0]
         const providerSpecificModelId = model.customProviderId ? model.id : adapter.split(":")[1]

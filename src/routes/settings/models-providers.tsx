@@ -1239,7 +1239,7 @@ function ModelsProvidersSettings() {
                     <Card className="p-4 shadow-xs">
                         <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3">
-                                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                                <div className="flex size-8 items-center justify-center rounded-lg">
                                     <Logo />
                                 </div>
                                 <div>
