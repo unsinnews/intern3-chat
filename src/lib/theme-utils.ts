@@ -93,10 +93,9 @@ export function extractThemeColors(preset: ThemePreset, mode: "light" | "dark"):
     const modeVars = mode === "light" ? light : dark
 
     const colorKeys = [
-        "foreground",
         "primary",
-        "secondary",
         "accent",
+        "secondary",
         "background",
         "muted",
         "destructive",
