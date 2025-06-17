@@ -3,10 +3,11 @@ import type { GenericActionCtx } from "convex/server"
 import type { Infer } from "convex/values"
 import type { DataModel } from "../_generated/dataModel"
 import type { UserSettings } from "../schema/settings"
-import { SupermemoryTools } from "./tools/supermemory"
-import { WebSearchTool } from "./tools/web_search"
+import { SupermemoryAdapter } from "./tools/supermemory"
+import { WebSearchAdapter } from "./tools/web_search"
 
-export const TOOL_ADAPTERS = [WebSearchTool, SupermemoryTools]
+export type ToolAdapter = (params: ConditionalToolParams) => Partial<Record<string, Tool>>
+export const TOOL_ADAPTERS = [WebSearchAdapter, SupermemoryAdapter]
 export const ABILITIES = ["web_search", "supermemory"]
 export type AbilityId = (typeof ABILITIES)[number]
 
@@ -21,9 +22,16 @@ export const getToolkit = (
     enabledTools: AbilityId[],
     userSettings: Infer<typeof UserSettings>
 ) => {
-    const tools = TOOL_ADAPTERS.map((adapter) => [
-        adapter.id,
-        adapter.build({ ctx, enabledTools, userSettings })
-    ]).filter(([_, tool]) => tool !== undefined)
-    return Object.fromEntries(tools) as Record<string, Tool>
+    const toolResults = TOOL_ADAPTERS.map((adapter) => adapter({ ctx, enabledTools, userSettings }))
+
+    const tools: Record<string, Tool> = {}
+    for (const toolResult of toolResults) {
+        for (const [key, value] of Object.entries(toolResult)) {
+            if (value) {
+                tools[key] = value
+            }
+        }
+    }
+
+    return tools
 }

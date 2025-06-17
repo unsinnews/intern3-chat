@@ -1,16 +1,15 @@
 import { tool } from "ai"
 import { z } from "zod"
-import type { ConditionalToolParams } from "../toolkit"
+import type { ToolAdapter } from "../toolkit"
 import { SearchProvider } from "./adapters"
 
-export const WebSearchTool = {
-    id: "web_search" as const,
-    build(params: ConditionalToolParams) {
-        if (!params.enabledTools.includes("web_search")) return
+export const WebSearchAdapter: ToolAdapter = (params) => {
+    if (!params.enabledTools.includes("web_search")) return {}
 
-        const { userSettings } = params
+    const { userSettings } = params
 
-        return tool({
+    return {
+        web_search: tool({
             description:
                 "Search the web for information. Optionally scrape content from results for detailed information.",
             parameters: z.object({

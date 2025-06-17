@@ -88,6 +88,10 @@ export const chatPOST = httpAction(async (ctx, req) => {
         userId: user.id
     })
 
+    if (settings.supermemory?.enabled) {
+        body.enabledTools.push("supermemory")
+    }
+
     // Track token usage
     const totalTokenUsage = {
         promptTokens: 0,
@@ -135,6 +139,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 maxSteps: 100,
                 abortSignal: remoteCancel.signal,
                 experimental_transform: smoothStream(),
+                toolCallStreaming: true,
                 tools: getToolkit(ctx, body.enabledTools, settings),
                 messages: [
                     {
