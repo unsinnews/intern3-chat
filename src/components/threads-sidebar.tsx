@@ -373,7 +373,7 @@ export function ThreadsSidebar() {
         <Sidebar variant="inset">
             <SidebarHeader className="mt-1 gap-3">
                 <div className="flex items-center justify-between">
-                    <div className="cursor-default select-none font-medium text-sidebar-foreground text-xl">
+                    <div className="cursor-default select-none font-semibold text-sidebar-foreground text-xl tracking-tighter">
                         intern3.chat
                     </div>
                 </div>
