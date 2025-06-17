@@ -15,14 +15,14 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "../ui/dropdown-menu"
 import { Input } from "../ui/input"
+import {
+    ResponsivePopover,
+    ResponsivePopoverContent,
+    ResponsivePopoverTrigger
+} from "../ui/responsive-popover"
 import { ScrollArea } from "../ui/scroll-area"
+import { Separator } from "../ui/separator"
 import { ImportThemeDialog } from "./import-theme-dialog"
 
 const THEME_URLS = [
@@ -234,8 +234,8 @@ export function ThemeSwitcher() {
                     <span className="sr-only">Toggle mode</span>
                 </Button>
 
-                <DropdownMenu modal={false}>
-                    <DropdownMenuTrigger asChild>
+                <ResponsivePopover modal={false}>
+                    <ResponsivePopoverTrigger asChild>
                         <Button
                             variant="outline"
                             size="icon"
@@ -243,24 +243,19 @@ export function ThemeSwitcher() {
                         >
                             <PaintBucketIcon className="h-3.5 w-3.5" />
                         </Button>
-                    </DropdownMenuTrigger>
+                    </ResponsivePopoverTrigger>
 
-                    <DropdownMenuContent
+                    <ResponsivePopoverContent
                         align="end"
-                        className="w-80"
-                        onCloseAutoFocus={(e) => e.preventDefault()}
+                        className="w-full p-0 md:w-80"
+                        title="Theme Selector"
+                        description="Choose a theme for your interface"
                     >
-                        {/* Header */}
-                        <div className="px-3 py-2">
-                            <h3 className="font-medium text-sm">Theme Selector</h3>
-                            <p className="text-muted-foreground text-xs">
-                                Choose a theme for your interface
-                            </p>
-                        </div>
-                        <DropdownMenuSeparator />
+                        {/* Note: Title and description are already in ResponsivePopoverContent */}
+                        <Separator className="hidden md:block" />
 
                         {/* Search Input */}
-                        <div>
+                        <div className="hidden p-2 md:block">
                             <div className="relative">
                                 <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 transform text-muted-foreground" />
                                 <Input
@@ -271,7 +266,7 @@ export function ThemeSwitcher() {
                                 />
                             </div>
                         </div>
-                        <DropdownMenuSeparator />
+                        <Separator />
 
                         {/* Theme Count and Controls */}
                         <div className="flex items-center justify-between px-3 py-2">
@@ -307,7 +302,7 @@ export function ThemeSwitcher() {
                                 </Button>
                             </div>
                         </div>
-                        <DropdownMenuSeparator />
+                        <Separator />
 
                         {/* Themes List */}
                         <ScrollArea className="h-80">
@@ -318,7 +313,7 @@ export function ThemeSwitcher() {
                                         Loading themes...
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 gap-2">
+                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-1 ">
                                         {filteredThemes.map((theme) => {
                                             const isSelected = selectedThemeUrl === theme.url
                                             const colors =
@@ -343,7 +338,7 @@ export function ThemeSwitcher() {
                                                         }
                                                     }}
                                                     className={cn(
-                                                        "w-full cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:scale-[1.02] hover:shadow-md",
+                                                        "w-full cursor-pointer overflow-hidden rounded-lg border transition-all duration-200 hover:shadow-md sm:hover:scale-[1.02] ",
                                                         isSelected
                                                             ? "border-primary shadow-sm ring-2 ring-primary/20"
                                                             : "border-border hover:border-primary/50",
@@ -396,7 +391,7 @@ export function ThemeSwitcher() {
                             </div>
                         </ScrollArea>
 
-                        <DropdownMenuSeparator />
+                        <Separator />
 
                         {/* Footer */}
                         <div className="flex items-center justify-center gap-1 p-3 text-muted-foreground text-sm">
@@ -411,8 +406,8 @@ export function ThemeSwitcher() {
                                 <ExternalLinkIcon className="ml-1 size-3" />
                             </a>
                         </div>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    </ResponsivePopoverContent>
+                </ResponsivePopover>
             </div>
         </>
     )

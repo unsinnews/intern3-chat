@@ -82,6 +82,7 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteRouteWithChildren
+  '': typeof ChatRouteWithChildren
   '/auth/$pathname': typeof AuthPathnameRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/models-providers': typeof SettingsModelsProvidersRoute
@@ -119,6 +120,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/settings'
+    | ''
     | '/auth/$pathname'
     | '/settings/appearance'
     | '/settings/models-providers'

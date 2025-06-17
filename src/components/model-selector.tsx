@@ -11,11 +11,16 @@ import {
     CommandItem,
     CommandList
 } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+    ResponsivePopover,
+    ResponsivePopoverContent,
+    ResponsivePopoverTrigger
+} from "@/components/ui/responsive-popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { api } from "@/convex/_generated/api"
 import type { SharedModel } from "@/convex/lib/models"
 import { useSession } from "@/hooks/auth-hooks"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { type DisplayModel, useAvailableModels } from "@/routes/settings/models-providers"
 import { useConvexQuery } from "@convex-dev/react-query"
@@ -166,6 +171,7 @@ export function ModelSelector({
             return acc
         }, {})
     )
+    const isMobile = useIsMobile()
 
     // React.useEffect(() => {
     //     const down = (e: KeyboardEvent) => {
@@ -180,23 +186,28 @@ export function ModelSelector({
     // }, [])
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
+        <ResponsivePopover open={open} onOpenChange={setOpen}>
+            <ResponsivePopoverTrigger asChild>
                 <Button
                     variant="ghost"
                     aria-expanded={open}
                     className={cn(
-                        "gap-2 rounded-md border border-accent bg-secondary/70 font-normal backdrop-blur-lg",
+                        "h-8 gap-2 border border-accent bg-secondary/70 font-normal text-xs backdrop-blur-lg sm:text-sm md:rounded-md",
                         className
                     )}
                 >
                     <span>{selectedModelData?.name}</span>
                     <ChevronDown className="ml-auto h-4 w-4" />
                 </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
-                <Command>
-                    <CommandInput placeholder="Search models..." className="h-9" />
+            </ResponsivePopoverTrigger>
+            <ResponsivePopoverContent
+                className="p-0"
+                align="start"
+                title="Select Model"
+                description="Choose a model for your conversation"
+            >
+                <Command className="rounded-none md:rounded-md">
+                    {!isMobile && <CommandInput placeholder="Search models..." className="h-8" />}
                     <CommandList>
                         <CommandEmpty>No model found.</CommandEmpty>
                         <ScrollArea className="h-[300px]">
@@ -244,7 +255,7 @@ export function ModelSelector({
                         </ScrollArea>
                     </CommandList>
                 </Command>
-            </PopoverContent>
-        </Popover>
+            </ResponsivePopoverContent>
+        </ResponsivePopover>
     )
 }

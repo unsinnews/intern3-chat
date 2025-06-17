@@ -54,7 +54,7 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                 onEditAndRetry={handleEditAndRetry}
                 status={status}
             />
-            <div className="-bottom-10 absolute right-0 left-0 z-[10] flex flex-col items-center justify-center gap-2">
+            <div className="-bottom-[3.875rem] md:-bottom-10 absolute right-0 left-0 z-[10] flex flex-col items-center justify-center gap-2">
                 <StickToBottomButton />
                 <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
             </div>

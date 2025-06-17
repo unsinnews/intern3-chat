@@ -1,7 +1,11 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses"
 import { render } from "@react-email/render"
 import { Resend } from "resend"
-import { EmailVerificationTemplate, PasswordResetTemplate } from "./email-templates"
+import {
+    EmailVerificationTemplate,
+    OTPEmailTemplate,
+    PasswordResetTemplate
+} from "./email-templates"
 
 // Email provider types
 type EmailProvider = "resend" | "ses"
@@ -195,6 +199,61 @@ class EmailService {
             text: `Hi ${data.user.name || ""},\n\nYou can reset your password by clicking this link: ${data.url}\n\nIf you didn't request a password reset, you can safely ignore this email.`
         })
     }
+
+    async sendOTPEmail(data: {
+        email: string
+        otp: string
+        type: "sign-in" | "email-verification" | "forget-password"
+    }) {
+        const getSubjectAndTemplate = async () => {
+            switch (data.type) {
+                case "sign-in":
+                    return {
+                        subject: "Your sign-in code - Intern3 Chat",
+                        html: await render(
+                            OTPEmailTemplate({
+                                otp: data.otp,
+                                type: "sign-in"
+                            })
+                        ),
+                        text: `Your sign-in code for Intern3 Chat is: ${data.otp}\n\nThis code will expire in 5 minutes.`
+                    }
+                case "email-verification":
+                    return {
+                        subject: "Verify your email - Intern3 Chat",
+                        html: await render(
+                            OTPEmailTemplate({
+                                otp: data.otp,
+                                type: "email-verification"
+                            })
+                        ),
+                        text: `Your email verification code for Intern3 Chat is: ${data.otp}\n\nThis code will expire in 5 minutes.`
+                    }
+                case "forget-password":
+                    return {
+                        subject: "Reset your password - Intern3 Chat",
+                        html: await render(
+                            OTPEmailTemplate({
+                                otp: data.otp,
+                                type: "forget-password"
+                            })
+                        ),
+                        text: `Your password reset code for Intern3 Chat is: ${data.otp}\n\nThis code will expire in 5 minutes.`
+                    }
+            }
+        }
+
+        const { subject, html, text } = await getSubjectAndTemplate()
+
+        console.debug(`Sending ${data.type} OTP email to ${data.email} with code: ${data.otp}`)
+
+        await this.sendEmail({
+            to: data.email,
+            subject,
+            html,
+            text
+        })
+    }
 }
 
 // Export singleton instance
@@ -204,3 +263,4 @@ export const emailService = new EmailService()
 export const sendEmail = emailService.sendEmail.bind(emailService)
 export const sendVerificationEmail = emailService.sendVerificationEmail.bind(emailService)
 export const sendPasswordResetEmail = emailService.sendPasswordResetEmail.bind(emailService)
+export const sendOTPEmail = emailService.sendOTPEmail.bind(emailService)

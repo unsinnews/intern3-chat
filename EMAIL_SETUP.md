@@ -1,6 +1,6 @@
 # Email Configuration
 
-This project supports email functionality for authentication (email verification and password reset) using either [Resend](https://resend.com) or [AWS SES](https://aws.amazon.com/ses/).
+This project uses email OTP (One-Time Password) authentication and supports email functionality using either [Resend](https://resend.com) or [AWS SES](https://aws.amazon.com/ses/).
 
 ## Environment Variables
 
@@ -66,12 +66,13 @@ AWS_SECRET_ACCESS_KEY=your_secret_access_key
 
 ## Email Templates
 
-The project includes two email templates:
+The project includes OTP email templates for:
 
-- **Email Verification**: Sent when users sign up and need to verify their email
-- **Password Reset**: Sent when users request a password reset
+- **Sign-In OTP**: Sent when users sign in with their email address
+- **Email Verification OTP**: Sent when users need to verify their email
+- **Password Reset OTP**: Sent when users request a password reset
 
-Both templates are built with [React Email](https://react.email/) and render as clean, responsive HTML emails with plain text fallbacks.
+All templates are built with [React Email](https://react.email/) and render as clean, responsive HTML emails with plain text fallbacks. OTP codes are displayed prominently with a 6-digit format and expire after 5 minutes.
 
 ## Testing
 
@@ -79,8 +80,10 @@ To test email functionality:
 
 1. Set up your environment variables
 2. Run the application in development mode
-3. Try signing up with a new account or requesting a password reset
-4. Check your email service's logs/dashboard to confirm emails are being sent
+3. Try signing in with your email address
+4. Check your inbox for the 6-digit OTP code
+5. Enter the code within 5 minutes to complete sign-in
+6. Check your email service's logs/dashboard to confirm emails are being sent
 
 ## Troubleshooting
 
