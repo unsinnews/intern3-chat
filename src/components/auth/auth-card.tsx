@@ -229,7 +229,7 @@ export function AuthCard() {
                                     duration: 0.4
                                 }}
                             >
-                                <CardContent className="grid gap-6 pb-6">
+                                <CardContent className="grid gap-6">
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -361,7 +361,7 @@ export function AuthCard() {
                             >
                                 <Form {...otpForm}>
                                     <form onSubmit={otpForm.handleSubmit(onOTPSubmit)}>
-                                        <CardContent className="grid gap-6 pb-6">
+                                        <CardContent className="grid gap-6">
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
@@ -473,7 +473,7 @@ export function AuthCard() {
                             >
                                 <Form {...nameForm}>
                                     <form onSubmit={nameForm.handleSubmit(onNameSubmit)}>
-                                        <CardContent className="grid gap-6 pb-6">
+                                        <CardContent className="flex flex-col gap-6">
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
