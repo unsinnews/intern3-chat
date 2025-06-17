@@ -64,7 +64,7 @@ export const ChatActions = memo(
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 border bg-background/80 text-primary shadow-sm backdrop-blur-sm hover:bg-accent"
+                                className="h-7 w-7 border bg-background/80 text-foreground shadow-sm backdrop-blur-sm hover:bg-accent hover:text-primary"
                                 onClick={() => onRetry(message)}
                             >
                                 <RotateCcw className="h-3.5 w-3.5" />
@@ -82,7 +82,7 @@ export const ChatActions = memo(
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 border bg-background/80 text-primary shadow-sm backdrop-blur-sm hover:bg-accent"
+                                className="h-7 w-7 border bg-background/80 text-foreground shadow-sm backdrop-blur-sm hover:bg-accent hover:text-primary"
                                 onClick={() => onEdit(message)}
                             >
                                 <Edit3 className="h-3.5 w-3.5" />
@@ -99,7 +99,7 @@ export const ChatActions = memo(
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 border bg-background/80 text-primary shadow-sm backdrop-blur-sm hover:bg-accent"
+                            className="h-7 w-7 border bg-background/80 text-foreground shadow-sm backdrop-blur-sm hover:bg-accent hover:text-primary"
                             onClick={handleCopy}
                         >
                             <div className="relative">
@@ -109,7 +109,7 @@ export const ChatActions = memo(
                                     }`}
                                 />
                                 <Check
-                                    className={`absolute inset-0 h-3.5 w-3.5 text-primary transition-all duration-200 ${
+                                    className={`absolute inset-0 h-3.5 w-3.5 transition-all duration-200 ${
                                         copied ? "scale-100 opacity-100" : "scale-75 opacity-0"
                                     }`}
                                 />
