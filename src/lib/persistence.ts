@@ -3,7 +3,8 @@ import { z } from "zod"
 
 const AIConfigSchema = z.object({
     selectedModel: z.string().nullable(),
-    enabledTools: z.array(z.enum(ABILITIES as [string, ...string[]])).default(["web_search"])
+    enabledTools: z.array(z.enum(ABILITIES as [string, ...string[]])).default(["web_search"]),
+    selectedImageSize: z.string().optional().default("1:1")
 })
 
 export type AIConfig = z.infer<typeof AIConfigSchema>
@@ -19,10 +20,11 @@ const safeRemoveItem = (key: string): void => {
 }
 
 export const loadAIConfig = (): AIConfig => {
-    if (typeof window === "undefined") return { selectedModel: null, enabledTools: ["web_search"] }
+    if (typeof window === "undefined")
+        return { selectedModel: null, enabledTools: ["web_search"], selectedImageSize: "1:1" }
     const stored = localStorage.getItem(AI_CONFIG_KEY)
     if (!stored) {
-        return { selectedModel: null, enabledTools: ["web_search"] }
+        return { selectedModel: null, enabledTools: ["web_search"], selectedImageSize: "1:1" }
     }
 
     try {
@@ -36,7 +38,7 @@ export const loadAIConfig = (): AIConfig => {
         return AIConfigSchema.parse(parsed)
     } catch {
         safeRemoveItem(AI_CONFIG_KEY)
-        return { selectedModel: null, enabledTools: ["web_search"] }
+        return { selectedModel: null, enabledTools: ["web_search"], selectedImageSize: "1:1" }
     }
 }
 

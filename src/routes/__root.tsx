@@ -97,6 +97,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
                     content="oklch(0.145 0 0)"
                 />
 
+                <link rel="apple-touch-icon" href="apple-icon-180.png" />
+
+                <meta name="apple-mobile-web-app-capable" content="yes" />
                 {/* <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" /> */}
 
                 <HeadContent />

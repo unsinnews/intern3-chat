@@ -1,4 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic"
+import { createFal } from "@ai-sdk/fal"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { createOpenAI } from "@ai-sdk/openai"
 import type { ProviderV1 } from "@ai-sdk/provider"
@@ -6,7 +7,7 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 
 import type { ModelAbility } from "../schema/settings"
 
-export const CoreProviders = ["openai", "anthropic", "google"] as const
+export const CoreProviders = ["openai", "anthropic", "google", "fal"] as const
 export type CoreProvider = (typeof CoreProviders)[number]
 export type ModelDefinitionProviders =
     | CoreProvider // user BYOK key
@@ -16,6 +17,11 @@ export type ModelDefinitionProviders =
 export type RegistryKey = `${ModelDefinitionProviders | string}:${string}`
 export type Provider = RegistryKey extends `${infer P}:${string}` ? P : never
 
+export type BaseAspects = "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "2:3" | "3:2"
+export type BaseResolution = `${number}x${number}`
+export type AllAspects = (BaseAspects | `${BaseAspects}-hd`) & {}
+export type ImageSize = (AllAspects | BaseResolution) & {}
+
 export type SharedModel<Abilities extends ModelAbility[] = ModelAbility[]> = {
     id: string
     name: string
@@ -24,6 +30,8 @@ export type SharedModel<Abilities extends ModelAbility[] = ModelAbility[]> = {
     mode?: "text" | "image"
     contextLength?: number
     maxTokens?: number
+    supportedImageSizes?: ImageSize[]
+    customIcon?: "stability-ai" | "openai" | "bflabs" | "google"
 }
 
 export const MODELS_SHARED: SharedModel[] = [
@@ -158,11 +166,74 @@ export const MODELS_SHARED: SharedModel[] = [
         name: "Gemini 2.5 Pro",
         adapters: ["google:gemini-2.5-pro", "openrouter:google/gemini-2.5-pro"],
         abilities: ["reasoning", "vision", "function_calling", "pdf"]
+    },
+    // Image Generation Models
+    {
+        id: "gpt-image-1",
+        name: "GPT Image 1",
+        adapters: ["openai:gpt-image-1"],
+        abilities: [],
+        mode: "image",
+        supportedImageSizes: ["1024x1024", "1536x1024", "1024x1536"]
+    },
+    {
+        id: "sdxl-lightning",
+        name: "SDXL Lightning",
+        adapters: ["i3-fal:fal-ai/fast-lightning-sdxl", "fal:fal-ai/fast-lightning-sdxl"],
+        abilities: [],
+        mode: "image",
+        customIcon: "stability-ai",
+        supportedImageSizes: ["1:1", "1:1-hd", "3:4", "4:3", "9:16", "16:9"]
+    },
+    {
+        id: "flux-schnell",
+        name: "FLUX.1 [schnell]",
+        adapters: ["i3-fal:fal-ai/flux/schnell", "fal:fal-ai/flux/schnell"],
+        abilities: [],
+        mode: "image",
+        customIcon: "bflabs",
+        supportedImageSizes: ["1:1", "1:1-hd", "3:4", "4:3", "9:16", "16:9"]
+    },
+    {
+        id: "flux-dev",
+        name: "FLUX.1 [dev]",
+        adapters: ["fal:fal-ai/flux/dev"],
+        abilities: [],
+        mode: "image",
+        customIcon: "bflabs",
+        supportedImageSizes: ["1:1", "1:1-hd", "3:4", "4:3", "9:16", "16:9"]
+    },
+    {
+        id: "google-imagen-3-fast",
+        name: "Google Imagen 3 (Fast)",
+        adapters: ["fal:fal-ai/imagen3/fast"],
+        abilities: [],
+        mode: "image",
+        customIcon: "google",
+        supportedImageSizes: ["1:1-hd", "16:9-hd", "9:16-hd", "3:4-hd", "4:3-hd"]
+    },
+    {
+        id: "google-imagen-3",
+        name: "Google Imagen 3",
+        adapters: ["fal:fal-ai/imagen3"],
+        abilities: [],
+        mode: "image",
+        customIcon: "google",
+        supportedImageSizes: ["1:1-hd", "16:9-hd", "9:16-hd", "3:4-hd", "4:3-hd"]
+    },
+    {
+        id: "google-imagen-4",
+        name: "Google Imagen 4",
+        adapters: ["fal:fal-ai/imagen4/preview"],
+        abilities: [],
+        mode: "image",
+        customIcon: "google",
+        supportedImageSizes: ["1:1-hd", "16:9-hd", "9:16-hd", "3:4-hd", "4:3-hd"]
     }
 ] as const
 
 export const createProvider = (
-    providerId: CoreProvider | "openrouter",
+    providerId: CoreProvider | "openrouter" | "fal",
     apiKey: string | "internal"
 ): Omit<ProviderV1, "textEmbeddingModel"> => {
     if (apiKey !== "internal" && (!apiKey || apiKey.trim() === "")) {
@@ -186,6 +257,10 @@ export const createProvider = (
         case "openrouter":
             return createOpenRouter({
                 apiKey
+            })
+        case "fal":
+            return createFal({
+                apiKey: apiKey === "internal" ? process.env.FAL_API_KEY : apiKey
             })
         default: {
             const exhaustiveCheck: never = providerId

@@ -8,7 +8,14 @@ import {
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { MODELS_SHARED } from "@/convex/lib/models"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select"
+import { type ImageSize, MODELS_SHARED } from "@/convex/lib/models"
 import { useToken } from "@/hooks/auth-hooks"
 import { browserEnv } from "@/lib/browser-env"
 import { type UploadedFile, useChatStore } from "@/lib/chat-store"
@@ -46,6 +53,66 @@ interface ExtendedUploadedFile extends UploadedFile {
     file?: File
 }
 
+const AspectRatioSelector = ({ selectedModel }: { selectedModel: string | null }) => {
+    const { selectedImageSize, setSelectedImageSize } = useModelStore()
+
+    const supportedImageSizes = useMemo(() => {
+        if (!selectedModel) return []
+        const model = MODELS_SHARED.find((m) => m.id === selectedModel)
+        return model?.supportedImageSizes || []
+    }, [selectedModel])
+
+    // Auto-select a valid image size when the model changes
+    useEffect(() => {
+        if (supportedImageSizes.length > 0) {
+            // Check if current selection is supported
+            if (!supportedImageSizes.includes(selectedImageSize)) {
+                // Try "1:1" first, otherwise pick the first supported size
+                const defaultSize = supportedImageSizes.includes("1:1" as ImageSize)
+                    ? ("1:1" as ImageSize)
+                    : supportedImageSizes[0]
+                setSelectedImageSize(defaultSize)
+            }
+        }
+    }, [supportedImageSizes, selectedImageSize, setSelectedImageSize])
+
+    const formatImageSizeForDisplay = (size: string) => {
+        // Convert resolution format (1024x1024) to aspect ratio (1:1)
+        if (size.includes("x")) {
+            const [width, height] = size.split("x").map(Number)
+            const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b))
+            const divisor = gcd(width, height)
+            return `${width / divisor}:${height / divisor}`
+        }
+
+        // Handle HD variants
+        if (size.endsWith("-hd")) {
+            return size.replace("-hd", " (HD)")
+        }
+
+        return size
+    }
+
+    if (supportedImageSizes.length === 0) return null
+
+    return (
+        <PromptInputAction tooltip="Select aspect ratio">
+            <Select value={selectedImageSize} onValueChange={setSelectedImageSize}>
+                <SelectTrigger className="h-8 w-auto min-w-[80px] border border-accent bg-secondary/70 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    {supportedImageSizes.map((size) => (
+                        <SelectItem key={size} value={size} className="text-xs sm:text-sm">
+                            {formatImageSizeForDisplay(size)}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </PromptInputAction>
+    )
+}
+
 export function MultimodalInput({
     onSubmit,
     status
@@ -73,13 +140,14 @@ export function MultimodalInput({
     const [dialogOpen, setDialogOpen] = useState(false)
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
 
-    // Check if current model supports vision
-    const [modelSupportsVision, modelSupportsFunctionCalling] = useMemo(() => {
-        if (!selectedModel) return [false, false]
+    // Check if current model supports vision and is image model
+    const [modelSupportsVision, modelSupportsFunctionCalling, isImageModel] = useMemo(() => {
+        if (!selectedModel) return [false, false, false]
         const model = MODELS_SHARED.find((m) => m.id === selectedModel)
         return [
             model?.abilities.includes("vision") ?? false,
-            model?.abilities.includes("function_calling") ?? false
+            model?.abilities.includes("function_calling") ?? false,
+            model?.mode === "image"
         ]
     }, [selectedModel])
 
@@ -475,7 +543,14 @@ export function MultimodalInput({
                             {extendedFiles.map(renderFilePreview)}
                         </div>
                     )}
-                    <PromptInputTextarea autoFocus placeholder="Ask me anything..." />
+                    <PromptInputTextarea
+                        autoFocus
+                        placeholder={
+                            isImageModel
+                                ? "Describe the image you want to generate..."
+                                : "Ask me anything..."
+                        }
+                    />
 
                     <PromptInputActions className="flex items-center justify-between gap-2 pt-2">
                         <div className="flex items-center gap-2">
@@ -496,66 +571,74 @@ export function MultimodalInput({
                                 />
                             )}
 
-                            <PromptInputAction tooltip="Attach files">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={() => uploadInputRef.current?.click()}
-                                    className={cn(
-                                        "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
-                                    )}
-                                >
-                                    <input
-                                        type="file"
-                                        multiple
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                        ref={uploadInputRef}
-                                        accept={getFileAcceptAttribute(modelSupportsVision)}
-                                    />
-                                    {uploading ? (
-                                        <Loader2 className="size-4 animate-spin text-foreground" />
-                                    ) : (
-                                        <Paperclip className="-rotate-45 size-4 text-foreground" />
-                                    )}
-                                </Button>
-                            </PromptInputAction>
+                            {isImageModel ? (
+                                <AspectRatioSelector selectedModel={selectedModel} />
+                            ) : (
+                                <>
+                                    <PromptInputAction tooltip="Attach files">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => uploadInputRef.current?.click()}
+                                            className={cn(
+                                                "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
+                                            )}
+                                        >
+                                            <input
+                                                type="file"
+                                                multiple
+                                                onChange={handleFileChange}
+                                                className="hidden"
+                                                ref={uploadInputRef}
+                                                accept={getFileAcceptAttribute(modelSupportsVision)}
+                                            />
+                                            {uploading ? (
+                                                <Loader2 className="size-4 animate-spin text-foreground" />
+                                            ) : (
+                                                <Paperclip className="-rotate-45 size-4 text-foreground" />
+                                            )}
+                                        </Button>
+                                    </PromptInputAction>
 
-                            <PromptInputAction
-                                tooltip={
-                                    modelSupportsFunctionCalling
-                                        ? "Search the web"
-                                        : "Current model doesn't support function calling"
-                                }
-                            >
-                                <Button
-                                    type="button"
-                                    variant={
-                                        enabledTools.includes("web_search") ? "default" : "ghost"
-                                    }
-                                    disabled={!modelSupportsFunctionCalling}
-                                    onClick={() => {
-                                        if (modelSupportsFunctionCalling) {
-                                            setEnabledTools(
-                                                enabledTools.includes("web_search")
-                                                    ? enabledTools.filter(
-                                                          (tool) => tool !== "web_search"
-                                                      )
-                                                    : [...enabledTools, "web_search"]
-                                            )
+                                    <PromptInputAction
+                                        tooltip={
+                                            modelSupportsFunctionCalling
+                                                ? "Search the web"
+                                                : "Current model doesn't support function calling"
                                         }
-                                    }}
-                                    className={cn(
-                                        "size-8 shrink-0",
-                                        !enabledTools.includes("web_search") &&
-                                            "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
-                                        !modelSupportsFunctionCalling &&
-                                            "cursor-not-allowed opacity-50"
-                                    )}
-                                >
-                                    <Globe className="size-4" />
-                                </Button>
-                            </PromptInputAction>
+                                    >
+                                        <Button
+                                            type="button"
+                                            variant={
+                                                enabledTools.includes("web_search")
+                                                    ? "default"
+                                                    : "ghost"
+                                            }
+                                            disabled={!modelSupportsFunctionCalling}
+                                            onClick={() => {
+                                                if (modelSupportsFunctionCalling) {
+                                                    setEnabledTools(
+                                                        enabledTools.includes("web_search")
+                                                            ? enabledTools.filter(
+                                                                  (tool) => tool !== "web_search"
+                                                              )
+                                                            : [...enabledTools, "web_search"]
+                                                    )
+                                                }
+                                            }}
+                                            className={cn(
+                                                "size-8 shrink-0",
+                                                !enabledTools.includes("web_search") &&
+                                                    "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
+                                                !modelSupportsFunctionCalling &&
+                                                    "cursor-not-allowed opacity-50"
+                                            )}
+                                        >
+                                            <Globe className="size-4" />
+                                        </Button>
+                                    </PromptInputAction>
+                                </>
+                            )}
                         </div>
 
                         <PromptInputAction tooltip={isLoading ? "Stop generation" : "Send message"}>

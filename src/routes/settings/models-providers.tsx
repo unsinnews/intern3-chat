@@ -69,6 +69,7 @@ export type DisplayModel =
           abilities: ModelAbility[]
           isCustom: true
           providerId: string
+          mode?: "text" | "image"
       }
 
 export function useAvailableModels(userSettings: Infer<typeof UserSettings> | undefined) {

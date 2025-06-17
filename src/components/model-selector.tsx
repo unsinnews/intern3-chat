@@ -24,8 +24,9 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { type DisplayModel, useAvailableModels } from "@/routes/settings/models-providers"
 import { useConvexQuery } from "@convex-dev/react-query"
-import { Brain, Check, ChevronDown, Eye, Globe } from "lucide-react"
+import { Brain, Check, ChevronDown, Eye, Globe, Image } from "lucide-react"
 import * as React from "react"
+import { BlackForestLabsIcon, StabilityIcon } from "./brand-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
 interface ModelItemProps {
@@ -52,9 +53,9 @@ const ModelItem = React.memo(function ModelItem({
         const sharedModel = model as SharedModel
         if (sharedModel.adapters) {
             const firstAdapter = sharedModel.adapters[0]
-            const provider = firstAdapter?.split(":")[0]
+            const icon = sharedModel.customIcon ?? firstAdapter?.split(":")[0]
 
-            switch (provider) {
+            switch (icon) {
                 case "i3-openai":
                 case "openai":
                     return <OpenAI />
@@ -64,6 +65,10 @@ const ModelItem = React.memo(function ModelItem({
                 case "i3-google":
                 case "google":
                     return <Gemini />
+                case "bflabs":
+                    return <BlackForestLabsIcon />
+                case "stability-ai":
+                    return <StabilityIcon />
                 default:
                     return <Badge className="text-xs">Built-in</Badge>
             }
@@ -101,6 +106,15 @@ const ModelItem = React.memo(function ModelItem({
                         <TooltipContent>Web Search</TooltipContent>
                     </Tooltip>
                 )
+            case "image_generation":
+                return (
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Image className={className} />
+                        </TooltipTrigger>
+                        <TooltipContent>Image Generation</TooltipContent>
+                    </Tooltip>
+                )
         }
     }
 
@@ -122,6 +136,11 @@ const ModelItem = React.memo(function ModelItem({
                 {model.id === selectedModel && <Check className="size-4" />}
             </span>
             <div className="ml-auto flex gap-2">
+                {model.mode === "image" &&
+                    abilityRenderer(
+                        "image_generation",
+                        "bg-accent text-accent-foreground p-1 rounded-md size-5"
+                    )}
                 {model.abilities.sort().map((ability) => (
                     <div key={ability} className="flex items-center justify-center rounded-full">
                         {abilityRenderer(
@@ -201,7 +220,7 @@ export function ModelSelector({
                 </Button>
             </ResponsivePopoverTrigger>
             <ResponsivePopoverContent
-                className="p-0"
+                className="p-0 md:w-76"
                 align="start"
                 title="Select Model"
                 description="Choose a model for your conversation"

@@ -64,12 +64,6 @@ export const chatPOST = httpAction(async (ctx, req) => {
     const modelData = await getModel(ctx, body.model)
     if (modelData instanceof ChatError) return modelData.toResponse()
     const { model, modelName } = modelData
-    if (model.modelType === "image") {
-        return new ChatError(
-            "bad_request:api",
-            "Image models are not supported yet..."
-        ).toResponse()
-    }
 
     const mapped_messages = await dbMessagesToCore(dbMessages, modelData.abilities)
 
@@ -134,40 +128,46 @@ export const chatPOST = httpAction(async (ctx, req) => {
                 content: modelName
             })
 
-            const result = streamText({
-                model: model,
-                maxSteps: 100,
-                abortSignal: remoteCancel.signal,
-                experimental_transform: smoothStream(),
-                toolCallStreaming: true,
-                tools: modelData.abilities.includes("function_calling")
-                    ? getToolkit(ctx, body.enabledTools, settings)
-                    : undefined,
-                messages: [
-                    {
-                        role: "system",
-                        content: buildPrompt(body.enabledTools)
-                    },
-                    ...mapped_messages
-                ],
+            if (model.modelType === "image") {
+            } else {
+                const result = streamText({
+                    model: model,
+                    maxSteps: 100,
+                    abortSignal: remoteCancel.signal,
+                    experimental_transform: smoothStream(),
+                    toolCallStreaming: true,
+                    tools: modelData.abilities.includes("function_calling")
+                        ? getToolkit(ctx, body.enabledTools, settings)
+                        : undefined,
+                    messages: [
+                        {
+                            role: "system",
+                            content: buildPrompt(body.enabledTools)
+                        },
+                        ...mapped_messages
+                    ],
 
-                providerOptions: {
-                    google: {
-                        thinkingConfig: {
-                            includeThoughts: true
-                        }
-                    } satisfies GoogleGenerativeAIProviderOptions
-                }
-            })
+                    providerOptions: {
+                        google: {
+                            thinkingConfig: {
+                                includeThoughts: true
+                            }
+                        } satisfies GoogleGenerativeAIProviderOptions
+                    }
+                })
 
-            dataStream.merge(
-                result.fullStream.pipeThrough(
-                    manualStreamTransform(parts, totalTokenUsage, mutationResult.assistantMessageId)
+                dataStream.merge(
+                    result.fullStream.pipeThrough(
+                        manualStreamTransform(
+                            parts,
+                            totalTokenUsage,
+                            mutationResult.assistantMessageId
+                        )
+                    )
                 )
-            )
 
-            await result.consumeStream()
-
+                await result.consumeStream()
+            }
             remoteCancel.abort()
 
             await ctx.runMutation(internal.messages.patchMessage, {
