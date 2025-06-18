@@ -52,9 +52,35 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
             })
         }
 
+        // Determine appropriate filename extension based on MIME type
+        const getFilenameFromMimeType = (mimeType: string): string => {
+            if (mimeType.includes("mp4") || mimeType.includes("m4a")) {
+                return "audio.mp4"
+            }
+            if (mimeType.includes("webm")) {
+                return "audio.webm"
+            }
+            if (mimeType.includes("ogg")) {
+                return "audio.ogg"
+            }
+            if (mimeType.includes("wav")) {
+                return "audio.wav"
+            }
+            if (mimeType.includes("aac")) {
+                return "audio.aac"
+            }
+            // Default fallback - Whisper can handle most formats
+            return "audio.webm"
+        }
+
+        const filename = getFilenameFromMimeType(audioFile.type)
+        console.log(
+            `Transcribing audio: ${audioFile.size} bytes, type: ${audioFile.type}, filename: ${filename}`
+        )
+
         // Prepare form data for Groq API
         const groqFormData = new FormData()
-        groqFormData.append("file", audioFile, "audio.webm")
+        groqFormData.append("file", audioFile, filename)
         groqFormData.append("model", "whisper-large-v3-turbo")
         groqFormData.append("response_format", "json")
         groqFormData.append("temperature", "0")

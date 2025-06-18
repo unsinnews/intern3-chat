@@ -12,6 +12,8 @@ export interface VoiceRecorderState {
     isTranscribing: boolean
     recordingDuration: number
     audioLevel: number
+    waveformData: number[]
+    isVoiceActive: boolean
 }
 
 // Detect if we're on iOS Safari
@@ -98,7 +100,9 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
         isRecording: false,
         isTranscribing: false,
         recordingDuration: 0,
-        audioLevel: 0
+        audioLevel: 0,
+        waveformData: [],
+        isVoiceActive: false
     })
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -109,6 +113,12 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
     const durationIntervalRef = useRef<number | null>(null)
     const audioLevelIntervalRef = useRef<number | null>(null)
     const audioChunksRef = useRef<Blob[]>([])
+    const tokenRef = useRef<string | undefined>(undefined)
+
+    // Voice activity detection refs
+    const voiceActivityThreshold = 0.1 // Threshold for detecting voice activity
+    const isVoiceActiveRef = useRef<boolean>(false)
+    const voiceActivityTimeoutRef = useRef<number | null>(null)
 
     // Audio graph nodes - following the working kaliatech approach
     const micAudioStreamRef = useRef<MediaStream | null>(null)
@@ -117,16 +127,66 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
     const outputGainNodeRef = useRef<GainNode | null>(null)
     const destinationNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null)
 
+    // Keep token ref up to date
+    useEffect(() => {
+        tokenRef.current = token
+    }, [token])
+
     const updateAudioLevel = useCallback(() => {
         if (!analyserRef.current || !dataArrayRef.current) return
 
         try {
+            // Get frequency data for overall audio level
             analyserRef.current.getByteFrequencyData(dataArrayRef.current)
             const average =
                 dataArrayRef.current.reduce((a, b) => a + b) / dataArrayRef.current.length
             const normalizedLevel = average / 255
 
-            setState((prev) => ({ ...prev, audioLevel: normalizedLevel }))
+            // Get time domain data for actual waveform
+            const waveformArray = new Uint8Array(analyserRef.current.fftSize)
+            analyserRef.current.getByteTimeDomainData(waveformArray)
+
+            // Convert to normalized values (-1 to 1) and downsample for performance
+            const downsampleFactor = 4
+            const waveformData: number[] = []
+            for (let i = 0; i < waveformArray.length; i += downsampleFactor) {
+                const sample = (waveformArray[i] - 128) / 128
+                waveformData.push(sample)
+            }
+
+            // Voice activity detection
+            const isCurrentlyActive = normalizedLevel > voiceActivityThreshold
+
+            if (isCurrentlyActive !== isVoiceActiveRef.current) {
+                if (isCurrentlyActive) {
+                    console.log("🎤 Voice activity detected - started speaking")
+                    isVoiceActiveRef.current = true
+
+                    // Clear any existing timeout
+                    if (voiceActivityTimeoutRef.current) {
+                        clearTimeout(voiceActivityTimeoutRef.current)
+                        voiceActivityTimeoutRef.current = null
+                    }
+                } else {
+                    // Use a small delay before marking as inactive to avoid rapid on/off
+                    if (voiceActivityTimeoutRef.current) {
+                        clearTimeout(voiceActivityTimeoutRef.current)
+                    }
+
+                    voiceActivityTimeoutRef.current = window.setTimeout(() => {
+                        console.log("🔇 Voice activity ended - stopped speaking")
+                        isVoiceActiveRef.current = false
+                        setState((prev) => ({ ...prev, isVoiceActive: false }))
+                    }, 200) // 200ms delay
+                }
+            }
+
+            setState((prev) => ({
+                ...prev,
+                audioLevel: normalizedLevel,
+                waveformData,
+                isVoiceActive: isCurrentlyActive && isVoiceActiveRef.current
+            }))
         } catch (error) {
             // Silently fail if audio analysis fails (common on iOS)
             console.warn("Audio level analysis failed:", error)
@@ -137,7 +197,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
     const cleanupRecording = useCallback(() => {
         console.log("Cleaning up recording resources...")
 
-        // Clear intervals first
+        // Clear intervals and timeouts first
         if (durationIntervalRef.current) {
             clearInterval(durationIntervalRef.current)
             durationIntervalRef.current = null
@@ -146,6 +206,13 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             clearInterval(audioLevelIntervalRef.current)
             audioLevelIntervalRef.current = null
         }
+        if (voiceActivityTimeoutRef.current) {
+            clearTimeout(voiceActivityTimeoutRef.current)
+            voiceActivityTimeoutRef.current = null
+        }
+
+        // Reset voice activity state
+        isVoiceActiveRef.current = false
 
         // Disconnect and clean up audio graph nodes
         if (destinationNodeRef.current) {
@@ -379,7 +446,9 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 ...prev,
                 isRecording: true,
                 recordingDuration: 0,
-                audioLevel: 0
+                audioLevel: 0,
+                waveformData: [],
+                isVoiceActive: false
             }))
 
             // Start duration counter
@@ -429,7 +498,9 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 ...prev,
                 isRecording: false,
                 isTranscribing: true,
-                audioLevel: 0
+                audioLevel: 0,
+                waveformData: [],
+                isVoiceActive: false
             }))
 
             // Note: cleanup will happen in the onstop handler
@@ -445,14 +516,34 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                     )
                 }
 
-                console.log("Transcribing audio blob:", audioBlob.size, "bytes")
+                console.log(
+                    "Transcribing audio blob:",
+                    audioBlob.size,
+                    "bytes",
+                    "type:",
+                    audioBlob.type
+                )
+
+                // Debug: Download the recorded audio file for inspection
+                if (browserEnv("NODE_ENV") === "development") {
+                    const url = URL.createObjectURL(audioBlob)
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = `recording-${Date.now()}.${audioBlob.type.includes("mp4") || audioBlob.type.includes("m4a") ? "mp4" : audioBlob.type.includes("webm") ? "webm" : "audio"}`
+                    document.body.appendChild(a)
+                    a.click()
+                    document.body.removeChild(a)
+                    URL.revokeObjectURL(url)
+                    console.log("🎵 Debug: Downloaded recorded audio file for inspection")
+                }
+
                 const formData = new FormData()
                 formData.append("audio", audioBlob)
 
                 const response = await fetch(`${browserEnv("VITE_CONVEX_API_URL")}/transcribe`, {
                     method: "POST",
                     headers: {
-                        Authorization: `Bearer ${token}`
+                        Authorization: `Bearer ${tokenRef.current}`
                     },
                     body: formData
                 })
@@ -478,11 +569,13 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 setState((prev) => ({
                     ...prev,
                     isTranscribing: false,
-                    recordingDuration: 0
+                    recordingDuration: 0,
+                    waveformData: [],
+                    isVoiceActive: false
                 }))
             }
         },
-        [token, onTranscript]
+        [onTranscript]
     )
 
     const cancelRecording = useCallback(() => {
@@ -501,7 +594,9 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 isRecording: false,
                 isTranscribing: false,
                 recordingDuration: 0,
-                audioLevel: 0
+                audioLevel: 0,
+                waveformData: [],
+                isVoiceActive: false
             }))
         }
     }, [state.isRecording, cleanupRecording])
