@@ -1,5 +1,5 @@
-import { FolderView } from "@/components/folder-view"
 import { Messages } from "@/components/messages"
+import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { MODELS_SHARED } from "@/convex/lib/models"
 import { useSession } from "@/hooks/auth-hooks"
@@ -10,7 +10,10 @@ import { useDynamicTitle } from "@/hooks/use-dynamic-title"
 import { useThreadSync } from "@/hooks/use-thread-sync"
 import type { UploadedFile } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
+import { DEFAULT_PROJECT_ICON, getProjectColorClasses } from "@/lib/project-constants"
 import { useThemeStore } from "@/lib/theme-store"
+import { cn } from "@/lib/utils"
+import { useQuery } from "convex/react"
 import { AnimatePresence, motion } from "motion/react"
 import { useMemo } from "react"
 import { useStickToBottom } from "use-stick-to-bottom"
@@ -44,17 +47,8 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
         }
     }, [selectedModel, setSelectedModel])
 
-    // If we have a folderId, render the folder view
-    if (folderId) {
-        if (!session?.user) {
-            return (
-                <div className="relative flex h-[calc(100vh-64px)] items-center justify-center">
-                    <SignupMessagePrompt />
-                </div>
-            )
-        }
-        return <FolderView folderId={folderId} />
-    }
+    // Fetch project info if folderId is provided
+    const project = useQuery(api.projects.getProject, folderId ? { projectId: folderId } : "skip")
 
     const { status, data, messages } = useChatIntegration({
         threadId,
@@ -84,6 +78,59 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
         )
     }
 
+    // Create folder indicator component
+    const FolderIndicator = () => {
+        if (!folderId || !project) return null
+
+        const colorClasses = getProjectColorClasses(project.color as any)
+
+        return (
+            <div className="flex items-center justify-center gap-2 rounded-lg border bg-muted/50 px-3 py-2">
+                <div
+                    className={cn(
+                        "flex h-5 w-5 items-center justify-center rounded text-xs",
+                        colorClasses.split(" ").slice(1).join(" ")
+                    )}
+                >
+                    {project.icon || DEFAULT_PROJECT_ICON}
+                </div>
+                <span className="font-medium text-sm">{project.name}</span>
+            </div>
+        )
+    }
+
+    // Create folder hero section for empty state
+    const FolderHero = () => {
+        if (!folderId || !project) return null
+
+        const colorClasses = getProjectColorClasses(project.color as any)
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-8 w-full max-w-3xl text-left"
+            >
+                {/* Large folder icon */}
+                <div
+                    className={cn(
+                        "mb-6 flex h-16 w-16 items-center justify-center rounded-xl text-4xl",
+                        colorClasses.split(" ").slice(1).join(" ")
+                    )}
+                >
+                    {project.icon || DEFAULT_PROJECT_ICON}
+                </div>
+
+                {/* Folder name and description */}
+                <h1 className="mb-2 font-bold text-3xl text-foreground">{project.name}</h1>
+                {project.description && (
+                    <p className="max-w-md text-lg text-muted-foreground">{project.description}</p>
+                )}
+            </motion.div>
+        )
+    }
+
     return (
         <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
             <Messages
@@ -103,23 +150,30 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                        className="absolute inset-0 flex flex-col items-center justify-center"
+                        className={cn("absolute inset-0 flex flex-col items-center justify-center")}
                     >
-                        <div className="mb-6 size-16 rounded-full border-2 opacity-80">
-                            <Logo />
-                        </div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="mb-8 text-center"
-                        >
-                            <h1 className="px-4 font-medium text-3xl text-foreground">
-                                {userName
-                                    ? `What do you want to explore, ${userName?.split(" ")[0]}?`
-                                    : "What do you want to explore?"}
-                            </h1>
-                        </motion.div>
+                        {/* Show folder hero if in folder, otherwise show regular logo and greeting */}
+                        {folderId ? (
+                            <FolderHero />
+                        ) : (
+                            <>
+                                <div className="mb-6 size-16 rounded-full border-2 opacity-80">
+                                    <Logo />
+                                </div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="mb-8 text-center"
+                                >
+                                    <h1 className="px-4 font-medium text-3xl text-foreground">
+                                        {userName
+                                            ? `What do you want to explore, ${userName?.split(" ")[0]}?`
+                                            : "What do you want to explore?"}
+                                    </h1>
+                                </motion.div>
+                            </>
+                        )}
 
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -146,6 +200,16 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
                             isAtBottom={isAtBottom}
                             scrollToBottom={scrollToBottom}
                         />
+                        {/* Folder indicator above the input when there are messages */}
+                        {folderId && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <FolderIndicator />
+                            </motion.div>
+                        )}
                         <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
                     </motion.div>
                 )}
@@ -154,6 +218,6 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     )
 }
 
-export const Chat = ({ threadId }: ChatProps) => {
-    return <ChatContent threadId={threadId} />
+export const Chat = ({ threadId, folderId }: ChatProps) => {
+    return <ChatContent threadId={threadId} folderId={folderId} />
 }

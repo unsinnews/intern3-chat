@@ -44,8 +44,8 @@ export function Providers({
                     apiKey={browserEnv("VITE_POSTHOG_KEY")}
                     options={{
                         api_host: "/api/phr",
-                        capture_exceptions: true,
-                        debug: import.meta.env.MODE === "development"
+                        capture_exceptions: true
+                        // debug: import.meta.env.MODE === "development"
                     }}
                 >
                     <AuthQueryProvider>
