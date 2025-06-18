@@ -88,20 +88,36 @@ export const WebSearchToolRenderer = memo(
                         ) : (
                             <Globe className="size-4 text-primary" />
                         )}
-                        <span className="font-medium text-primary">Web Search</span>
-
-                        <div className="flex flex-1 items-center justify-end gap-2">
-                            <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1 text-muted-foreground text-sm">
-                                {toolInvocation.args?.query && (
-                                    <span className="text-muted-foreground text-sm">
-                                        "{toolInvocation.args.query}"
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium text-primary">Web Search</span>
+                                {hasResults && (
+                                    <div className="block size-1 rounded-full bg-primary sm:hidden" />
+                                )}
+                                {hasResults && (
+                                    <span className="block text-muted-foreground text-sm sm:hidden">
+                                        {toolInvocation.result.results.length} results
                                     </span>
                                 )}
+                            </div>
+                            {toolInvocation.args?.query && (
+                                <span className="text-muted-foreground text-sm sm:hidden">
+                                    "{toolInvocation.args.query}"
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex flex-1 items-center justify-end gap-2">
+                            <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1 text-muted-foreground text-sm">
                                 {hasResults && (
                                     <span className="text-muted-foreground text-sm">
                                         <div className="flex items-center gap-2">
-                                            <div className="size-1 rounded-full bg-primary" />
-                                            <span>
+                                            {toolInvocation.args?.query && (
+                                                <span className="hidden text-muted-foreground text-sm sm:block">
+                                                    "{toolInvocation.args.query}"
+                                                </span>
+                                            )}
+                                            <div className="hidden size-1 rounded-full bg-primary sm:block" />
+                                            <span className="hidden sm:block">
                                                 {toolInvocation.result.results.length} results
                                             </span>
                                         </div>
