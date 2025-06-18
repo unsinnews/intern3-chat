@@ -92,6 +92,11 @@ export const chatPOST = httpAction(async (ctx, req) => {
         body.enabledTools.push("supermemory")
     }
 
+    // Add MCP to enabled tools if MCP servers are configured
+    if (settings.mcpServers && settings.mcpServers.length > 0) {
+        body.enabledTools.push("mcp")
+    }
+
     // Track token usage
     const totalTokenUsage = {
         promptTokens: 0,

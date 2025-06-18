@@ -9,6 +9,8 @@ import { useSession } from "@/hooks/auth-hooks"
 import { cn } from "@/lib/utils"
 import { useConvexMutation, useConvexQuery } from "@convex-dev/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import type { Infer } from "convex/values"
+import type { MCPServerConfig as MCPServerConfigSchema, UserSettings } from "@/convex/schema/settings"
 import {
     AlertCircle,
     Brain,
@@ -16,9 +18,12 @@ import {
     CheckCircle,
     Globe,
     Key,
+    Plus,
     RotateCcw,
     Search,
+    Server,
     SquarePen,
+    Trash2,
     X
 } from "lucide-react"
 import { memo, useState } from "react"
@@ -29,6 +34,7 @@ export const Route = createFileRoute("/settings/ai-options")({
 })
 
 type SearchProvider = "firecrawl" | "brave"
+type MCPServerConfig = Infer<typeof MCPServerConfigSchema>
 
 const SearchProviderCard = memo(
     ({
@@ -79,7 +85,7 @@ const SupermemoryCard = memo(
         onSave,
         loading
     }: {
-        userSettings: any
+        userSettings: Infer<typeof UserSettings>
         onSave: (enabled: boolean, newKey?: string) => Promise<void>
         loading: boolean
     }) => {
@@ -193,21 +199,350 @@ const SupermemoryCard = memo(
                                             </div>
                                         )}
 
-                                        {enabled && !hasExistingKey && !newKey.trim() && (
-                                            <div className="flex items-center gap-2 text-amber-600">
-                                                <AlertCircle className="h-4 w-4" />
-                                                <span className="text-sm">
-                                                    API key required to enable Supermemory
-                                                </span>
-                                            </div>
-                                        )}
+                                {enabled && !hasExistingKey && !newKey.trim() && (
+                                    <div className="flex items-center gap-2 text-amber-600">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <span className="text-sm">
+                                            API key required to enable Supermemory
+                                        </span>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={handleSave}
+                                disabled={loading || !canSave}
+                                size="sm"
+                            >
+                                <Check className="h-4 w-4" />
+                                {loading ? "Saving..." : "Save"}
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={handleCancel}>
+                                <X className="h-4 w-4" />
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        )
+    }
+)
+
+const MCPServersCard = memo(
+    ({
+        userSettings,
+        onSave,
+        loading
+    }: {
+        userSettings: Infer<typeof UserSettings>
+        onSave: (servers: MCPServerConfig[]) => Promise<void>
+        loading: boolean
+    }) => {
+        const [isEditing, setIsEditing] = useState(false)
+        const [servers, setServers] = useState<MCPServerConfig[]>(userSettings.mcpServers || [])
+        const [newServer, setNewServer] = useState<MCPServerConfig>({
+            name: "",
+            url: "",
+            type: "http",
+            headers: []
+        })
+        const [showAddHeader, setShowAddHeader] = useState(false)
+        const [newHeader, setNewHeader] = useState({ key: "", value: "" })
+
+        const handleAddServer = () => {
+            if (newServer.name && newServer.url) {
+                setServers([...servers, { ...newServer }])
+                setNewServer({
+                    name: "",
+                    url: "",
+                    type: "http",
+                    headers: []
+                })
+                setShowAddHeader(false)
+            }
+        }
+
+        const handleRemoveServer = (index: number) => {
+            setServers(servers.filter((_, i: number) => i !== index))
+        }
+
+        const handleAddHeader = () => {
+            if (newHeader.key && newHeader.value) {
+                setNewServer({
+                    ...newServer,
+                    headers: [...(newServer.headers || []), { ...newHeader }]
+                })
+                setNewHeader({ key: "", value: "" })
+            }
+        }
+
+        const handleRemoveHeader = (index: number) => {
+            setNewServer({
+                ...newServer,
+                headers: (newServer.headers || []).filter((_, i) => i !== index)
+            })
+        }
+
+        const handleSave = async () => {
+            try {
+                await onSave(servers)
+                setIsEditing(false)
+            } catch (error) {
+                // Error handling is done in the parent component
+            }
+        }
+
+        const handleCancel = () => {
+            setIsEditing(false)
+            setServers(userSettings.mcpServers || [])
+            setNewServer({
+                name: "",
+                url: "",
+                type: "http",
+                headers: []
+            })
+            setShowAddHeader(false)
+        }
+
+        return (
+            <Card className="p-4 shadow-xs">
+                <div className="flex items-start gap-2 space-y-4">
+                    <div className="flex size-8 items-center justify-center rounded-lg">
+                        <Server className="size-5" />
+                    </div>
+                    <div className="flex-1">
+                        <div className="mb-4 flex items-start justify-between">
+                            <div className="flex items-start gap-2">
+                                <div>
+                                    <h4 className="font-semibold text-sm">MCP Servers</h4>
+                                    <p className="mt-0.5 text-muted-foreground text-xs">
+                                        Connect to Model Context Protocol servers for additional AI
+                                        tools
+                                    </p>
+                                </div>
+                            </div>
+
+                            {servers.length > 0 && !isEditing && (
+                                <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                                    <span className="text-muted-foreground text-xs">
+                                        {servers.length} server{servers.length > 1 ? "s" : ""}{" "}
+                                        configured
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {isEditing ? (
+                            <div className="space-y-4">
+                                {/* List existing servers */}
+                                {servers.length > 0 && (
+                                    <div className="space-y-2">
+                                        <Label className="text-sm">Configured Servers</Label>
+                                        {servers.map((server, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
+                                            >
+                                                <div className="flex-1">
+                                                    <div className="font-medium text-sm">
+                                                        {server.name}
+                                                    </div>
+                                                    <div className="text-muted-foreground text-xs">
+                                                        {server.type.toUpperCase()}: {server.url}
+                                                    </div>
+                                                    {server.headers?.length > 0 && (
+                                                        <div className="mt-1 text-muted-foreground text-xs">
+                                                            {server.headers.length} custom header
+                                                            {server.headers.length > 1 ? "s" : ""}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveServer(index)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Add new server form */}
+                                <div className="space-y-3 rounded-lg border p-4">
+                                    <Label className="text-sm">Add New Server</Label>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <Label htmlFor="mcp-name" className="text-xs">
+                                                Server Name
+                                            </Label>
+                                            <Input
+                                                id="mcp-name"
+                                                value={newServer.name}
+                                                onChange={(e) =>
+                                                    setNewServer({
+                                                        ...newServer,
+                                                        name: e.target.value
+                                                    })
+                                                }
+                                                placeholder="my-server"
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="mcp-url" className="text-xs">
+                                                Server URL
+                                            </Label>
+                                            <Input
+                                                id="mcp-url"
+                                                value={newServer.url}
+                                                onChange={(e) =>
+                                                    setNewServer({
+                                                        ...newServer,
+                                                        url: e.target.value
+                                                    })
+                                                }
+                                                placeholder="http://localhost:3000/mcp"
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="mcp-type" className="text-xs">
+                                                Transport Type
+                                            </Label>
+                                            <div className="mt-1 flex gap-2">
+                                                <Button
+                                                    variant={
+                                                        newServer.type === "http"
+                                                            ? "default"
+                                                            : "outline"
+                                                    }
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setNewServer({ ...newServer, type: "http" })
+                                                    }
+                                                >
+                                                    HTTP
+                                                </Button>
+                                                <Button
+                                                    variant={
+                                                        newServer.type === "sse"
+                                                            ? "default"
+                                                            : "outline"
+                                                    }
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setNewServer({ ...newServer, type: "sse" })
+                                                    }
+                                                >
+                                                    SSE
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Headers section */}
+                                        {(newServer.headers?.length || 0) > 0 && (
+                                            <div className="space-y-2">
+                                                <Label className="text-xs">Headers</Label>
+                                                {newServer.headers?.map((header, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center gap-2 text-xs"
+                                                    >
+                                                        <code className="flex-1 rounded bg-muted px-2 py-1">
+                                                            {header.key}: {header.value}
+                                                        </code>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleRemoveHeader(index)}
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {showAddHeader ? (
+                                            <div className="space-y-2">
+                                                <Label className="text-xs">Add Header</Label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        value={newHeader.key}
+                                                        onChange={(e) =>
+                                                            setNewHeader({
+                                                                ...newHeader,
+                                                                key: e.target.value
+                                                            })
+                                                        }
+                                                        placeholder="Header key"
+                                                        className="flex-1"
+                                                    />
+                                                    <Input
+                                                        value={newHeader.value}
+                                                        onChange={(e) =>
+                                                            setNewHeader({
+                                                                ...newHeader,
+                                                                value: e.target.value
+                                                            })
+                                                        }
+                                                        placeholder="Header value"
+                                                        className="flex-1"
+                                                    />
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={handleAddHeader}
+                                                        disabled={
+                                                            !newHeader.key || !newHeader.value
+                                                        }
+                                                    >
+                                                        Add
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setShowAddHeader(false)
+                                                            setNewHeader({ key: "", value: "" })
+                                                        }}
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowAddHeader(true)}
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Add Header
+                                            </Button>
+                                        )}
+
+                                        <Button
+                                            onClick={handleAddServer}
+                                            disabled={!newServer.name || !newServer.url}
+                                            size="sm"
+                                            className="w-full"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            Add Server
+                                        </Button>
+                                    </div>
+                                </div>
 
                                 <div className="flex gap-2">
                                     <Button
                                         onClick={handleSave}
-                                        disabled={loading || !canSave}
+                                        disabled={loading}
                                         size="sm"
                                     >
                                         <Check className="h-4 w-4" />
@@ -221,12 +556,12 @@ const SupermemoryCard = memo(
                             </div>
                         ) : (
                             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                                {isEnabled ? (
+                                {servers.length > 0 ? (
                                     <SquarePen className="size-4" />
                                 ) : (
-                                    <Brain className="size-4" />
+                                    <Server className="size-4" />
                                 )}
-                                {isEnabled ? "Edit" : "Setup"}
+                                {servers.length > 0 ? "Edit" : "Setup"}
                             </Button>
                         )}
                     </div>
@@ -285,7 +620,8 @@ function AIOptionsSettings() {
                     customModels: userSettings.customModels,
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory
+                    supermemory: userSettings.supermemory,
+                    mcpServers: userSettings.mcpServers
                 },
                 coreProviders,
                 customProviders
@@ -334,7 +670,8 @@ function AIOptionsSettings() {
                     customModels: userSettings.customModels,
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory
+                    supermemory: userSettings.supermemory,
+                    mcpServers: userSettings.mcpServers
                 },
                 coreProviders,
                 customProviders
@@ -386,7 +723,8 @@ function AIOptionsSettings() {
                     customModels: userSettings.customModels,
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory
+                    supermemory: userSettings.supermemory,
+                    mcpServers: userSettings.mcpServers
                 },
                 coreProviders,
                 customProviders,
@@ -399,6 +737,59 @@ function AIOptionsSettings() {
             toast.success(`Supermemory ${enabled ? "enabled" : "disabled"}`)
         } catch (error) {
             toast.error("Failed to update Supermemory settings")
+            console.error(error)
+            throw error
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleMCPServersUpdate = async (servers: MCPServerConfig[]) => {
+        if (!session.user) return
+
+        setIsLoading(true)
+        try {
+            // Include current state for all core providers
+            const coreProviders: Record<string, { enabled: boolean; newKey?: string }> = {}
+            for (const [id, provider] of Object.entries(userSettings.coreAIProviders)) {
+                coreProviders[id] = {
+                    enabled: provider.enabled
+                }
+            }
+
+            // Include current state for all custom providers
+            const customProviders: Record<
+                string,
+                { name: string; enabled: boolean; endpoint: string; newKey?: string }
+            > = {}
+            for (const [id, provider] of Object.entries(userSettings.customAIProviders)) {
+                customProviders[id] = {
+                    name: provider.name,
+                    enabled: provider.enabled,
+                    endpoint: provider.endpoint
+                }
+            }
+
+            await updateSettings({
+                userId: session.user!.id,
+                baseSettings: {
+                    userId: session.user!.id,
+                    searchProvider: userSettings.searchProvider,
+                    searchIncludeSourcesByDefault: userSettings.searchIncludeSourcesByDefault,
+                    customModels: userSettings.customModels,
+                    titleGenerationModel: userSettings.titleGenerationModel,
+                    customThemes: userSettings.customThemes,
+                    supermemory: userSettings.supermemory,
+                    mcpServers: servers
+                },
+                coreProviders,
+                customProviders,
+                mcpServers: servers
+            })
+
+            toast.success("MCP servers updated successfully")
+        } catch (error) {
+            toast.error("Failed to update MCP servers")
             console.error(error)
             throw error
         } finally {
@@ -425,6 +816,22 @@ function AIOptionsSettings() {
                     <SupermemoryCard
                         userSettings={userSettings}
                         onSave={handleSupermemoryUpdate}
+                        loading={isLoading}
+                    />
+                </div>
+
+                {/* MCP Servers Section */}
+                <div className="space-y-4">
+                    <div>
+                        <h3 className="font-semibold text-foreground">MCP Servers</h3>
+                        <p className="mt-1 text-muted-foreground text-sm">
+                            Connect to Model Context Protocol servers for additional AI capabilities
+                        </p>
+                    </div>
+
+                    <MCPServersCard
+                        userSettings={userSettings}
+                        onSave={handleMCPServersUpdate}
                         loading={isLoading}
                     />
                 </div>

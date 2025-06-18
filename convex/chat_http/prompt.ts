@@ -3,6 +3,7 @@ import type { AbilityId } from "../lib/toolkit"
 export const buildPrompt = (enabledTools: AbilityId[]) => {
     const hasWebSearch = enabledTools.includes("web_search")
     const hasSupermemory = enabledTools.includes("supermemory")
+    const hasMCP = enabledTools.includes("mcp")
 
     // Get current UTC date in DD-MM-YYYY format
     const now = new Date()
@@ -37,6 +38,16 @@ You have access to persistent memory capabilities:
 - **search_memories**: Retrieve previously stored information using semantic search
 - Use these tools to maintain context across conversations and provide personalized assistance
 - Store user preferences, important facts, project details, or any information worth remembering`
+        )
+
+    if (hasMCP)
+        layers.push(
+            dedent`
+## MCP Tools
+You have access to Model Context Protocol (MCP) tools from configured servers:
+- Tools are prefixed with the server name (e.g., "servername_toolname")
+- These tools provide additional capabilities based on the connected MCP servers
+- Use them as needed based on their descriptions and the user's request`
         )
 
     layers.push(dedent`Today's date (UTC): ${utcDate}`)

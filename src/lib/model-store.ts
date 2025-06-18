@@ -27,7 +27,7 @@ const persistConfig = (
 
 export const useModelStore = create<ModelStore>((set, get) => ({
     selectedModel: initialConfig.selectedModel,
-    enabledTools: initialConfig.enabledTools,
+    enabledTools: initialConfig.enabledTools as AbilityId[],
     selectedImageSize: initialConfig.selectedImageSize as ImageSize,
 
     setSelectedModel: (model) => {

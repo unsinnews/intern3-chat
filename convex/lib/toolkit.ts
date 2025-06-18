@@ -3,12 +3,13 @@ import type { GenericActionCtx } from "convex/server"
 import type { Infer } from "convex/values"
 import type { DataModel } from "../_generated/dataModel"
 import type { UserSettings } from "../schema/settings"
+import { MCPAdapter } from "./tools/mcp_adapter"
 import { SupermemoryAdapter } from "./tools/supermemory"
 import { WebSearchAdapter } from "./tools/web_search"
 
 export type ToolAdapter = (params: ConditionalToolParams) => Partial<Record<string, Tool>>
-export const TOOL_ADAPTERS = [WebSearchAdapter, SupermemoryAdapter]
-export const ABILITIES = ["web_search", "supermemory"]
+export const TOOL_ADAPTERS = [WebSearchAdapter, SupermemoryAdapter, MCPAdapter]
+export const ABILITIES = ["web_search", "supermemory", "mcp"] as const
 export type AbilityId = (typeof ABILITIES)[number]
 
 export type ConditionalToolParams = {
