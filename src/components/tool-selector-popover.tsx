@@ -126,7 +126,7 @@ export const ToolSelectorPopover = memo(
             let count = 0
             if (enabledTools.includes("web_search")) count++
             if (enabledTools.includes("supermemory")) count++
-            if (enabledTools.includes("reasoning")) count++
+            if (modelSupportsReasoning && enabledTools.includes("reasoning")) count++
             if (hasMcpServers) {
                 // Count enabled MCP servers for this thread
                 const enabledMcpCount = mcpServers.filter(
