@@ -11,7 +11,7 @@ import type { UploadedFile } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { AnimatePresence, motion } from "motion/react"
 import { useMemo } from "react"
-import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom"
+import { useStickToBottom } from "use-stick-to-bottom"
 import { MultimodalInput } from "./multimodal-input"
 import { SignupMessagePrompt } from "./signup-message-prompt"
 import { StickToBottomButton } from "./stick-to-bottom-button"
@@ -23,7 +23,10 @@ interface ChatProps {
 const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
     const { selectedModel, setSelectedModel } = useModelStore()
     const { threadId } = useThreadSync({ routeThreadId })
-    const { scrollToBottom } = useStickToBottomContext()
+    const { scrollToBottom, isAtBottom, contentRef, scrollRef } = useStickToBottom({
+        initial: "instant",
+        resize: "instant"
+    })
     // const { setTargetFromMessageId } = useChatStore()
     const { data: session } = useSession()
 
@@ -47,7 +50,7 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
 
     const handleInputSubmitWithScroll = (inputValue?: string, fileValues?: UploadedFile[]) => {
         handleInputSubmit(inputValue, fileValues)
-        scrollToBottom({ animation: "instant" })
+        scrollToBottom({ animation: "smooth" })
     }
 
     const isEmpty = !threadId && messages.length === 0
@@ -68,6 +71,8 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                 onRetry={handleRetry}
                 onEditAndRetry={handleEditAndRetry}
                 status={status}
+                contentRef={contentRef}
+                scrollRef={scrollRef}
             />
 
             <AnimatePresence mode="sync">
@@ -114,7 +119,10 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                         transition={{ duration: 0.2, ease: "easeInOut" }}
                         className="-bottom-[3.875rem] md:-bottom-10 absolute right-0 left-0 z-[10] flex flex-col items-center justify-center gap-2"
                     >
-                        <StickToBottomButton />
+                        <StickToBottomButton
+                            isAtBottom={isAtBottom}
+                            scrollToBottom={scrollToBottom}
+                        />
                         <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
                     </motion.div>
                 )}
@@ -124,9 +132,5 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
 }
 
 export const Chat = ({ threadId }: ChatProps) => {
-    return (
-        <StickToBottom className="relative h-full" resize="instant" initial="instant">
-            <ChatContent threadId={threadId} />
-        </StickToBottom>
-    )
+    return <ChatContent threadId={threadId} />
 }

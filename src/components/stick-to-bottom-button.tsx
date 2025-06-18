@@ -1,11 +1,11 @@
 import { ChevronDown } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useStickToBottomContext } from "use-stick-to-bottom"
 import { Button } from "./ui/button"
 
-export const StickToBottomButton = () => {
-    const { scrollToBottom, isAtBottom } = useStickToBottomContext()
-
+export const StickToBottomButton = ({
+    isAtBottom,
+    scrollToBottom
+}: { isAtBottom: boolean; scrollToBottom: () => void }) => {
     return (
         <AnimatePresence>
             {!isAtBottom && (
