@@ -487,7 +487,7 @@ export function ThreadsSidebar() {
             <SidebarHeader className="mt-1 gap-3">
                 <div className="flex items-center justify-between">
                     <div className="cursor-default select-none font-semibold text-sidebar-foreground text-xl">
-                        intern3.chat
+                        <span>intern3.chat</span>
                     </div>
                 </div>
                 <div className="h-px w-full bg-border" />
