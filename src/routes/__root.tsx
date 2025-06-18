@@ -60,9 +60,7 @@ export const Route = createRootRouteWithContext<{
         ]
     }),
     beforeLoad: async () => {
-        console.time("getAccessToken")
         const token = await getAccessToken().catch(() => null)
-        console.timeEnd("getAccessToken")
         return {
             token
         }
