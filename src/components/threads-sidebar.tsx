@@ -23,6 +23,7 @@ import { useQuery } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { ArrowBigUp, Loader2, Pin, Search } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { LogoSymbol } from "./logo"
 import { FolderItem } from "./threads/folder-item"
 import { NewFolderButton } from "./threads/new-folder-button"
 import { ThreadItem } from "./threads/thread-item"
@@ -133,7 +134,7 @@ export function ThreadsSidebar() {
     )
 
     // Get projects
-    const projects = useQuery(api.projects.getUserProjects) || []
+    const projects = useQuery(api.folders.getUserProjects) || []
 
     const isLoading = false
 
@@ -242,20 +243,22 @@ export function ThreadsSidebar() {
             <>
                 {/* Folders Section */}
                 <SidebarGroup>
-                    <SidebarGroupLabel>Folders</SidebarGroupLabel>
+                    <SidebarGroupLabel className="pr-0">
+                        Folders
+                        <div className="flex-grow" />
+                        <NewFolderButton />
+                    </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {projects.map((project) => {
-                                const threadsInProject = projectThreads.get(project._id) || []
                                 return (
                                     <FolderItem
                                         key={project._id}
                                         project={project}
-                                        threads={threadsInProject}
+                                        numThreads={project.threadCount}
                                     />
                                 )
                             })}
-                            <NewFolderButton />
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
@@ -308,8 +311,9 @@ export function ThreadsSidebar() {
 
     return (
         <Sidebar variant="inset">
-            <SidebarHeader className="mt-1 gap-3">
-                <div className="flex items-center justify-between">
+            <SidebarHeader>
+                <div className="flex items-center gap-2">
+                    <LogoSymbol className="-translate-y-0.5 size-6 rounded-full" />
                     <div className="cursor-default select-none font-semibold text-sidebar-foreground text-xl">
                         <span>intern3.chat</span>
                     </div>

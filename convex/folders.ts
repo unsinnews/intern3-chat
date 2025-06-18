@@ -1,6 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
+import { aggregrateThreadsByFolder } from "./aggregates"
 import { getUserIdentity } from "./lib/identity"
 
 // Create a new project
@@ -35,12 +36,22 @@ export const getUserProjects = query({
         const user = await getUserIdentity(ctx.auth, { allowAnons: true })
         if ("error" in user) return []
 
-        return await ctx.db
+        const projects = await ctx.db
             .query("projects")
             .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
             .filter((q) => q.neq(q.field("archived"), true))
             .order("desc")
             .collect()
+
+        return await Promise.all(
+            projects.map(async (project) => {
+                const aggregate = await aggregrateThreadsByFolder.count(ctx, {
+                    namespace: [user.id, project._id],
+                    bounds: {}
+                })
+                return { ...project, threadCount: aggregate }
+            })
+        )
     }
 })
 
@@ -54,7 +65,12 @@ export const getProject = query({
         const project = await ctx.db.get(projectId)
         if (!project || project.authorId !== user.id) return null
 
-        return project
+        const aggregate = await aggregrateThreadsByFolder.count(ctx, {
+            namespace: [user.id, projectId],
+            bounds: {}
+        })
+
+        return { ...project, threadCount: aggregate }
     }
 })
 
@@ -149,37 +165,10 @@ export const moveThreadToProject = mutation({
             projectId,
             updatedAt: Date.now()
         })
+        const newDoc = await ctx.db.get(threadId)
+        await aggregrateThreadsByFolder.replace(ctx, thread!, newDoc!)
 
         return { success: true }
-    }
-})
-
-// Get thread count per project (optimized manual counting)
-export const getProjectThreadCounts = query({
-    args: {},
-    handler: async (ctx) => {
-        const user = await getUserIdentity(ctx.auth, { allowAnons: true })
-        if ("error" in user) return {}
-
-        // Get all threads for the user
-        const threads = await ctx.db
-            .query("threads")
-            .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
-            .collect()
-
-        const counts: Record<string, number> = {}
-
-        // Count threads without projects (General)
-        counts.general = threads.filter((t) => !t.projectId).length
-
-        // Count threads per project
-        threads.forEach((thread) => {
-            if (thread.projectId) {
-                counts[thread.projectId] = (counts[thread.projectId] || 0) + 1
-            }
-        })
-
-        return counts
     }
 })
 

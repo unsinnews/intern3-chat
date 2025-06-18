@@ -21,8 +21,7 @@ interface FolderViewProps {
 
 function FolderViewBase({ folderId }: FolderViewProps) {
     const navigate = useNavigate()
-    const project = useQuery(api.projects.getProject, { projectId: folderId })
-    const threadCounts = useQuery(api.projects.getProjectThreadCounts) || {}
+    const project = useQuery(api.folders.getProject, { projectId: folderId })
 
     // Get recent threads in this folder
     const recentThreads = useQuery(api.threads.getThreadsByProject, {
@@ -76,7 +75,6 @@ function FolderViewBase({ folderId }: FolderViewProps) {
     }
 
     const colorClasses = getProjectColorClasses(project.color as any)
-    const threadCount = threadCounts[folderId] || 0
     const threads = recentThreads?.page || []
 
     return (
@@ -115,7 +113,7 @@ function FolderViewBase({ folderId }: FolderViewProps) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="font-bold text-2xl">{threadCount}</div>
+                            <div className="font-bold text-2xl">{project.threadCount}</div>
                             <p className="text-muted-foreground text-xs">
                                 Total threads in this folder
                             </p>
@@ -171,10 +169,10 @@ function FolderViewBase({ folderId }: FolderViewProps) {
                                 </Link>
                             ))}
                         </div>
-                        {threadCount > threads.length && (
+                        {project.threadCount > threads.length && (
                             <div className="mt-4 text-center">
                                 <p className="text-muted-foreground text-sm">
-                                    And {threadCount - threads.length} more conversations...
+                                    And {project.threadCount - threads.length} more conversations...
                                 </p>
                             </div>
                         )}
@@ -182,7 +180,7 @@ function FolderViewBase({ folderId }: FolderViewProps) {
                 )}
 
                 {/* Empty State */}
-                {threadCount === 0 && (
+                {project.threadCount === 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle>No conversations yet</CardTitle>

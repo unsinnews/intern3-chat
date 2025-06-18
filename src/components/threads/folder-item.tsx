@@ -9,7 +9,6 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
     Dialog,
     DialogContent,
@@ -33,24 +32,22 @@ import {
     PROJECT_ICONS,
     getProjectColorClasses
 } from "@/lib/project-constants"
-import { useProjectStore } from "@/lib/project-store"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
-import { ChevronDown, ChevronRight, Edit3, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { Edit3, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { useState } from "react"
 import { toast } from "sonner"
-import { ThreadItem } from "./thread-item"
-import type { Project, Thread } from "./types"
+import type { Project } from "./types"
 
-interface FolderItemProps {
+export function FolderItem({
+    project,
+    numThreads
+}: {
     project: Project
-    threads: Thread[]
-}
-
-export function FolderItem({ project, threads }: FolderItemProps) {
-    const { expandedFolderId, setExpandedFolder } = useProjectStore()
+    numThreads: number
+}) {
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -61,23 +58,12 @@ export function FolderItem({ project, threads }: FolderItemProps) {
     const [isEditing, setIsEditing] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
 
-    const isExpanded = expandedFolderId === project._id
     const colorClasses = getProjectColorClasses(project.color as any)
-    const updateProjectMutation = useMutation(api.projects.updateProject)
-    const deleteProjectMutation = useMutation(api.projects.deleteProject)
+    const updateProjectMutation = useMutation(api.folders.updateProject)
+    const deleteProjectMutation = useMutation(api.folders.deleteProject)
     const navigate = useNavigate()
     const params = useParams({ strict: false }) as { folderId?: string }
     const isCurrentFolder = params.folderId === project._id
-
-    const handleToggleExpansion = () => {
-        if (isExpanded) {
-            // If this folder is expanded, collapse it
-            setExpandedFolder(null)
-        } else {
-            // If this folder is not expanded, expand it and collapse any other
-            setExpandedFolder(project._id)
-        }
-    }
 
     const handleEdit = async () => {
         const trimmedName = editName.trim()
@@ -148,28 +134,13 @@ export function FolderItem({ project, threads }: FolderItemProps) {
         setShowEditDialog(true)
     }
 
-    const sortedThreads = useMemo(() => {
-        return threads.sort((a, b) => {
-            // Pinned threads first
-            if (a.pinned && !b.pinned) return -1
-            if (!a.pinned && b.pinned) return 1
-            // Then by creation time (newest first)
-            return b.createdAt - a.createdAt
-        })
-    }, [threads])
-
     return (
         <>
             <SidebarMenuItem>
-                <Collapsible open={isExpanded} onOpenChange={handleToggleExpansion}>
-                    <div className="flex w-full items-center">
-                        <CollapsibleTrigger className="group flex flex-1 items-center gap-2 rounded-sm p-2 hover:bg-accent/50">
+                <div className="flex w-full items-center">
+                    <DropdownMenu onOpenChange={setIsMenuOpen}>
+                        <div className="group flex flex-1 items-center gap-2 rounded-sm p-2 hover:bg-accent/50">
                             <div className="flex min-w-0 flex-1 items-center gap-2">
-                                {isExpanded ? (
-                                    <ChevronDown className="h-4 w-4 opacity-50" />
-                                ) : (
-                                    <ChevronRight className="h-4 w-4 opacity-50" />
-                                )}
                                 <div
                                     className={cn(
                                         "flex h-5 w-5 items-center justify-center rounded-sm text-xs",
@@ -184,23 +155,19 @@ export function FolderItem({ project, threads }: FolderItemProps) {
                                     className="min-w-0 flex-1 text-left hover:underline"
                                     onClick={(e) => {
                                         e.stopPropagation() // Prevent collapsible from toggling
-                                        setExpandedFolder(project._id) // Expand when navigating to folder
                                     }}
                                 >
                                     <span className="truncate font-medium">{project.name}</span>
                                     <span className="ml-2 text-muted-foreground text-xs">
-                                        ({threads.length})
+                                        ({numThreads})
                                     </span>
                                 </Link>
                             </div>
-                        </CollapsibleTrigger>
-
-                        <DropdownMenu onOpenChange={setIsMenuOpen}>
                             <DropdownMenuTrigger asChild>
                                 <button
                                     type="button"
                                     className={cn(
-                                        "rounded p-1 transition-opacity",
+                                        "rounded p-0 transition-opacity",
                                         isMenuOpen || "opacity-0 group-hover:opacity-100"
                                     )}
                                     onClick={(e) => e.stopPropagation()}
@@ -208,29 +175,23 @@ export function FolderItem({ project, threads }: FolderItemProps) {
                                     <MoreHorizontal className="h-4 w-4" />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={openEditDialog}>
-                                    <Edit3 className="h-4 w-4" />
-                                    Edit folder
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => setShowDeleteDialog(true)}
-                                    variant="destructive"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete folder
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    <CollapsibleContent>
-                        <div className="mt-1">
-                            {sortedThreads.map((thread) => (
-                                <ThreadItem key={thread._id} thread={thread} isInFolder={true} />
-                            ))}
                         </div>
-                    </CollapsibleContent>
-                </Collapsible>
+
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={openEditDialog}>
+                                <Edit3 className="h-4 w-4" />
+                                Edit folder
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setShowDeleteDialog(true)}
+                                variant="destructive"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Delete folder
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </SidebarMenuItem>
 
             {/* Edit Dialog */}
@@ -356,12 +317,12 @@ export function FolderItem({ project, threads }: FolderItemProps) {
                         <AlertDialogDescription>
                             Are you sure you want to delete{" "}
                             <span className="font-bold">{project.name}</span>?
-                            {threads.length > 0 && (
+                            {numThreads > 0 && (
                                 <>
                                     <br />
                                     <br />
-                                    This folder contains {threads.length} thread
-                                    {threads.length !== 1 ? "s" : ""}. The folder will be archived
+                                    This folder contains {numThreads} thread
+                                    {numThreads !== 1 ? "s" : ""}. The folder will be archived
                                     instead of deleted.
                                 </>
                             )}
@@ -377,9 +338,9 @@ export function FolderItem({ project, threads }: FolderItemProps) {
                             {isDeleting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {threads.length > 0 ? "Archiving..." : "Deleting..."}
+                                    {numThreads > 0 ? "Archiving..." : "Deleting..."}
                                 </>
-                            ) : threads.length > 0 ? (
+                            ) : numThreads > 0 ? (
                                 "Archive"
                             ) : (
                                 "Delete"

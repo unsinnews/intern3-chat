@@ -5,6 +5,7 @@ import { nanoid } from "nanoid"
 import { api, internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server"
+import { aggregrateThreadsByFolder } from "./aggregates"
 import { getUserIdentity } from "./lib/identity"
 import type { Thread } from "./schema"
 import { HTTPAIMessage, type Message } from "./schema/message"
@@ -29,7 +30,7 @@ export const createThreadOrInsertMessages = internalMutation({
         folderId: v.optional(v.id("projects"))
     },
     handler: async (
-        { db },
+        ctx,
         {
             threadId,
             authorId,
@@ -61,21 +62,23 @@ export const createThreadOrInsertMessages = internalMutation({
                 role: "assistant" as const
             }
 
-            const newId = await db.insert("threads", {
+            const newId = await ctx.db.insert("threads", {
                 authorId,
                 title: "New Chat",
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 projectId: folderId // Set the project ID if creating from a folder
             })
+            const doc = await ctx.db.get(newId)
+            await aggregrateThreadsByFolder.insert(ctx, doc!)
 
             // Thread count will be automatically updated by aggregate triggers
 
-            await db.insert("messages", {
+            await ctx.db.insert("messages", {
                 threadId: newId,
                 ...newUserMessage_new
             })
-            const assistantMessageConvexId = await db.insert("messages", {
+            const assistantMessageConvexId = await ctx.db.insert("messages", {
                 threadId: newId,
                 ...newAssistantMessage_new
             })
@@ -89,7 +92,7 @@ export const createThreadOrInsertMessages = internalMutation({
         }
 
         // new thread flow
-        const thread = await db.get(threadId as Id<"threads">)
+        const thread = await ctx.db.get(threadId as Id<"threads">)
         if (!thread) {
             console.error("[cvx][createThreadOrInsertMessages] Thread not found", threadId)
             return undefined
@@ -98,7 +101,7 @@ export const createThreadOrInsertMessages = internalMutation({
         // Handle edit mode - delete messages after the edited message
         let originalAssistantMessageId = proposedNewAssistantId
         if (targetFromMessageId) {
-            const allMessages = await db
+            const allMessages = await ctx.db
                 .query("messages")
                 .withIndex("byThreadId", (q) => q.eq("threadId", threadId as Id<"threads">))
                 .order("asc")
@@ -121,14 +124,14 @@ export const createThreadOrInsertMessages = internalMutation({
 
                 // Delete all messages after the edited message
                 for (const msg of messagesAfterTarget) {
-                    await db.delete(msg._id)
+                    await ctx.db.delete(msg._id)
                 }
 
                 if (targetMode === "edit") {
                     // Update the edited message with new content
                     const editMessage = allMessages[targetMessageIndex]
                     if (editMessage) {
-                        await db.patch(editMessage._id, {
+                        await ctx.db.patch(editMessage._id, {
                             parts: userMessage.parts,
                             updatedAt: Date.now()
                         })
@@ -145,7 +148,7 @@ export const createThreadOrInsertMessages = internalMutation({
                 role: "assistant" as const
             }
 
-            const assistantMessageConvexId = await db.insert("messages", {
+            const assistantMessageConvexId = await ctx.db.insert("messages", {
                 threadId: threadId as Id<"threads">,
                 ...newAssistantMessage_edit_or_retry
             })
@@ -176,11 +179,11 @@ export const createThreadOrInsertMessages = internalMutation({
             role: "assistant" as const
         }
 
-        await db.insert("messages", {
+        await ctx.db.insert("messages", {
             threadId: threadId as Id<"threads">,
             ...newUserMessage_existing
         })
-        const assistantMessageConvexId = await db.insert("messages", {
+        const assistantMessageConvexId = await ctx.db.insert("messages", {
             threadId: threadId as Id<"threads">,
             ...newAssistantMessage_existing
         })
@@ -482,6 +485,8 @@ export const forkSharedThread = mutation({
             createdAt: Date.now(),
             updatedAt: Date.now()
         })
+        const doc = await ctx.db.get(newThreadId)
+        await aggregrateThreadsByFolder.insert(ctx, doc!)
 
         // Copy messages to new thread
         for (const message of sharedThread.messages) {
@@ -535,6 +540,7 @@ export const deleteThread = mutation({
         // Thread count will be automatically updated by aggregate triggers
 
         await ctx.db.delete(threadId)
+        await aggregrateThreadsByFolder.delete(ctx, thread)
     }
 })
 

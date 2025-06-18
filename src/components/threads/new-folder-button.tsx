@@ -8,12 +8,11 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import { DEFAULT_PROJECT_ICON, PROJECT_COLORS, PROJECT_ICONS } from "@/lib/project-constants"
 import { cn } from "@/lib/utils"
 import { useMutation } from "convex/react"
-import { FolderPlus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -24,7 +23,7 @@ export function NewFolderButton() {
     const [folderColor, setFolderColor] = useState<string>("blue")
     const [folderIcon, setFolderIcon] = useState("")
     const [isCreating, setIsCreating] = useState(false)
-    const createProjectMutation = useMutation(api.projects.createProject)
+    const createProjectMutation = useMutation(api.folders.createProject)
 
     const handleCreate = async () => {
         const trimmedName = folderName.trim()
@@ -62,15 +61,15 @@ export function NewFolderButton() {
 
     return (
         <>
-            <SidebarMenuItem>
-                <SidebarMenuButton
-                    onClick={() => setShowDialog(true)}
-                    className="text-muted-foreground"
-                >
-                    <FolderPlus className="h-4 w-4" />
-                    <span>New folder</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Button
+                size="sm"
+                variant={"ghost"}
+                onClick={() => setShowDialog(true)}
+                className="size-6 text-muted-foreground"
+            >
+                <Plus className="size-4" />
+                <span className="sr-only">New folder</span>
+            </Button>
 
             <Dialog open={showDialog} onOpenChange={setShowDialog}>
                 <DialogContent className="max-w-md">

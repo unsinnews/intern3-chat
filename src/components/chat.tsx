@@ -13,7 +13,10 @@ import { useModelStore } from "@/lib/model-store"
 import { DEFAULT_PROJECT_ICON, getProjectColorClasses } from "@/lib/project-constants"
 import { useThemeStore } from "@/lib/theme-store"
 import { cn } from "@/lib/utils"
+import { Link } from "@tanstack/react-router"
+import { useLocation } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
+import { Pin } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useMemo } from "react"
 import { useStickToBottom } from "use-stick-to-bottom"
@@ -38,6 +41,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     const mode = themeState.currentMode
     // const { setTargetFromMessageId } = useChatStore()
     const { data: session } = useSession()
+    const location = useLocation()
 
     useDynamicTitle({ threadId })
 
@@ -48,7 +52,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     }, [selectedModel, setSelectedModel])
 
     // Fetch project info if folderId is provided
-    const project = useQuery(api.projects.getProject, folderId ? { projectId: folderId } : "skip")
+    const project = useQuery(api.folders.getProject, folderId ? { projectId: folderId } : "skip")
 
     const { status, data, messages } = useChatIntegration({
         threadId,
@@ -104,14 +108,26 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
         if (!folderId || !project) return null
 
         const colorClasses = getProjectColorClasses(project.color as any)
+        const isRootPath = location.pathname === "/"
+
+        // Fetch recent threads in this folder
+        const recentThreads = useQuery(api.threads.getThreadsByProject, {
+            projectId: folderId,
+            paginationOpts: { numItems: 5, cursor: null }
+        })
+
+        const threads = recentThreads?.page || []
+
+        const animProps = isRootPath
+            ? {
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.3 }
+              }
+            : {}
 
         return (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="mb-8 w-full max-w-4xl px-8 text-left"
-            >
+            <motion.div {...animProps} className="mb-8 w-full max-w-4xl px-8 text-left">
                 {/* Large folder icon */}
                 <div
                     className={cn(
@@ -125,8 +141,78 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
                 {/* Folder name and description */}
                 <h1 className="mb-2 font-bold text-3xl text-foreground">{project.name}</h1>
                 {project.description && (
-                    <p className="max-w-md text-lg text-muted-foreground">{project.description}</p>
+                    <p className="mb-6 max-w-md text-lg text-muted-foreground">
+                        {project.description}
+                    </p>
                 )}
+            </motion.div>
+        )
+    }
+
+    // Recent threads component for FolderHero
+    const RecentThreads = () => {
+        if (!folderId) return null
+
+        const isRootPath = location.pathname === "/"
+
+        // Fetch recent threads in this folder
+        const recentThreads = useQuery(api.threads.getThreadsByProject, {
+            projectId: folderId,
+            paginationOpts: { numItems: 5, cursor: null }
+        })
+
+        const threads = recentThreads?.page || []
+
+        if (threads.length === 0) return null
+
+        const containerAnimProps = isRootPath
+            ? {
+                  initial: { opacity: 0, y: 10 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.3, delay: 0.1 }
+              }
+            : {}
+
+        return (
+            <motion.div {...containerAnimProps} className="w-full max-w-4xl px-8">
+                <div className="mb-4 font-medium text-muted-foreground text-sm">
+                    Recent conversations
+                </div>
+                <div className="space-y-2">
+                    {threads.map((thread, index) => {
+                        const threadAnimProps = isRootPath
+                            ? {
+                                  initial: { opacity: 0, x: -10 },
+                                  animate: { opacity: 1, x: 0 },
+                                  transition: { duration: 0.2, delay: 0.05 * index }
+                              }
+                            : {}
+
+                        return (
+                            <motion.div key={thread._id} {...threadAnimProps}>
+                                <Link
+                                    to="/thread/$threadId"
+                                    params={{ threadId: thread._id }}
+                                    className="flex items-center gap-3 rounded-lg border bg-background/50 px-4 py-3 transition-colors hover:bg-accent/50"
+                                >
+                                    <div className="min-w-0 flex-1">
+                                        <div className="truncate font-medium text-sm">
+                                            {thread.title}
+                                        </div>
+                                        <div className="text-muted-foreground text-xs">
+                                            {new Date(thread.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    {thread.pinned && (
+                                        <div className="text-muted-foreground">
+                                            <Pin className="h-4 w-4" />
+                                        </div>
+                                    )}
+                                </Link>
+                            </motion.div>
+                        )
+                    })}
+                </div>
             </motion.div>
         )
     }
@@ -186,6 +272,13 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
                                 status={status}
                             />
                         </motion.div>
+
+                        {/* Recent threads for folder */}
+                        {folderId && (
+                            <div className="mt-8">
+                                <RecentThreads />
+                            </div>
+                        )}
                     </motion.div>
                 ) : (
                     <motion.div

@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as aggregates from "../aggregates.js";
 import type * as analytics from "../analytics.js";
 import type * as attachments from "../attachments.js";
 import type * as chat_http_generate_thread_name from "../chat_http/generate_thread_name.js";
@@ -16,6 +17,7 @@ import type * as chat_http_image_generation from "../chat_http/image_generation.
 import type * as chat_http_manual_stream_transform from "../chat_http/manual_stream_transform.js";
 import type * as chat_http_prompt from "../chat_http/prompt.js";
 import type * as chat_http_shared from "../chat_http/shared.js";
+import type * as folders from "../folders.js";
 import type * as http from "../http.js";
 import type * as lib_backend_to_ui_messages from "../lib/backend_to_ui_messages.js";
 import type * as lib_db_to_core_messages from "../lib/db_to_core_messages.js";
@@ -34,7 +36,7 @@ import type * as lib_tools_mcp_adapter from "../lib/tools/mcp_adapter.js";
 import type * as lib_tools_supermemory from "../lib/tools/supermemory.js";
 import type * as lib_tools_web_search from "../lib/tools/web_search.js";
 import type * as messages from "../messages.js";
-import type * as projects from "../projects.js";
+import type * as migrations from "../migrations.js";
 import type * as schema_folders from "../schema/folders.js";
 import type * as schema_message from "../schema/message.js";
 import type * as schema_parts from "../schema/parts.js";
@@ -61,6 +63,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  aggregates: typeof aggregates;
   analytics: typeof analytics;
   attachments: typeof attachments;
   "chat_http/generate_thread_name": typeof chat_http_generate_thread_name;
@@ -69,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   "chat_http/manual_stream_transform": typeof chat_http_manual_stream_transform;
   "chat_http/prompt": typeof chat_http_prompt;
   "chat_http/shared": typeof chat_http_shared;
+  folders: typeof folders;
   http: typeof http;
   "lib/backend_to_ui_messages": typeof lib_backend_to_ui_messages;
   "lib/db_to_core_messages": typeof lib_db_to_core_messages;
@@ -87,7 +91,7 @@ declare const fullApi: ApiFromModules<{
   "lib/tools/supermemory": typeof lib_tools_supermemory;
   "lib/tools/web_search": typeof lib_tools_web_search;
   messages: typeof messages;
-  projects: typeof projects;
+  migrations: typeof migrations;
   "schema/folders": typeof schema_folders;
   "schema/message": typeof schema_message;
   "schema/parts": typeof schema_parts;
@@ -243,6 +247,234 @@ export declare const components: {
           size?: number;
         },
         { isNew: boolean }
+      >;
+    };
+  };
+  aggregateFolderThreads: {
+    btree: {
+      aggregateBetween: FunctionReference<
+        "query",
+        "internal",
+        { k1?: any; k2?: any; namespace?: any },
+        { count: number; sum: number }
+      >;
+      atNegativeOffset: FunctionReference<
+        "query",
+        "internal",
+        { k1?: any; k2?: any; namespace?: any; offset: number },
+        { k: any; s: number; v: any }
+      >;
+      atOffset: FunctionReference<
+        "query",
+        "internal",
+        { k1?: any; k2?: any; namespace?: any; offset: number },
+        { k: any; s: number; v: any }
+      >;
+      get: FunctionReference<
+        "query",
+        "internal",
+        { key: any; namespace?: any },
+        null | { k: any; s: number; v: any }
+      >;
+      offset: FunctionReference<
+        "query",
+        "internal",
+        { k1?: any; key: any; namespace?: any },
+        number
+      >;
+      offsetUntil: FunctionReference<
+        "query",
+        "internal",
+        { k2?: any; key: any; namespace?: any },
+        number
+      >;
+      paginate: FunctionReference<
+        "query",
+        "internal",
+        {
+          cursor?: string;
+          k1?: any;
+          k2?: any;
+          limit: number;
+          namespace?: any;
+          order: "asc" | "desc";
+        },
+        {
+          cursor: string;
+          isDone: boolean;
+          page: Array<{ k: any; s: number; v: any }>;
+        }
+      >;
+      paginateNamespaces: FunctionReference<
+        "query",
+        "internal",
+        { cursor?: string; limit: number },
+        { cursor: string; isDone: boolean; page: Array<any> }
+      >;
+      validate: FunctionReference<
+        "query",
+        "internal",
+        { namespace?: any },
+        any
+      >;
+    };
+    inspect: {
+      display: FunctionReference<"query", "internal", { namespace?: any }, any>;
+      dump: FunctionReference<"query", "internal", { namespace?: any }, string>;
+      inspectNode: FunctionReference<
+        "query",
+        "internal",
+        { namespace?: any; node?: string },
+        null
+      >;
+    };
+    public: {
+      clear: FunctionReference<
+        "mutation",
+        "internal",
+        { maxNodeSize?: number; namespace?: any; rootLazy?: boolean },
+        null
+      >;
+      deleteIfExists: FunctionReference<
+        "mutation",
+        "internal",
+        { key: any; namespace?: any },
+        any
+      >;
+      delete_: FunctionReference<
+        "mutation",
+        "internal",
+        { key: any; namespace?: any },
+        null
+      >;
+      init: FunctionReference<
+        "mutation",
+        "internal",
+        { maxNodeSize?: number; namespace?: any; rootLazy?: boolean },
+        null
+      >;
+      insert: FunctionReference<
+        "mutation",
+        "internal",
+        { key: any; namespace?: any; summand?: number; value: any },
+        null
+      >;
+      makeRootLazy: FunctionReference<
+        "mutation",
+        "internal",
+        { namespace?: any },
+        null
+      >;
+      replace: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          currentKey: any;
+          namespace?: any;
+          newKey: any;
+          newNamespace?: any;
+          summand?: number;
+          value: any;
+        },
+        null
+      >;
+      replaceOrInsert: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          currentKey: any;
+          namespace?: any;
+          newKey: any;
+          newNamespace?: any;
+          summand?: number;
+          value: any;
+        },
+        any
+      >;
+    };
+  };
+  migrations: {
+    lib: {
+      cancel: FunctionReference<
+        "mutation",
+        "internal",
+        { name: string },
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }
+      >;
+      cancelAll: FunctionReference<
+        "mutation",
+        "internal",
+        { sinceTs?: number },
+        Array<{
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }>
+      >;
+      clearAll: FunctionReference<
+        "mutation",
+        "internal",
+        { before?: number },
+        null
+      >;
+      getStatus: FunctionReference<
+        "query",
+        "internal",
+        { limit?: number; names?: Array<string> },
+        Array<{
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }>
+      >;
+      migrate: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          dryRun: boolean;
+          fnHandle: string;
+          name: string;
+          next?: Array<{ fnHandle: string; name: string }>;
+        },
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }
       >;
     };
   };

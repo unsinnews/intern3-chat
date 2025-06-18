@@ -58,8 +58,8 @@ export function ThreadItem({ thread, isInFolder = false }: ThreadItemProps) {
     const deleteThreadMutation = useMutation(api.threads.deleteThread)
     const renameThreadMutation = useMutation(api.threads.renameThread)
     const togglePinMutation = useMutation(api.threads.togglePinThread)
-    const moveThreadMutation = useMutation(api.projects.moveThreadToProject)
-    const projects = useQuery(api.projects.getUserProjects) || []
+    const moveThreadMutation = useMutation(api.folders.moveThreadToProject)
+    const projects = useQuery(api.folders.getUserProjects) || []
     const params = useParams({ strict: false }) as { threadId?: string }
     const isActive = params.threadId === thread._id
     const navigate = useNavigate()
