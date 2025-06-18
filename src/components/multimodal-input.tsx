@@ -135,11 +135,12 @@ const ReasoningEffortSelector = ({ selectedModel }: { selectedModel: string | nu
     return (
         <PromptInputAction tooltip="Select reasoning effort">
             <Select value={reasoningEffort} onValueChange={setReasoningEffort}>
-                <SelectTrigger className="!h-8 w-auto min-w-[80px] gap-0.5 border bg-secondary/70 px-1.5 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
-                    <div className="flex items-center gap-1.5">
+                <SelectTrigger className="!h-8 w-auto gap-0.5 border bg-secondary/70 px-1.5 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
+                    <div className="hidden items-center gap-1.5 sm:flex">
                         <Zap className="size-4" />
                         <SelectValue />
                     </div>
+                    <Zap className="size-4 sm:hidden" />
                 </SelectTrigger>
                 <SelectContent>
                     {modelSupportsDisablingReasoning && (

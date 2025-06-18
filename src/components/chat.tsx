@@ -97,7 +97,7 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                             transition={{ duration: 0.2 }}
                             className="mb-8 text-center"
                         >
-                            <h1 className="font-medium text-3xl text-foreground">
+                            <h1 className="px-4 font-medium text-3xl text-foreground">
                                 {userName
                                     ? `What do you want to explore, ${userName?.split(" ")[0]}?`
                                     : "What do you want to explore?"}

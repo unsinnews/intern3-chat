@@ -25,6 +25,7 @@ export type ImageSize = (AllAspects | BaseResolution) & {}
 export type SharedModel<Abilities extends ModelAbility[] = ModelAbility[]> = {
     id: string
     name: string
+    shortName?: string
     adapters: RegistryKey[]
     abilities: Abilities
     mode?: "text" | "image"
@@ -39,12 +40,14 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gpt-4o",
         name: "GPT 4o",
+        shortName: "4o",
         adapters: ["i3-openai:gpt-4o", "openai:gpt-4o", "openrouter:openai/gpt-4o"],
         abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gpt-4o-mini",
         name: "GPT 4o mini",
+        shortName: "4o mini",
         adapters: ["i3-openai:gpt-4o-mini", "openai:gpt-4o-mini", "openrouter:openai/gpt-4o-mini"],
         abilities: ["vision", "function_calling", "pdf"]
     },
@@ -81,6 +84,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gpt-4.1-mini",
         name: "GPT 4.1 mini",
+        shortName: "4.1 mini",
         adapters: [
             "i3-openai:gpt-4.1-mini",
             "openai:gpt-4.1-mini",
@@ -91,6 +95,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gpt-4.1-nano",
         name: "GPT 4.1 nano",
+        shortName: "4.1 nano",
         adapters: [
             "i3-openai:gpt-4.1-nano",
             "openai:gpt-4.1-nano",
@@ -101,6 +106,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "claude-opus-4",
         name: "Claude Opus 4",
+        shortName: "Opus 4",
         adapters: ["anthropic:claude-opus-4-0", "openrouter:anthropic/claude-opus-4"],
         abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
         supportsDisablingReasoning: true
@@ -108,6 +114,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "claude-sonnet-4",
         name: "Claude Sonnet 4",
+        shortName: "Sonnet 4",
         adapters: ["anthropic:claude-sonnet-4-0", "openrouter:anthropic/claude-sonnet-4"],
         abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
         supportsDisablingReasoning: true
@@ -115,6 +122,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "claude-3-7-sonnet",
         name: "Claude Sonnet 3.7",
+        shortName: "Sonnet 3.7",
         adapters: ["anthropic:claude-3-7-sonnet", "openrouter:anthropic/claude-3.7-sonnet"],
         abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
         supportsDisablingReasoning: true
@@ -122,12 +130,14 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "claude-3-5-sonnet",
         name: "Claude Sonnet 3.5",
+        shortName: "Sonnet 3.5",
         adapters: ["anthropic:claude-3-5-sonnet", "openrouter:anthropic/claude-3.5-sonnet"],
         abilities: ["vision", "function_calling", "pdf"]
     },
     {
         id: "gemini-2.0-flash-lite",
         name: "Gemini 2.0 Flash Lite",
+        shortName: "2.0 Flash Lite",
         adapters: [
             "i3-google:gemini-2.0-flash-lite",
             "google:gemini-2.0-flash-lite",
@@ -138,12 +148,14 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gemini-2.0-flash-image-generation",
         name: "Gemini 2.0 Flash Imagen",
+        shortName: "2.0 Flash Imagen",
         adapters: ["i3-google:gemini-2.0-flash-exp", "google:gemini-2.0-flash-exp"],
         abilities: ["vision"]
     },
     {
         id: "gemini-2.5-flash",
         name: "Gemini 2.5 Flash",
+        shortName: "2.5 Flash",
         adapters: [
             "i3-google:gemini-2.5-flash",
             "google:gemini-2.5-flash",
@@ -155,6 +167,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gemini-2.5-flash-lite",
         name: "Gemini 2.5 Flash Lite",
+        shortName: "2.5 Flash Lite",
         adapters: [
             "i3-google:gemini-2.5-flash-lite-preview-06-17",
             "google:gemini-2.5-flash-lite-preview-06-17",
@@ -166,6 +179,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gemini-2.0-flash",
         name: "Gemini 2.0 Flash",
+        shortName: "2.0 Flash",
         adapters: [
             "i3-google:gemini-2.0-flash",
             "google:gemini-2.0-flash",
@@ -176,6 +190,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gemini-2.5-pro",
         name: "Gemini 2.5 Pro",
+        shortName: "2.5 Pro",
         adapters: ["google:gemini-2.5-pro", "openrouter:google/gemini-2.5-pro"],
         abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
         supportsDisablingReasoning: true
@@ -192,6 +207,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "sdxl-lightning",
         name: "SDXL Lightning",
+        shortName: "SDXL",
         adapters: ["i3-fal:fal-ai/fast-lightning-sdxl", "fal:fal-ai/fast-lightning-sdxl"],
         abilities: [],
         mode: "image",
@@ -201,6 +217,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "flux-schnell",
         name: "FLUX.1 [schnell]",
+        shortName: "flux.schnell",
         adapters: ["i3-fal:fal-ai/flux/schnell", "fal:fal-ai/flux/schnell"],
         abilities: [],
         mode: "image",
@@ -210,6 +227,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "flux-dev",
         name: "FLUX.1 [dev]",
+        shortName: "flux.dev",
         adapters: ["fal:fal-ai/flux/dev"],
         abilities: [],
         mode: "image",
@@ -219,6 +237,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "google-imagen-3-fast",
         name: "Google Imagen 3 (Fast)",
+        shortName: "Imagen 3 (Fast)",
         adapters: ["fal:fal-ai/imagen3/fast"],
         abilities: [],
         mode: "image",
@@ -228,6 +247,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "google-imagen-3",
         name: "Google Imagen 3",
+        shortName: "Imagen 3",
         adapters: ["fal:fal-ai/imagen3"],
         abilities: [],
         mode: "image",
@@ -237,6 +257,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "google-imagen-4",
         name: "Google Imagen 4",
+        shortName: "Imagen 4",
         adapters: ["fal:fal-ai/imagen4/preview"],
         abilities: [],
         mode: "image",
