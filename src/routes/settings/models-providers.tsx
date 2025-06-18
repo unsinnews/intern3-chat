@@ -822,7 +822,11 @@ function ModelsProvidersSettings() {
                         userSettings?.searchIncludeSourcesByDefault || false,
                     customModels: userSettings?.customModels || {},
                     titleGenerationModel:
-                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite"
+                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite",
+                    customThemes: userSettings?.customThemes || [],
+                    supermemory: userSettings?.supermemory,
+                    mcpServers: userSettings?.mcpServers || [],
+                    customization: userSettings?.customization
                 },
                 coreProviders,
                 customProviders
@@ -883,7 +887,11 @@ function ModelsProvidersSettings() {
                         userSettings?.searchIncludeSourcesByDefault || false,
                     customModels: userSettings?.customModels || {},
                     titleGenerationModel:
-                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite"
+                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite",
+                    customThemes: userSettings?.customThemes || [],
+                    supermemory: userSettings?.supermemory,
+                    mcpServers: userSettings?.mcpServers || [],
+                    customization: userSettings?.customization
                 },
                 coreProviders,
                 customProviders
@@ -945,7 +953,11 @@ function ModelsProvidersSettings() {
                         userSettings?.searchIncludeSourcesByDefault || false,
                     customModels: userSettings?.customModels || {},
                     titleGenerationModel:
-                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite"
+                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite",
+                    customThemes: userSettings?.customThemes || [],
+                    supermemory: userSettings?.supermemory,
+                    mcpServers: userSettings?.mcpServers || [],
+                    customization: userSettings?.customization
                 },
                 coreProviders,
                 customProviders
@@ -1017,7 +1029,11 @@ function ModelsProvidersSettings() {
                         userSettings?.searchIncludeSourcesByDefault || false,
                     customModels,
                     titleGenerationModel:
-                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite"
+                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite",
+                    customThemes: userSettings?.customThemes || [],
+                    supermemory: userSettings?.supermemory,
+                    mcpServers: userSettings?.mcpServers || [],
+                    customization: userSettings?.customization
                 },
                 coreProviders,
                 customProviders
@@ -1104,7 +1120,11 @@ function ModelsProvidersSettings() {
                         userSettings?.searchIncludeSourcesByDefault || false,
                     customModels,
                     titleGenerationModel:
-                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite"
+                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite",
+                    customThemes: userSettings?.customThemes || [],
+                    supermemory: userSettings?.supermemory,
+                    mcpServers: userSettings?.mcpServers || [],
+                    customization: userSettings?.customization
                 },
                 coreProviders,
                 customProviders
@@ -1167,7 +1187,11 @@ function ModelsProvidersSettings() {
                         userSettings?.searchIncludeSourcesByDefault || false,
                     customModels,
                     titleGenerationModel:
-                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite"
+                        userSettings?.titleGenerationModel || "gemini-2.0-flash-lite",
+                    customThemes: userSettings?.customThemes || [],
+                    supermemory: userSettings?.supermemory,
+                    mcpServers: userSettings?.mcpServers || [],
+                    customization: userSettings?.customization
                 },
                 coreProviders,
                 customProviders

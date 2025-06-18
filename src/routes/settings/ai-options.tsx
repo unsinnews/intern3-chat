@@ -71,7 +71,8 @@ function AIOptionsSettings() {
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
                     supermemory: userSettings.supermemory,
-                    mcpServers: userSettings.mcpServers
+                    mcpServers: userSettings.mcpServers,
+                    customization: userSettings.customization
                 },
                 coreProviders,
                 customProviders
@@ -121,7 +122,8 @@ function AIOptionsSettings() {
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
                     supermemory: userSettings.supermemory,
-                    mcpServers: userSettings.mcpServers
+                    mcpServers: userSettings.mcpServers,
+                    customization: userSettings.customization
                 },
                 coreProviders,
                 customProviders
@@ -174,7 +176,8 @@ function AIOptionsSettings() {
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
                     supermemory: userSettings.supermemory,
-                    mcpServers: userSettings.mcpServers
+                    mcpServers: userSettings.mcpServers,
+                    customization: userSettings.customization
                 },
                 coreProviders,
                 customProviders,
@@ -230,7 +233,8 @@ function AIOptionsSettings() {
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
                     supermemory: userSettings.supermemory,
-                    mcpServers: servers
+                    mcpServers: servers,
+                    customization: userSettings.customization
                 },
                 coreProviders,
                 customProviders,

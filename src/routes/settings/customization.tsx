@@ -72,10 +72,24 @@ function CustomizationSettings() {
                 }
             }
 
+            if ("_creationTime" in userSettings) {
+                userSettings._creationTime = undefined
+            }
+            if ("_id" in userSettings) {
+                userSettings._id = undefined
+            }
+
             await updateSettings({
                 userId: session.user.id,
                 baseSettings: {
-                    ...userSettings,
+                    userId: session.user!.id,
+                    searchProvider: userSettings.searchProvider,
+                    searchIncludeSourcesByDefault: userSettings.searchIncludeSourcesByDefault,
+                    customModels: userSettings.customModels,
+                    titleGenerationModel: userSettings.titleGenerationModel,
+                    customThemes: userSettings.customThemes,
+                    supermemory: userSettings.supermemory,
+                    mcpServers: userSettings.mcpServers,
                     customization: {
                         name: name || undefined,
                         aiPersonality: personality || undefined,
