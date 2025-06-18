@@ -1,5 +1,6 @@
 import MCPIcon from "@/assets/mcp.svg"
 import SupermemoryIcon from "@/assets/supermemory.svg"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
     Command,
@@ -218,13 +219,16 @@ export const ToolSelectorPopover = memo(
                                                         <div className="flex size-4 items-center justify-center">
                                                             <MCPIcon />
                                                         </div>
-                                                        <div className="flex flex-col">
+                                                        <div className="flex items-center gap-2">
                                                             <span className="text-sm">
                                                                 {server.name}
                                                             </span>
-                                                            <span className="text-muted-foreground text-xs">
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="text-xs"
+                                                            >
                                                                 {server.type.toUpperCase()}
-                                                            </span>
+                                                            </Badge>
                                                         </div>
                                                     </div>
                                                     <Switch
