@@ -34,6 +34,7 @@ export const MCPServerConfig = v.object({
     name: v.string(),
     url: v.string(),
     type: v.union(v.literal("sse"), v.literal("http")),
+    enabled: v.optional(v.boolean()),
     headers: v.optional(
         v.array(
             v.object({

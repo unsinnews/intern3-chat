@@ -3,7 +3,7 @@ import { z } from "zod"
 import type { ToolAdapter } from "../toolkit"
 import { SearchProvider } from "./adapters"
 
-export const WebSearchAdapter: ToolAdapter = (params) => {
+export const WebSearchAdapter: ToolAdapter = async (params) => {
     if (!params.enabledTools.includes("web_search")) return {}
 
     const { userSettings } = params
