@@ -5,8 +5,9 @@ import { AuthQueryProvider } from "@daveyplate/better-auth-tanstack"
 import { AuthUIProviderTanstack } from "@daveyplate/better-auth-ui/tanstack"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ClientOnly, Link, useRouter } from "@tanstack/react-router"
+import { ConvexQueryCacheProvider } from "convex-helpers/react/cache"
 import { PostHogProvider } from "posthog-js/react"
-import { type ReactNode, useEffect } from "react"
+import type { ReactNode } from "react"
 import { Toaster } from "sonner"
 import { browserEnv } from "./lib/browser-env"
 
@@ -24,46 +25,38 @@ export const queryClient: QueryClient = new QueryClient({
 })
 convexQueryClient.connect(queryClient)
 
-export function Providers({
-    children,
-    initialToken
-}: {
-    children: ReactNode
-    initialToken: string | null
-}) {
+export function Providers({ children }: { children: ReactNode }) {
     const router = useRouter()
-
-    useEffect(() => {
-        queryClient.setQueryData(["auth_token"], initialToken)
-    }, [initialToken])
 
     return (
         <ClientOnly>
-            <QueryClientProvider client={queryClient}>
-                <PostHogProvider
-                    apiKey={browserEnv("VITE_POSTHOG_KEY")}
-                    options={{
-                        api_host: "/api/phr",
-                        capture_exceptions: true
-                        // debug: import.meta.env.MODE === "development"
-                    }}
-                >
-                    <AuthQueryProvider>
-                        <ThemeProvider>
-                            <AuthUIProviderTanstack
-                                authClient={authClient}
-                                navigate={(href) => router.navigate({ href })}
-                                replace={(href) => router.navigate({ href, replace: true })}
-                                Link={({ href, ...props }) => <Link to={href} {...props} />}
-                            >
-                                {children}
+            <ConvexQueryCacheProvider debug={true}>
+                <QueryClientProvider client={queryClient}>
+                    <PostHogProvider
+                        apiKey={browserEnv("VITE_POSTHOG_KEY")}
+                        options={{
+                            api_host: "/api/phr",
+                            capture_exceptions: true
+                            // debug: import.meta.env.MODE === "development"
+                        }}
+                    >
+                        <AuthQueryProvider>
+                            <ThemeProvider>
+                                <AuthUIProviderTanstack
+                                    authClient={authClient}
+                                    navigate={(href) => router.navigate({ href })}
+                                    replace={(href) => router.navigate({ href, replace: true })}
+                                    Link={({ href, ...props }) => <Link to={href} {...props} />}
+                                >
+                                    {children}
 
-                                <Toaster />
-                            </AuthUIProviderTanstack>
-                        </ThemeProvider>
-                    </AuthQueryProvider>
-                </PostHogProvider>
-            </QueryClientProvider>
+                                    <Toaster />
+                                </AuthUIProviderTanstack>
+                            </ThemeProvider>
+                        </AuthQueryProvider>
+                    </PostHogProvider>
+                </QueryClientProvider>
+            </ConvexQueryCacheProvider>
         </ClientOnly>
     )
 }

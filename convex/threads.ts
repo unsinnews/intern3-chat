@@ -1,5 +1,10 @@
 import { ChatError } from "@/lib/errors"
-import { paginationOptsValidator } from "convex/server"
+import {
+    type FieldPaths,
+    type FilterBuilder,
+    type GenericTableInfo,
+    paginationOptsValidator
+} from "convex/server"
 import { type Infer, v } from "convex/values"
 import { nanoid } from "nanoid"
 import { api, internal } from "./_generated/api"
@@ -257,9 +262,22 @@ export const searchUserThreads = query({
     }
 })
 
+const isEmpty = <A extends GenericTableInfo, B extends FieldPaths<A>>(
+    q: FilterBuilder<A>,
+    field: B
+) =>
+    q.or(
+        q.eq(q.field(field), undefined),
+        q.eq(q.field(field), null)
+        // etc
+    )
+
 export const getUserThreadsPaginated = query({
-    args: { paginationOpts: paginationOptsValidator },
-    handler: async ({ db, auth }, { paginationOpts }) => {
+    args: {
+        paginationOpts: paginationOptsValidator,
+        includeInFolder: v.optional(v.boolean())
+    },
+    handler: async ({ db, auth }, { paginationOpts, includeInFolder }) => {
         const user = await getUserIdentity(auth, {
             allowAnons: true
         })
@@ -277,27 +295,30 @@ export const getUserThreadsPaginated = query({
         const isFirstPage = !paginationOpts.cursor
 
         if (isFirstPage) {
-            // Get pinned threads first
-            const pinnedThreads = await db
+            const pinnedQuery = db
                 .query("threads")
                 .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
                 .filter((q) => q.eq(q.field("pinned"), true))
                 .order("desc")
-                .collect()
 
-            // Get regular threads (non-pinned) with pagination
-            const regularThreadsResult = await db
+            const regularQuery = db
                 .query("threads")
                 .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
                 .filter((q) => q.neq(q.field("pinned"), true))
                 .order("desc")
-                .paginate(paginationOpts)
 
-            // Combine pinned threads with regular threads
+            const [pinnedThreads, regularThreadsResult] = await Promise.all([
+                !includeInFolder
+                    ? pinnedQuery.filter((q) => isEmpty(q, "projectId")).collect()
+                    : pinnedQuery.collect(),
+                !includeInFolder
+                    ? regularQuery.filter((q) => isEmpty(q, "projectId")).paginate(paginationOpts)
+                    : regularQuery.paginate(paginationOpts)
+            ])
+
             const combinedPage = [...pinnedThreads, ...regularThreadsResult.page]
-
-            // If we have too many threads, trim to the requested page size
             const maxItems = paginationOpts.numItems
+
             if (combinedPage.length > maxItems) {
                 return {
                     page: combinedPage.slice(0, maxItems),
@@ -313,13 +334,18 @@ export const getUserThreadsPaginated = query({
             }
         }
 
-        // For subsequent pages, only get regular threads (no pinned)
-        return await db
+        const baseQuery = db
             .query("threads")
             .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
             .filter((q) => q.neq(q.field("pinned"), true))
-            .order("desc")
-            .paginate(paginationOpts)
+
+        if (!includeInFolder) {
+            return await baseQuery
+                .filter((q) => isEmpty(q, "projectId"))
+                .order("desc")
+                .paginate(paginationOpts)
+        }
+        return await baseQuery.order("desc").paginate(paginationOpts)
     }
 })
 

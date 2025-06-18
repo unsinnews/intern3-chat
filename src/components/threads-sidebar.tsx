@@ -12,14 +12,12 @@ import {
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { authClient } from "@/lib/auth-client"
-import { useDiskCachedPaginatedQuery } from "@/lib/convex-cached-query"
+import { useDiskCachedPaginatedQuery, useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useNavigate } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { ArrowBigUp, Loader2, Pin, Search } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -124,17 +122,28 @@ export function ThreadsSidebar() {
     } = useDiskCachedPaginatedQuery(
         api.threads.getUserThreadsPaginated,
         {
-            key: "threads-sidebar-all",
+            key: "threads",
             maxItems: 50
         },
-        session?.user?.id ? {} : "skip",
+        session?.user?.id
+            ? {
+                  includeInFolder: false
+              }
+            : "skip",
         {
             initialNumItems: 50
         }
     )
 
     // Get projects
-    const projects = useQuery(api.folders.getUserProjects) || []
+    const projects = useDiskCachedQuery(
+        api.folders.getUserProjects,
+        {
+            key: "projects",
+            default: []
+        },
+        session?.user?.id ? {} : "skip"
+    )
 
     const isLoading = false
 
@@ -148,33 +157,10 @@ export function ThreadsSidebar() {
 
     const isAuthenticated = Boolean(session?.user?.id)
     const hasError = false
-    const threadsData = Array.isArray(allThreads) ? allThreads : []
-
-    // Group threads by project and non-project
-    const { projectThreads, nonProjectThreads } = useMemo(() => {
-        const projectThreadsMap = new Map<Id<"projects">, Thread[]>()
-        const nonProjectThreadsList: Thread[] = []
-
-        threadsData.forEach((thread) => {
-            if (thread.projectId) {
-                if (!projectThreadsMap.has(thread.projectId)) {
-                    projectThreadsMap.set(thread.projectId, [])
-                }
-                projectThreadsMap.get(thread.projectId)!.push(thread)
-            } else {
-                nonProjectThreadsList.push(thread)
-            }
-        })
-
-        return {
-            projectThreads: projectThreadsMap,
-            nonProjectThreads: nonProjectThreadsList
-        }
-    }, [threadsData])
 
     const groupedNonProjectThreads = useMemo(() => {
-        return groupThreadsByTime(nonProjectThreads)
-    }, [nonProjectThreads])
+        return groupThreadsByTime(allThreads)
+    }, [allThreads])
 
     // Keyboard shortcut for new chat (Cmd+Shift+O)
     useEffect(() => {
@@ -228,12 +214,12 @@ export function ThreadsSidebar() {
             return <LoadingSkeleton />
         }
 
-        if (hasError) {
+        if (hasError || "error" in projects) {
             return <></>
         }
 
         const hasProjects = projects.length > 0
-        const hasNonProjectThreads = nonProjectThreads.length > 0
+        const hasNonProjectThreads = allThreads.length > 0
 
         if (!hasProjects && !hasNonProjectThreads) {
             return <EmptyState message="No threads found" />

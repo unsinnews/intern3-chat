@@ -24,12 +24,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SidebarMenuItem } from "@/components/ui/sidebar"
+import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import {
     DEFAULT_PROJECT_ICON,
     PROJECT_COLORS,
     PROJECT_ICONS,
+    type ProjectColorId,
     getProjectColorClasses
 } from "@/lib/project-constants"
 import { cn } from "@/lib/utils"
@@ -58,7 +59,7 @@ export function FolderItem({
     const [isEditing, setIsEditing] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
 
-    const colorClasses = getProjectColorClasses(project.color as any)
+    const colorClasses = getProjectColorClasses(project.color as ProjectColorId)
     const updateProjectMutation = useMutation(api.folders.updateProject)
     const deleteProjectMutation = useMutation(api.folders.deleteProject)
     const navigate = useNavigate()
@@ -137,46 +138,58 @@ export function FolderItem({
     return (
         <>
             <SidebarMenuItem>
-                <div className="flex w-full items-center">
-                    <DropdownMenu onOpenChange={setIsMenuOpen}>
-                        <div className="group flex flex-1 items-center gap-2 rounded-sm p-2 hover:bg-accent/50">
-                            <div className="flex min-w-0 flex-1 items-center gap-2">
-                                <div
-                                    className={cn(
-                                        "flex h-5 w-5 items-center justify-center rounded-sm text-xs",
-                                        colorClasses.split(" ").slice(1).join(" ")
-                                    )}
-                                >
-                                    {project.icon || DEFAULT_PROJECT_ICON}
-                                </div>
-                                <Link
-                                    to="/folder/$folderId"
-                                    params={{ folderId: project._id }}
-                                    className="min-w-0 flex-1 text-left hover:underline"
-                                    onClick={(e) => {
-                                        e.stopPropagation() // Prevent collapsible from toggling
-                                    }}
-                                >
-                                    <span className="truncate font-medium">{project.name}</span>
-                                    <span className="ml-2 text-muted-foreground text-xs">
-                                        ({numThreads})
-                                    </span>
-                                </Link>
+                <div
+                    className={cn(
+                        "group/item flex w-full items-center rounded-sm hover:bg-accent/50",
+                        isMenuOpen && "bg-accent/50",
+                        isCurrentFolder && "bg-accent/60"
+                    )}
+                >
+                    <SidebarMenuButton
+                        asChild
+                        className={cn(
+                            "flex-1 hover:bg-transparent",
+                            isCurrentFolder && "text-foreground"
+                        )}
+                    >
+                        <Link
+                            to="/folder/$folderId"
+                            params={{ folderId: project._id }}
+                            className="flex items-center gap-2"
+                        >
+                            <div
+                                className={cn(
+                                    "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-sm text-xs",
+                                    colorClasses.split(" ").slice(1).join(" ")
+                                )}
+                            >
+                                {project.icon || DEFAULT_PROJECT_ICON}
                             </div>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    type="button"
-                                    className={cn(
-                                        "rounded p-0 transition-opacity",
-                                        isMenuOpen || "opacity-0 group-hover:opacity-100"
-                                    )}
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </button>
-                            </DropdownMenuTrigger>
-                        </div>
+                            <span className="truncate font-medium">{project.name}</span>
+                        </Link>
+                    </SidebarMenuButton>
 
+                    <DropdownMenu onOpenChange={setIsMenuOpen}>
+                        <DropdownMenuTrigger asChild>
+                            <button type="button" className={"relative rounded p-1"}>
+                                <span
+                                    className={cn(
+                                        "-translate-y-1/2 absolute top-[50%] right-2 ml-auto flex-shrink-0 rounded bg-input px-0.5 py-0.25 text-muted-foreground text-xs leading-none transition-opacity",
+                                        isMenuOpen
+                                            ? "opacity-0"
+                                            : "opacity-100 group-hover/item:opacity-0"
+                                    )}
+                                >
+                                    {numThreads}
+                                </span>
+                                <MoreHorizontal
+                                    className={cn(
+                                        "mr-1 h-4 w-4 transition-opacity",
+                                        isMenuOpen || "opacity-0 group-hover/item:opacity-100"
+                                    )}
+                                />
+                            </button>
+                        </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={openEditDialog}>
                                 <Edit3 className="h-4 w-4" />

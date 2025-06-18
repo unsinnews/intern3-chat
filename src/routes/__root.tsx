@@ -126,12 +126,7 @@ export const Route = createRootRouteWithContext<{
             }
         ]
     }),
-    beforeLoad: async () => {
-        const token = await getAccessToken().catch(() => null)
-        return {
-            token
-        }
-    },
+
     component: RootComponent
 })
 
@@ -144,17 +139,16 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-    const { token } = Route.useRouteContext()
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
                 <ThemeScript />
-                {/* <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" /> */}
+                <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
                 <HeadContent />
             </head>
 
             <body className="h-screen overflow-hidden">
-                <Providers initialToken={token}>{children}</Providers>
+                <Providers>{children}</Providers>
 
                 <Scripts />
             </body>
