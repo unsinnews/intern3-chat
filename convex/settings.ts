@@ -18,7 +18,8 @@ const DefaultSettings = (userId: string) =>
         customModels: {},
         titleGenerationModel: "gemini-2.0-flash-lite",
         customThemes: [],
-        supermemory: undefined
+        supermemory: undefined,
+        mcpServers: []
     }) satisfies Infer<typeof UserSettings>
 
 const getSettings = async (
@@ -139,6 +140,24 @@ export const updateUserSettings = mutation({
                 enabled: v.boolean(),
                 newKey: v.optional(v.string())
             })
+        ),
+        mcpServers: v.optional(
+            v.array(
+                v.object({
+                    name: v.string(),
+                    url: v.string(),
+                    type: v.union(v.literal("sse"), v.literal("http")),
+                    enabled: v.optional(v.boolean()),
+                    headers: v.optional(
+                        v.array(
+                            v.object({
+                                key: v.string(),
+                                value: v.string()
+                            })
+                        )
+                    )
+                })
+            )
         )
     },
     handler: async (ctx, args) => {
@@ -151,7 +170,8 @@ export const updateUserSettings = mutation({
             ...settings,
             ...args.baseSettings,
             coreAIProviders: {},
-            customAIProviders: {}
+            customAIProviders: {},
+            mcpServers: args.mcpServers ?? settings.mcpServers ?? []
         }
 
         for (const [providerId, provider] of Object.entries(args.coreProviders)) {

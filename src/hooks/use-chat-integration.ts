@@ -23,7 +23,8 @@ export function useChatIntegration<IsShared extends boolean>({
     isShared?: IsShared
 }) {
     const tokenData = useToken()
-    const { selectedModel, enabledTools, selectedImageSize } = useModelStore()
+    const { selectedModel, enabledTools, selectedImageSize, getEffectiveMcpOverrides } =
+        useModelStore()
     const { rerenderTrigger, shouldUpdateQuery, setShouldUpdateQuery, triggerRerender } =
         useChatStore()
     const seededNextId = useRef<string | null>(null)
@@ -87,6 +88,10 @@ export function useChatIntegration<IsShared extends boolean>({
 
             const messages = body.messages as Message[]
             const message = messages[messages.length - 1]
+
+            // Get effective MCP overrides (includes defaults for new chats)
+            const mcpOverrides = getEffectiveMcpOverrides(threadId)
+
             return {
                 ...body.requestBody,
                 id: threadId,
@@ -98,7 +103,8 @@ export function useChatIntegration<IsShared extends boolean>({
                     messageId: message?.id
                 },
                 enabledTools,
-                imageSize: selectedImageSize
+                imageSize: selectedImageSize,
+                mcpOverrides
             }
         },
         initialMessages,

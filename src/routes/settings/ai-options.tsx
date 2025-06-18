@@ -1,27 +1,18 @@
+import { MCPServersCard } from "@/components/settings/mcp-servers-card"
+import { SearchProviderCard } from "@/components/settings/search-provider-card"
 import { SettingsLayout } from "@/components/settings/settings-layout"
-import { Button } from "@/components/ui/button"
+import { SupermemoryCard } from "@/components/settings/supermemory-card"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
+import type { MCPServerConfig } from "@/convex/schema/settings"
 import { useSession } from "@/hooks/auth-hooks"
-import { cn } from "@/lib/utils"
 import { useConvexMutation, useConvexQuery } from "@convex-dev/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import {
-    AlertCircle,
-    Brain,
-    Check,
-    CheckCircle,
-    Globe,
-    Key,
-    RotateCcw,
-    Search,
-    SquarePen,
-    X
-} from "lucide-react"
-import { memo, useState } from "react"
+import type { Infer } from "convex/values"
+import { Globe } from "lucide-react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 export const Route = createFileRoute("/settings/ai-options")({
@@ -29,212 +20,6 @@ export const Route = createFileRoute("/settings/ai-options")({
 })
 
 type SearchProvider = "firecrawl" | "brave"
-
-const SearchProviderCard = memo(
-    ({
-        provider,
-        isSelected,
-        onSelect,
-        title,
-        description
-    }: {
-        provider: SearchProvider
-        isSelected: boolean
-        onSelect: (provider: SearchProvider) => void
-        title: string
-        description: string
-    }) => {
-        return (
-            <Card
-                className={cn(
-                    "cursor-pointer border-0 bg-muted/20 p-4 transition-all duration-200 hover:bg-muted/40",
-                    isSelected
-                        ? "bg-primary/5 ring-1 ring-primary/20"
-                        : "hover:ring-1 hover:ring-border"
-                )}
-                onClick={() => onSelect(provider)}
-            >
-                <div className="flex items-center gap-3">
-                    <div className="flex size-8 items-center justify-center rounded-full bg-background">
-                        <Search className="h-4 w-4 text-foreground" />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <Label className="cursor-pointer font-medium text-foreground">
-                                {title}
-                            </Label>
-                            {isSelected && <CheckCircle className="ml-auto size-4 text-primary" />}
-                        </div>
-                        <p className="mt-1 text-muted-foreground text-sm">{description}</p>
-                    </div>
-                </div>
-            </Card>
-        )
-    }
-)
-
-const SupermemoryCard = memo(
-    ({
-        userSettings,
-        onSave,
-        loading
-    }: {
-        userSettings: any
-        onSave: (enabled: boolean, newKey?: string) => Promise<void>
-        loading: boolean
-    }) => {
-        const [isEditing, setIsEditing] = useState(false)
-        const [enabled, setEnabled] = useState(userSettings.supermemory?.enabled || false)
-        const [newKey, setNewKey] = useState("")
-        const [rotatingKey, setRotatingKey] = useState(false)
-
-        const hasExistingKey = Boolean(userSettings.supermemory?.encryptedKey)
-        const isEnabled = userSettings.supermemory?.enabled || false
-
-        const handleSave = async () => {
-            const canSave = !enabled || newKey.trim() || hasExistingKey
-            if (!canSave) return
-
-            try {
-                await onSave(enabled, newKey.trim() || undefined)
-                setIsEditing(false)
-                setNewKey("")
-                setRotatingKey(false)
-            } catch (error) {
-                // Error handling is done in the parent component
-            }
-        }
-
-        const handleCancel = () => {
-            setIsEditing(false)
-            setEnabled(userSettings.supermemory?.enabled || false)
-            setNewKey("")
-            setRotatingKey(false)
-        }
-
-        const canSave = !enabled || newKey.trim() || hasExistingKey
-
-        return (
-            <Card className="p-4 shadow-xs">
-                <div className="flex items-start gap-2 space-y-4">
-                    <div className="flex size-8 items-center justify-center rounded-lg">
-                        <Brain className="size-5" />
-                    </div>
-                    <div className="flex-1">
-                        <div className="mb-4 flex items-start justify-between">
-                            <div className="flex items-start gap-2">
-                                <div>
-                                    <h4 className="font-semibold text-sm">Supermemory</h4>
-                                    <p className="mt-0.5 text-muted-foreground text-xs">
-                                        Store and retrieve memories for AI context across
-                                        conversations
-                                    </p>
-                                </div>
-                            </div>
-
-                            {isEnabled && (
-                                <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 rounded-full bg-green-500" />
-                                    <span className="text-muted-foreground text-xs">Active</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {isEditing ? (
-                            <div className="space-y-4">
-                                <div className="flex items-center space-x-2">
-                                    <Switch
-                                        id="supermemory-enabled"
-                                        checked={enabled}
-                                        onCheckedChange={setEnabled}
-                                    />
-                                    <Label htmlFor="supermemory-enabled">Enable Supermemory</Label>
-                                </div>
-
-                                {enabled && (
-                                    <div className="space-y-3">
-                                        {hasExistingKey && (
-                                            <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Key className="h-4 w-4 text-green-600" />
-                                                    <span className="text-sm">
-                                                        API key configured
-                                                    </span>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setRotatingKey(!rotatingKey)}
-                                                >
-                                                    <RotateCcw className="h-4 w-4" />
-                                                    {rotatingKey ? "Keep existing" : "Rotate key"}
-                                                </Button>
-                                            </div>
-                                        )}
-
-                                        {(!hasExistingKey || rotatingKey) && (
-                                            <div className="space-y-2">
-                                                <Label htmlFor="supermemory-key">
-                                                    {rotatingKey ? "New API Key" : "API Key"}
-                                                </Label>
-                                                <Input
-                                                    id="supermemory-key"
-                                                    type="password"
-                                                    value={newKey}
-                                                    onChange={(e) => setNewKey(e.target.value)}
-                                                    placeholder="sm-..."
-                                                    className="font-mono"
-                                                />
-                                                {rotatingKey && (
-                                                    <p className="text-muted-foreground text-xs">
-                                                        Leave empty to keep existing key
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {enabled && !hasExistingKey && !newKey.trim() && (
-                                            <div className="flex items-center gap-2 text-amber-600">
-                                                <AlertCircle className="h-4 w-4" />
-                                                <span className="text-sm">
-                                                    API key required to enable Supermemory
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={handleSave}
-                                        disabled={loading || !canSave}
-                                        size="sm"
-                                    >
-                                        <Check className="h-4 w-4" />
-                                        {loading ? "Saving..." : "Save"}
-                                    </Button>
-                                    <Button variant="ghost" size="sm" onClick={handleCancel}>
-                                        <X className="h-4 w-4" />
-                                        Cancel
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                                {isEnabled ? (
-                                    <SquarePen className="size-4" />
-                                ) : (
-                                    <Brain className="size-4" />
-                                )}
-                                {isEnabled ? "Edit" : "Setup"}
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </Card>
-        )
-    }
-)
 
 function AIOptionsSettings() {
     const session = useSession()
@@ -285,7 +70,8 @@ function AIOptionsSettings() {
                     customModels: userSettings.customModels,
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory
+                    supermemory: userSettings.supermemory,
+                    mcpServers: userSettings.mcpServers
                 },
                 coreProviders,
                 customProviders
@@ -334,7 +120,8 @@ function AIOptionsSettings() {
                     customModels: userSettings.customModels,
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory
+                    supermemory: userSettings.supermemory,
+                    mcpServers: userSettings.mcpServers
                 },
                 coreProviders,
                 customProviders
@@ -386,7 +173,8 @@ function AIOptionsSettings() {
                     customModels: userSettings.customModels,
                     titleGenerationModel: userSettings.titleGenerationModel,
                     customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory
+                    supermemory: userSettings.supermemory,
+                    mcpServers: userSettings.mcpServers
                 },
                 coreProviders,
                 customProviders,
@@ -399,6 +187,59 @@ function AIOptionsSettings() {
             toast.success(`Supermemory ${enabled ? "enabled" : "disabled"}`)
         } catch (error) {
             toast.error("Failed to update Supermemory settings")
+            console.error(error)
+            throw error
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleMCPServersUpdate = async (servers: Infer<typeof MCPServerConfig>[]) => {
+        if (!session.user) return
+
+        setIsLoading(true)
+        try {
+            // Include current state for all core providers
+            const coreProviders: Record<string, { enabled: boolean; newKey?: string }> = {}
+            for (const [id, provider] of Object.entries(userSettings.coreAIProviders)) {
+                coreProviders[id] = {
+                    enabled: provider.enabled
+                }
+            }
+
+            // Include current state for all custom providers
+            const customProviders: Record<
+                string,
+                { name: string; enabled: boolean; endpoint: string; newKey?: string }
+            > = {}
+            for (const [id, provider] of Object.entries(userSettings.customAIProviders)) {
+                customProviders[id] = {
+                    name: provider.name,
+                    enabled: provider.enabled,
+                    endpoint: provider.endpoint
+                }
+            }
+
+            await updateSettings({
+                userId: session.user!.id,
+                baseSettings: {
+                    userId: session.user!.id,
+                    searchProvider: userSettings.searchProvider,
+                    searchIncludeSourcesByDefault: userSettings.searchIncludeSourcesByDefault,
+                    customModels: userSettings.customModels,
+                    titleGenerationModel: userSettings.titleGenerationModel,
+                    customThemes: userSettings.customThemes,
+                    supermemory: userSettings.supermemory,
+                    mcpServers: servers
+                },
+                coreProviders,
+                customProviders,
+                mcpServers: servers
+            })
+
+            toast.success("MCP servers updated successfully")
+        } catch (error) {
+            toast.error("Failed to update MCP servers")
             console.error(error)
             throw error
         } finally {
@@ -428,6 +269,13 @@ function AIOptionsSettings() {
                         loading={isLoading}
                     />
                 </div>
+
+                {/* MCP Servers Section */}
+                <MCPServersCard
+                    userSettings={userSettings}
+                    onSave={handleMCPServersUpdate}
+                    loading={isLoading}
+                />
 
                 {/* Search Provider Section */}
                 <div className="space-y-4">

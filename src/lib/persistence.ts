@@ -3,7 +3,9 @@ import { z } from "zod"
 
 const AIConfigSchema = z.object({
     selectedModel: z.string().nullable(),
-    enabledTools: z.array(z.enum(ABILITIES as [string, ...string[]])).default(["web_search"]),
+    enabledTools: z
+        .array(z.enum(ABILITIES as readonly ["web_search", "supermemory", "mcp"]))
+        .default(["web_search"]),
     selectedImageSize: z.string().optional().default("1:1")
 })
 
@@ -31,7 +33,11 @@ export const loadAIConfig = (): AIConfig => {
         const parsed = JSON.parse(stored)
 
         // Validate enabled tools but let the UI handle invalid model IDs gracefully
-        if (parsed.enabledTools.some((tool) => !ABILITIES.includes(tool))) {
+        if (
+            parsed.enabledTools.some(
+                (tool: string) => !ABILITIES.includes(tool as (typeof ABILITIES)[number])
+            )
+        ) {
             parsed.enabledTools = ["web_search"]
         }
 
