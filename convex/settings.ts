@@ -141,15 +141,24 @@ export const updateUserSettings = mutation({
                 newKey: v.optional(v.string())
             })
         ),
-        mcpServers: v.optional(v.array(v.object({
-            name: v.string(),
-            url: v.string(),
-            type: v.union(v.literal("sse"), v.literal("http")),
-            headers: v.optional(v.array(v.object({
-                key: v.string(),
-                value: v.string()
-            })))
-        })))
+        mcpServers: v.optional(
+            v.array(
+                v.object({
+                    name: v.string(),
+                    url: v.string(),
+                    type: v.union(v.literal("sse"), v.literal("http")),
+                    enabled: v.optional(v.boolean()),
+                    headers: v.optional(
+                        v.array(
+                            v.object({
+                                key: v.string(),
+                                value: v.string()
+                            })
+                        )
+                    )
+                })
+            )
+        )
     },
     handler: async (ctx, args) => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })

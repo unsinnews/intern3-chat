@@ -4,7 +4,7 @@ import { z } from "zod"
 import { internal } from "../../_generated/api"
 import type { ToolAdapter } from "../toolkit"
 
-export const SupermemoryAdapter: ToolAdapter = ({ ctx, enabledTools, userSettings }) => {
+export const SupermemoryAdapter: ToolAdapter = async ({ ctx, enabledTools, userSettings }) => {
     if (!enabledTools.includes("supermemory")) return {}
 
     return {

@@ -6,6 +6,7 @@ import {
     type PromptInputRef,
     PromptInputTextarea
 } from "@/components/prompt-kit/prompt-input"
+import { ToolSelectorPopover } from "@/components/tool-selector-popover"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
@@ -38,7 +39,6 @@ import {
     ArrowUp,
     Code,
     FileType,
-    Globe,
     Image as ImageIcon,
     Loader2,
     Paperclip,
@@ -121,6 +121,12 @@ export function MultimodalInput({
     status: ReturnType<typeof useChat>["status"]
 }) {
     const { token } = useToken()
+    const location = useLocation()
+
+    // Extract threadId from URL
+    const threadId = location.pathname.includes("/thread/")
+        ? location.pathname.split("/thread/")[1]?.split("/")[0]
+        : undefined
 
     const { selectedModel, setSelectedModel, enabledTools, setEnabledTools } = useModelStore()
     const { uploadedFiles, addUploadedFile, removeUploadedFile, uploading, setUploading } =
@@ -490,7 +496,6 @@ export function MultimodalInput({
     }
 
     const [isClient, setIsClient] = useState(false)
-    const location = useLocation()
 
     useEffect(() => {
         setIsClient(true)
@@ -600,42 +605,15 @@ export function MultimodalInput({
                                         </Button>
                                     </PromptInputAction>
 
-                                    <PromptInputAction
-                                        tooltip={
-                                            modelSupportsFunctionCalling
-                                                ? "Search the web"
-                                                : "Current model doesn't support function calling"
-                                        }
-                                    >
-                                        <Button
-                                            type="button"
-                                            variant={
-                                                enabledTools.includes("web_search")
-                                                    ? "default"
-                                                    : "ghost"
+                                    <PromptInputAction tooltip="Configure AI tools">
+                                        <ToolSelectorPopover
+                                            threadId={threadId}
+                                            enabledTools={enabledTools}
+                                            onEnabledToolsChange={setEnabledTools}
+                                            modelSupportsFunctionCalling={
+                                                modelSupportsFunctionCalling
                                             }
-                                            disabled={!modelSupportsFunctionCalling}
-                                            onClick={() => {
-                                                if (modelSupportsFunctionCalling) {
-                                                    setEnabledTools(
-                                                        enabledTools.includes("web_search")
-                                                            ? enabledTools.filter(
-                                                                  (tool) => tool !== "web_search"
-                                                              )
-                                                            : [...enabledTools, "web_search"]
-                                                    )
-                                                }
-                                            }}
-                                            className={cn(
-                                                "size-8 shrink-0",
-                                                !enabledTools.includes("web_search") &&
-                                                    "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
-                                                !modelSupportsFunctionCalling &&
-                                                    "cursor-not-allowed opacity-50"
-                                            )}
-                                        >
-                                            <Globe className="size-4" />
-                                        </Button>
+                                        />
                                     </PromptInputAction>
                                 </>
                             )}

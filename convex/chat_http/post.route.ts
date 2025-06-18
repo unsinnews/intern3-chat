@@ -38,6 +38,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         targetFromMessageId?: string
         targetMode?: "normal" | "edit" | "retry"
         imageSize?: ImageSize
+        mcpOverrides?: Record<string, boolean>
     } = await req.json()
 
     if (body.targetFromMessageId && !body.id) {
@@ -88,13 +89,16 @@ export const chatPOST = httpAction(async (ctx, req) => {
         userId: user.id
     })
 
-    if (settings.supermemory?.enabled) {
-        body.enabledTools.push("supermemory")
-    }
-
-    // Add MCP to enabled tools if MCP servers are configured
     if (settings.mcpServers && settings.mcpServers.length > 0) {
-        body.enabledTools.push("mcp")
+        const enabledMcpServers = settings.mcpServers.filter((server) => {
+            const overrideValue = body.mcpOverrides?.[server.name]
+            if (overrideValue === undefined) return server.enabled
+            return overrideValue !== false
+        })
+
+        if (enabledMcpServers.length > 0) {
+            body.enabledTools.push("mcp")
+        }
     }
 
     // Track token usage
@@ -278,6 +282,16 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     }
                 }
             } else {
+                // Pass the filtered settings (with MCP overrides applied) to the toolkit
+                const filteredSettings = {
+                    ...settings,
+                    mcpServers: settings.mcpServers?.filter((server) => {
+                        if (server.enabled === false) return false
+                        const overrideValue = body.mcpOverrides?.[server.name]
+                        return overrideValue !== false
+                    })
+                }
+
                 const result = streamText({
                     model: model,
                     maxSteps: 100,
@@ -285,7 +299,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     experimental_transform: smoothStream(),
                     toolCallStreaming: true,
                     tools: modelData.abilities.includes("function_calling")
-                        ? getToolkit(ctx, body.enabledTools, settings)
+                        ? await getToolkit(ctx, body.enabledTools, filteredSettings)
                         : undefined,
                     messages: [
                         ...(modelData.modelId !== "gemini-2.0-flash-image-generation"

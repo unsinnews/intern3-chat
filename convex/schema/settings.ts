@@ -28,10 +28,15 @@ export const MCPServerConfig = v.object({
     name: v.string(),
     url: v.string(),
     type: v.union(v.literal("sse"), v.literal("http")),
-    headers: v.optional(v.array(v.object({
-        key: v.string(),
-        value: v.string()
-    })))
+    enabled: v.optional(v.boolean()),
+    headers: v.optional(
+        v.array(
+            v.object({
+                key: v.string(),
+                value: v.string()
+            })
+        )
+    )
 })
 
 const ModelAbilitySchema = v.union(

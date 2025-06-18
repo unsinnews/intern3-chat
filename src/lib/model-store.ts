@@ -2,6 +2,7 @@ import type { ImageSize } from "@/convex/lib/models"
 import type { AbilityId } from "@/convex/lib/toolkit"
 import { type AIConfig, loadAIConfig, saveAIConfig } from "@/lib/persistence"
 import { create } from "zustand"
+import { persist } from "zustand/middleware"
 
 export type ModelStore = {
     selectedModel: string | null
@@ -12,6 +13,15 @@ export type ModelStore = {
 
     selectedImageSize: ImageSize
     setSelectedImageSize: (imageSize: ImageSize) => void
+
+    mcpOverrides: Record<string, Record<string, boolean>>
+    setMcpOverride: (threadId: string, serverName: string, enabled: boolean) => void
+    getMcpOverrides: (threadId: string) => Record<string, boolean>
+    clearMcpOverrides: (threadId: string) => void
+    // Default overrides for new chats
+    defaultMcpOverrides: Record<string, boolean>
+    setDefaultMcpOverride: (serverName: string, enabled: boolean) => void
+    getEffectiveMcpOverrides: (threadId?: string) => Record<string, boolean>
 }
 
 const initialConfig = loadAIConfig()
@@ -25,36 +35,96 @@ const persistConfig = (
     saveAIConfig(config)
 }
 
-export const useModelStore = create<ModelStore>((set, get) => ({
-    selectedModel: initialConfig.selectedModel,
-    enabledTools: initialConfig.enabledTools as AbilityId[],
-    selectedImageSize: initialConfig.selectedImageSize as ImageSize,
+export const useModelStore = create<ModelStore>()(
+    persist(
+        (set, get) => ({
+            selectedModel: initialConfig.selectedModel,
+            enabledTools: initialConfig.enabledTools as AbilityId[],
+            selectedImageSize: initialConfig.selectedImageSize as ImageSize,
+            mcpOverrides: {},
+            defaultMcpOverrides: {},
+            setSelectedModel: (model) => {
+                const currentState = get()
+                if (currentState.selectedModel !== model) {
+                    set({ selectedModel: model })
+                    persistConfig(model, currentState.enabledTools, currentState.selectedImageSize)
+                }
+            },
+            setEnabledTools: (tools) => {
+                const currentState = get()
+                const hasChanged =
+                    tools.length !== currentState.enabledTools.length ||
+                    tools.some((tool, index) => tool !== currentState.enabledTools[index])
 
-    setSelectedModel: (model) => {
-        const currentState = get()
-        if (currentState.selectedModel !== model) {
-            set({ selectedModel: model })
-            persistConfig(model, currentState.enabledTools, currentState.selectedImageSize)
+                if (hasChanged) {
+                    set({ enabledTools: tools })
+                    persistConfig(currentState.selectedModel, tools, currentState.selectedImageSize)
+                }
+            },
+            setSelectedImageSize: (imageSize) => {
+                const currentState = get()
+                if (currentState.selectedImageSize !== imageSize) {
+                    set({ selectedImageSize: imageSize })
+                    persistConfig(currentState.selectedModel, currentState.enabledTools, imageSize)
+                }
+            },
+            setMcpOverride: (threadId, serverName, enabled) => {
+                console.log("[Store] setMcpOverride called:", { threadId, serverName, enabled })
+                set((state) => {
+                    const newOverrides = {
+                        ...state.mcpOverrides,
+                        [threadId]: {
+                            ...state.mcpOverrides[threadId],
+                            [serverName]: enabled
+                        }
+                    }
+                    console.log("[Store] New thread overrides:", newOverrides)
+                    return { mcpOverrides: newOverrides }
+                })
+            },
+            getMcpOverrides: (threadId) => get().mcpOverrides[threadId] || {},
+            clearMcpOverrides: (threadId) =>
+                set((state) => {
+                    const newOverrides = { ...state.mcpOverrides }
+                    delete newOverrides[threadId]
+                    return { mcpOverrides: newOverrides }
+                }),
+            setDefaultMcpOverride: (serverName, enabled) => {
+                console.log("[Store] setDefaultMcpOverride called:", { serverName, enabled })
+                set((state) => {
+                    const newDefaults = {
+                        ...state.defaultMcpOverrides,
+                        [serverName]: enabled
+                    }
+                    console.log("[Store] New default overrides:", newDefaults)
+                    return { defaultMcpOverrides: newDefaults }
+                })
+            },
+            getEffectiveMcpOverrides: (threadId) => {
+                const currentState = get()
+                console.log("[Store] getEffectiveMcpOverrides called:", { threadId })
+                console.log("[Store] Current state:", {
+                    defaultMcpOverrides: currentState.defaultMcpOverrides,
+                    threadOverrides: currentState.mcpOverrides[threadId || ""] || {}
+                })
+
+                // If no threadId, return default overrides
+                if (!threadId) {
+                    const result = { ...currentState.defaultMcpOverrides }
+                    console.log("[Store] Returning default overrides:", result)
+                    return result
+                }
+                // Combine thread-specific overrides with defaults (thread-specific takes precedence)
+                const result = {
+                    ...currentState.defaultMcpOverrides,
+                    ...(currentState.mcpOverrides[threadId] || {})
+                }
+                console.log("[Store] Returning combined overrides:", result)
+                return result
+            }
+        }),
+        {
+            name: "model-storage"
         }
-    },
-
-    setEnabledTools: (tools) => {
-        const currentState = get()
-        const hasChanged =
-            tools.length !== currentState.enabledTools.length ||
-            tools.some((tool, index) => tool !== currentState.enabledTools[index])
-
-        if (hasChanged) {
-            set({ enabledTools: tools })
-            persistConfig(currentState.selectedModel, tools, currentState.selectedImageSize)
-        }
-    },
-
-    setSelectedImageSize: (imageSize) => {
-        const currentState = get()
-        if (currentState.selectedImageSize !== imageSize) {
-            set({ selectedImageSize: imageSize })
-            persistConfig(currentState.selectedModel, currentState.enabledTools, imageSize)
-        }
-    }
-}))
+    )
+)
