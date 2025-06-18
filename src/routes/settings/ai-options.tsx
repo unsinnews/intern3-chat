@@ -19,7 +19,7 @@ export const Route = createFileRoute("/settings/ai-options")({
     component: AIOptionsSettings
 })
 
-type SearchProvider = "firecrawl" | "brave"
+type SearchProvider = "firecrawl" | "brave" | "tavily" | "serper"
 
 function AIOptionsSettings() {
     const session = useSession()
@@ -290,7 +290,7 @@ function AIOptionsSettings() {
                         </p>
                     </div>
 
-                    <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2">
                         <SearchProviderCard
                             provider="firecrawl"
                             isSelected={userSettings.searchProvider === "firecrawl"}
@@ -304,6 +304,20 @@ function AIOptionsSettings() {
                             onSelect={handleSearchProviderChange}
                             title="Brave Search"
                             description="Fast, privacy-focused search results from Brave's independent index"
+                        />
+                        <SearchProviderCard
+                            provider="tavily"
+                            isSelected={userSettings.searchProvider === "tavily"}
+                            onSelect={handleSearchProviderChange}
+                            title="Tavily"
+                            description="AI-powered search with advanced content chunking and source analysis"
+                        />
+                        <SearchProviderCard
+                            provider="serper"
+                            isSelected={userSettings.searchProvider === "serper"}
+                            onSelect={handleSearchProviderChange}
+                            title="Serper"
+                            description="Google-powered search with smart content scraping and context management"
                         />
                     </div>
                 </div>

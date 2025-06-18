@@ -66,7 +66,12 @@ export const CustomModel = v.object({
 
 export const NonSensitiveUserSettings = v.object({
     userId: v.string(),
-    searchProvider: v.union(v.literal("firecrawl"), v.literal("brave")),
+    searchProvider: v.union(
+        v.literal("firecrawl"),
+        v.literal("brave"),
+        v.literal("tavily"),
+        v.literal("serper")
+    ),
     searchIncludeSourcesByDefault: v.boolean(),
     customModels: v.record(v.string(), CustomModel),
     titleGenerationModel: v.string(),

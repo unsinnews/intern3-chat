@@ -1,12 +1,16 @@
 import { BraveSearchAdapter, type BraveSearchConfig } from "./brave_search_adapter"
 import { FirecrawlSearchAdapter, type FirecrawlSearchConfig } from "./firecrawl_search_adapter"
 import type { SearchAdapter, SearchOptions, SearchResult } from "./search_adapter"
+import { SerperSearchAdapter, type SerperSearchConfig } from "./serper_search_adapter"
+import { TavilySearchAdapter, type TavilySearchConfig } from "./tavily_search_adapter"
 
-export type SearchProviderType = "firecrawl" | "brave"
+export type SearchProviderType = "firecrawl" | "brave" | "tavily" | "serper"
 
 export interface SearchProviderConfig {
     provider: SearchProviderType
-    config?: Partial<FirecrawlSearchConfig | BraveSearchConfig>
+    config?: Partial<
+        FirecrawlSearchConfig | BraveSearchConfig | TavilySearchConfig | SerperSearchConfig
+    >
 }
 
 export class SearchProvider {
@@ -31,6 +35,24 @@ export class SearchProvider {
                     apiKey: process.env.BRAVE_API_KEY!,
                     ...config
                 } as BraveSearchConfig)
+                break
+            case "tavily":
+                if (!process.env.TAVILY_API_KEY) {
+                    throw new Error("TAVILY_API_KEY environment variable is not set")
+                }
+                this.adapter = new TavilySearchAdapter({
+                    apiKey: process.env.TAVILY_API_KEY!,
+                    ...config
+                } as TavilySearchConfig)
+                break
+            case "serper":
+                if (!process.env.SERPER_API_KEY) {
+                    throw new Error("SERPER_API_KEY environment variable is not set")
+                }
+                this.adapter = new SerperSearchAdapter({
+                    apiKey: process.env.SERPER_API_KEY!,
+                    ...config
+                } as SerperSearchConfig)
                 break
             default:
                 throw new Error(`Unsupported search provider: ${provider}`)
