@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite"
 // vite.config.ts
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import { defineConfig } from "vite"
+import mkcert from "vite-plugin-mkcert"
 import svgr from "vite-plugin-svgr"
 import tsConfigPaths from "vite-tsconfig-paths"
 
@@ -14,7 +15,11 @@ export default defineConfig({
             "micromark-extension-math": "micromark-extension-llm-math"
         }
     },
+    server: {
+        proxy: {}
+    },
     plugins: [
+        (process.env.HTTPS && mkcert()) || null,
         tanstackStart({
             target: "vercel",
             react: {

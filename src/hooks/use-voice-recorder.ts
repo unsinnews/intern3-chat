@@ -472,6 +472,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 }
             } catch (error) {
                 console.error("Transcription error:", error)
+                alert(error)
                 toast.error(error instanceof Error ? error.message : "Failed to transcribe audio")
             } finally {
                 setState((prev) => ({

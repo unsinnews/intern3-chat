@@ -7,7 +7,13 @@ import { transcribeAudio } from "./speech_to_text"
 
 const http = httpRouter()
 const cors = corsRouter(http, {
-    allowedOrigins: ["http://localhost:3000", "https://intern3.vercel.app", "https://intern3.chat"],
+    allowedOrigins: [
+        "http://localhost:3000",
+        "https://intern3.vercel.app",
+        "https://intern3.chat",
+        "https://localhost:3000",
+        "https://100.109.174.103:3000"
+    ],
     allowedHeaders: ["Content-Type", "Authorization"],
     allowCredentials: true
 })

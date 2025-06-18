@@ -11,7 +11,9 @@ export const auth = betterAuth({
     trustedOrigins: [
         "https://intern3.chat",
         "http://localhost:3000",
-        "http://100.109.174.103:3000"
+        "http://100.109.174.103:3000",
+        "https://localhost:3000",
+        "https://100.109.174.103:3000"
     ],
     baseURL:
         process.env.NODE_ENV === "production" ? "https://intern3.chat" : "http://localhost:3000",

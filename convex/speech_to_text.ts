@@ -9,6 +9,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
         // Verify user authentication
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
         if ("error" in user) {
+            console.error("Unauthorized")
             return new Response(JSON.stringify({ error: "Unauthorized" }), {
                 status: 401,
                 headers: { "Content-Type": "application/json" }
@@ -34,6 +35,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
         const audioFile = formData.get("audio") as Blob
 
         if (!audioFile) {
+            console.error("No audio file provided")
             return new Response(JSON.stringify({ error: "No audio file provided" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
@@ -43,6 +45,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
         // Check file size (max 25MB for free tier)
         const maxSize = 25 * 1024 * 1024 // 25MB
         if (audioFile.size > maxSize) {
+            console.error("Audio file too large (max 25MB)")
             return new Response(JSON.stringify({ error: "Audio file too large (max 25MB)" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
@@ -71,6 +74,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
 
             // Handle specific error cases
             if (response.status === 401) {
+                console.error("Invalid API key. Please check configuration.")
                 return new Response(
                     JSON.stringify({
                         error: "Invalid API key. Please check configuration."
@@ -82,6 +86,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
                 )
             }
             if (response.status === 429) {
+                console.error("Rate limit exceeded. Please try again later.")
                 return new Response(
                     JSON.stringify({
                         error: "Rate limit exceeded. Please try again later."
@@ -92,6 +97,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
                     }
                 )
             }
+            console.error("Transcription service temporarily unavailable")
             return new Response(
                 JSON.stringify({
                     error: "Transcription service temporarily unavailable"
@@ -116,7 +122,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
         )
     } catch (error) {
         console.error("Speech-to-text error:", error)
-        return new Response(JSON.stringify({ error: "Internal server error" }), {
+        return new Response(JSON.stringify({ error: `Internal server error: ${error}` }), {
             status: 500,
             headers: { "Content-Type": "application/json" }
         })
