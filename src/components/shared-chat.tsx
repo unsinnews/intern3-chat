@@ -55,7 +55,7 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
     }
 
     return (
-        <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
+        <div className="relative mb-80 flex h-screen flex-col">
             <Messages messages={messages} status="ready" />
             <div className="absolute right-0 bottom-2 left-0">
                 {/* Fork prompt instead of input */}
