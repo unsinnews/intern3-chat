@@ -1,7 +1,8 @@
+import BraveIcon from "@/assets/brave.svg"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { CheckCircle, Search } from "lucide-react"
+import { CheckCircle } from "lucide-react"
 import { memo } from "react"
 
 type SearchProvider = "firecrawl" | "brave"
@@ -14,8 +15,16 @@ type SearchProviderCardProps = {
     description: string
 }
 
+const providerIcons: Record<SearchProvider, React.ComponentType<{ className?: string }> | string> =
+    {
+        firecrawl: "🔥",
+        brave: BraveIcon
+    }
+
 export const SearchProviderCard = memo(
     ({ provider, isSelected, onSelect, title, description }: SearchProviderCardProps) => {
+        const IconComponent = providerIcons[provider]
+
         return (
             <Card
                 className={cn(
@@ -27,8 +36,12 @@ export const SearchProviderCard = memo(
                 onClick={() => onSelect(provider)}
             >
                 <div className="flex items-center gap-3">
-                    <div className="flex size-8 items-center justify-center rounded-full bg-background">
-                        <Search className="h-4 w-4 text-foreground" />
+                    <div className="flex size-8 items-center justify-center rounded-full">
+                        {typeof IconComponent === "string" ? (
+                            <span className="text-2xl">{IconComponent}</span>
+                        ) : (
+                            <IconComponent className="size-10" />
+                        )}
                     </div>
                     <div className="flex-1">
                         <div className="flex items-center gap-2">

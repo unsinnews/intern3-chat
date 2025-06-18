@@ -586,7 +586,7 @@ export function MultimodalInput({
                                             variant="ghost"
                                             onClick={() => uploadInputRef.current?.click()}
                                             className={cn(
-                                                "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
+                                                "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 text-foreground backdrop-blur-lg hover:bg-secondary/80"
                                             )}
                                         >
                                             <input
@@ -598,9 +598,9 @@ export function MultimodalInput({
                                                 accept={getFileAcceptAttribute(modelSupportsVision)}
                                             />
                                             {uploading ? (
-                                                <Loader2 className="size-4 animate-spin text-foreground" />
+                                                <Loader2 className="size-4 animate-spin" />
                                             ) : (
-                                                <Paperclip className="-rotate-45 size-4 text-foreground" />
+                                                <Paperclip className="-rotate-45 size-4 hover:text-primary" />
                                             )}
                                         </Button>
                                     </PromptInputAction>

@@ -1,3 +1,4 @@
+import MCPIcon from "@/assets/mcp.svg"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,7 +18,7 @@ import { Switch } from "@/components/ui/switch"
 import type { MCPServerConfig } from "@/convex/schema/settings"
 import { cn } from "@/lib/utils"
 import type { Infer } from "convex/values"
-import { Check, Plus, Server, SquarePen, Trash2, X } from "lucide-react"
+import { Check, Plus, SquarePen, Trash2, X } from "lucide-react"
 import { memo, useState } from "react"
 
 type MCPServerCardProps = {
@@ -75,7 +76,9 @@ export const MCPServerCard = memo(
             <Card className={cn("p-4 shadow-xs", !isEnabled && "bg-muted/20 opacity-50")}>
                 <div className="flex items-start gap-2 space-y-4">
                     <div className="flex size-8 items-center justify-center rounded-lg">
-                        <Server className="size-5" />
+                        <div className="flex size-5 items-center justify-center">
+                            <MCPIcon />
+                        </div>
                     </div>
                     <div className="flex-1">
                         <div className="mb-4 flex items-start justify-between">

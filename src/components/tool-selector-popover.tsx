@@ -1,5 +1,6 @@
+import MCPIcon from "@/assets/mcp.svg"
+import SupermemoryIcon from "@/assets/supermemory.svg"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import {
     ResponsivePopover,
     ResponsivePopoverContent,
@@ -12,7 +13,7 @@ import { useSession } from "@/hooks/auth-hooks"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
-import { Brain, Globe, Server, Settings2 } from "lucide-react"
+import { Globe, Settings2 } from "lucide-react"
 import { memo } from "react"
 
 type ToolSelectorPopoverProps = {
@@ -149,75 +150,80 @@ export const ToolSelectorPopover = memo(
                         )}
                     </Button>
                 </ResponsivePopoverTrigger>
-                <ResponsivePopoverContent
-                    title="AI Tools"
-                    description="Configure which tools the AI can use"
-                    className="max-sm:p-3 [&_[data-slot='sheet-header']]:p-1"
-                >
-                    <div className="space-y-4 p-1">
-                        {/* Web Search */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Globe className="h-4 w-4 text-blue-500" />
-                                <Label className="font-medium text-sm">Web Search</Label>
-                            </div>
-                            <Switch
-                                checked={enabledTools.includes("web_search")}
-                                onCheckedChange={handleWebSearchToggle}
-                                disabled={!modelSupportsFunctionCalling}
-                            />
+                <ResponsivePopoverContent className="w-54 p-2" align="start">
+                    <div className="space-y-3">
+                        <div className="mb-0 px-2 py-1.5 font-medium text-muted-foreground text-sm">
+                            Tools
                         </div>
 
-                        {/* Supermemory */}
-                        {hasSupermemory && (
-                            <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50">
                                 <div className="flex items-center gap-3">
-                                    <Brain className="h-4 w-4 text-purple-500" />
-                                    <Label className="font-medium text-sm">Supermemory</Label>
+                                    <Globe className="h-4 w-4" />
+                                    <span className="text-sm">Web Search</span>
                                 </div>
                                 <Switch
-                                    checked={enabledTools.includes("supermemory")}
-                                    onCheckedChange={handleSupermemoryToggle}
+                                    checked={enabledTools.includes("web_search")}
+                                    onCheckedChange={handleWebSearchToggle}
+                                    disabled={!modelSupportsFunctionCalling}
                                 />
                             </div>
-                        )}
 
-                        {/* MCP Servers */}
+                            {/* Supermemory */}
+                            {hasSupermemory && (
+                                <div className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-4 items-center justify-center">
+                                            <SupermemoryIcon />
+                                        </div>
+                                        <span className="text-sm">Supermemory</span>
+                                    </div>
+                                    <Switch
+                                        checked={enabledTools.includes("supermemory")}
+                                        onCheckedChange={handleSupermemoryToggle}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
                         {hasMcpServers && (
-                            <div className="border-t pt-3">
-                                <div className="mb-3 flex items-center gap-2">
-                                    <Server className="h-4 w-4 text-green-500" />
-                                    <Label className="font-medium text-sm">MCP Servers</Label>
+                            <div className="space-y-1 border-t pt-3">
+                                <div className="px-2 py-1 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+                                    MCP Servers
                                 </div>
-                                <div className="space-y-3">
-                                    {mcpServers.map((server) => {
-                                        const isEnabled = currentMcpOverrides[server.name] !== false // Default to enabled
-                                        return (
-                                            <div
-                                                key={server.name}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <Label className="text-sm">{server.name}</Label>
-                                                <span className="rounded bg-muted px-0.5 py-0.25 text-muted-foreground text-xs leading-none">
-                                                    {server.type.toUpperCase()}
-                                                </span>
-                                                <div className="flex-1" />
 
-                                                <Switch
-                                                    checked={isEnabled}
-                                                    onCheckedChange={(enabled) =>
-                                                        handleMcpServerToggle(server.name, enabled)
-                                                    }
-                                                />
+                                {mcpServers.map((server) => {
+                                    const isEnabled = currentMcpOverrides[server.name] !== false
+                                    return (
+                                        <div
+                                            key={server.name}
+                                            className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex size-4 items-center justify-center">
+                                                    <MCPIcon />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm">{server.name}</span>
+                                                    <span className="text-muted-foreground text-xs">
+                                                        {server.type.toUpperCase()}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        )
-                                    })}
-                                </div>
+                                            <Switch
+                                                checked={isEnabled}
+                                                onCheckedChange={(enabled) =>
+                                                    handleMcpServerToggle(server.name, enabled)
+                                                }
+                                            />
+                                        </div>
+                                    )
+                                })}
                             </div>
                         )}
 
                         {!modelSupportsFunctionCalling && (
-                            <div className="rounded bg-muted p-2 text-muted-foreground text-xs">
+                            <div className="mt-2 border-t px-2 py-2 pt-2 text-muted-foreground text-xs">
                                 Current model doesn't support function calling
                             </div>
                         )}

@@ -1,3 +1,4 @@
+import MCPIcon from "@/assets/mcp.svg"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -273,7 +274,9 @@ export const MCPServersCard = memo(({ userSettings, onSave, loading }: MCPServer
                 <Card className="border-dashed p-4 shadow-xs">
                     <div className="flex flex-col items-center justify-center py-6 text-center">
                         <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-muted">
-                            <Plus className="size-5" />
+                            <div className="flex size-5 items-center justify-center">
+                                <MCPIcon />
+                            </div>
                         </div>
                         <h4 className="mb-1 font-semibold text-sm">Add MCP Server</h4>
                         <p className="mb-3 text-muted-foreground text-xs">
