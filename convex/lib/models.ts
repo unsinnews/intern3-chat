@@ -132,6 +132,12 @@ export const MODELS_SHARED: SharedModel[] = [
         abilities: ["vision", "function_calling", "pdf"]
     },
     {
+        id: "gemini-2.0-flash-image-generation",
+        name: "Gemini 2.0 Flash Imagen",
+        adapters: ["i3-google:gemini-2.0-flash-exp", "google:gemini-2.0-flash-exp"],
+        abilities: ["vision"]
+    },
+    {
         id: "gemini-2.5-flash",
         name: "Gemini 2.5 Flash",
         adapters: [

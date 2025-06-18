@@ -160,12 +160,24 @@ export const dbMessagesToCore = async (
                 if (p.type === "text") {
                     mapped_content.push({ type: "text", text: p.text })
                 } else if (p.type === "file") {
-                    mapped_content.push({
-                        type: "file",
-                        mimeType: p.mimeType || "application/octet-stream",
-                        filename: p.filename || "",
-                        data: p.data || ""
-                    })
+                    if (p.mimeType?.startsWith("image/") && p.data.startsWith("generations/")) {
+                        const fileUrl = await r2.getUrl(p.data)
+                        const data = await fetch(fileUrl)
+                        const blob = await data.blob()
+                        mapped_content.push({
+                            type: "file",
+                            mimeType: p.mimeType || "image/png",
+                            filename: p.filename || "",
+                            data: await blob.arrayBuffer()
+                        })
+                    } else {
+                        mapped_content.push({
+                            type: "file",
+                            mimeType: p.mimeType || "application/octet-stream",
+                            filename: p.filename || "",
+                            data: p.data || ""
+                        })
+                    }
                 } else if (p.type === "tool-invocation") {
                     tool_calls.push({
                         type: "tool-call",

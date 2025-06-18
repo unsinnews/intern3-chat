@@ -83,6 +83,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         | Infer<typeof ErrorUIPart>
     > = []
 
+    const uploadPromises: Promise<void>[] = []
     const settings = await ctx.runQuery(internal.settings.getUserSettingsInternal, {
         userId: user.id
     })
@@ -282,18 +283,31 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         ? getToolkit(ctx, body.enabledTools, settings)
                         : undefined,
                     messages: [
-                        {
-                            role: "system",
-                            content: buildPrompt(body.enabledTools)
-                        },
+                        ...(modelData.modelId !== "gemini-2.0-flash-image-generation"
+                            ? [
+                                  {
+                                      role: "system",
+                                      content: buildPrompt(body.enabledTools)
+                                  } as const
+                              ]
+                            : []),
                         ...mapped_messages
                     ],
 
                     providerOptions: {
                         google: {
-                            thinkingConfig: {
-                                includeThoughts: true
-                            }
+                            ...(modelData.modelId === "gemini-2.0-flash-image-generation"
+                                ? {
+                                      responseModalities: ["TEXT", "IMAGE"]
+                                  }
+                                : {}),
+                            ...(modelData.abilities.includes("reasoning")
+                                ? {
+                                      thinkingConfig: {
+                                          includeThoughts: true
+                                      }
+                                  }
+                                : {})
                         } satisfies GoogleGenerativeAIProviderOptions
                     }
                 })
@@ -303,14 +317,21 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         manualStreamTransform(
                             parts,
                             totalTokenUsage,
-                            mutationResult.assistantMessageId
+                            mutationResult.assistantMessageId,
+                            uploadPromises,
+                            user.id,
+                            ctx
                         )
                     )
                 )
 
                 await result.consumeStream()
+                await Promise.allSettled(uploadPromises)
+                console.log("uploadPromises", uploadPromises)
+                console.log("parts", parts)
             }
             remoteCancel.abort()
+            console.log()
 
             await ctx.runMutation(internal.messages.patchMessage, {
                 threadId: mutationResult.threadId,

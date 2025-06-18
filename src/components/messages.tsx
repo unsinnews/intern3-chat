@@ -86,18 +86,16 @@ const FileAttachment = memo(
             }
 
             return (
-                <div className="group relative">
-                    <img
-                        src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${part.data}`}
-                        alt={fileName}
-                        className="w-full max-w-md cursor-pointer rounded-lg object-contain transition-opacity hover:opacity-90"
-                        onClick={handleInteraction}
-                        onKeyDown={handleKeyDown}
-                        onError={handleImageError}
-                        tabIndex={onPreview ? 0 : -1}
-                        role={onPreview ? "button" : undefined}
-                    />
-                </div>
+                <img
+                    src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${part.data}`}
+                    alt={fileName}
+                    className="w-full max-w-md cursor-pointer rounded-lg object-contain transition-opacity hover:opacity-90"
+                    onClick={handleInteraction}
+                    onKeyDown={handleKeyDown}
+                    onError={handleImageError}
+                    tabIndex={onPreview ? 0 : -1}
+                    role={onPreview ? "button" : undefined}
+                />
             )
         }
 
@@ -383,7 +381,7 @@ export function Messages({
                                         </div>
 
                                         {message.parts.some((part) => part.type === "file") && (
-                                            <div className="mt-3 space-y-3">
+                                            <div className="not-prose mt-3 flex flex-col justify-start space-y-3">
                                                 {message.parts
                                                     .filter((part) => part.type === "file")
                                                     .map((part, index) => (

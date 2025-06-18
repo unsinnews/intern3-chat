@@ -122,6 +122,7 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
             | (ImageModelV1 & { modelType: "image" }),
         abilities: model.abilities,
         registry,
+        modelId: model.id,
         modelName: model.name ?? model.id
     }
 }

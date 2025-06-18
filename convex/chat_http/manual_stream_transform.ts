@@ -6,8 +6,12 @@ import type {
     ToolInvocationUIPart
 } from "@ai-sdk/ui-utils"
 
+import { DelayedPromise } from "@/lib/delayed-promise"
 import { type TextStreamPart, type ToolCall, formatDataStreamPart } from "ai"
+import type { GenericActionCtx } from "convex/server"
 import type { Infer } from "convex/values"
+import type { DataModel } from "../_generated/dataModel"
+import { r2 } from "../attachments"
 import type { ErrorUIPart } from "../schema/parts"
 
 export const manualStreamTransform = (
@@ -23,7 +27,10 @@ export const manualStreamTransform = (
         completionTokens: number
         reasoningTokens: number
     },
-    assistantMessageId: string
+    assistantMessageId: string,
+    uploadPromises: Promise<void>[],
+    userId: string,
+    actionCtx: GenericActionCtx<DataModel>
 ) => {
     let reasoningStartedAt = -1
 
@@ -94,12 +101,45 @@ export const manualStreamTransform = (
                 }
 
                 case "file": {
-                    controller.enqueue(
-                        formatDataStreamPart("file", {
-                            mimeType: chunk.mimeType,
-                            data: chunk.base64
+                    if (chunk.mimeType.startsWith("image/")) {
+                        const promise = new DelayedPromise<void>()
+                        uploadPromises.push(promise.value)
+                        const fileExtension = chunk.mimeType.split("/")[1] || "png"
+                        const key = `generations/${userId}/${Date.now()}-${crypto.randomUUID()}-gen.${fileExtension}`
+                        const uint8Array = Uint8Array.from(atob(chunk.base64), (c) =>
+                            c.charCodeAt(0)
+                        )
+
+                        const storedKey = await r2.store(actionCtx, uint8Array, {
+                            authorId: userId,
+                            key,
+                            type: chunk.mimeType
                         })
-                    )
+
+                        console.log("Stored model-generated image to R2:", storedKey)
+
+                        parts.push({
+                            type: "file",
+                            mimeType: chunk.mimeType,
+                            data: storedKey
+                        })
+
+                        promise.resolve()
+
+                        controller.enqueue(
+                            formatDataStreamPart("file", {
+                                mimeType: chunk.mimeType,
+                                data: storedKey
+                            })
+                        )
+                    } else {
+                        controller.enqueue(
+                            formatDataStreamPart("file", {
+                                mimeType: chunk.mimeType,
+                                data: chunk.base64
+                            })
+                        )
+                    }
                     break
                 }
 
