@@ -10,6 +10,7 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
     Dialog,
     DialogContent,
@@ -24,6 +25,8 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
     Sidebar,
     SidebarContent,
@@ -42,12 +45,26 @@ import type { Id } from "@/convex/_generated/dataModel"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { authClient } from "@/lib/auth-client"
 import { useDiskCachedPaginatedQuery } from "@/lib/convex-cached-query"
+import { DEFAULT_PROJECT_ICON, getProjectColorClasses } from "@/lib/project-constants"
+import { useProjectStore } from "@/lib/project-store"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useNavigate, useParams } from "@tanstack/react-router"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { ArrowBigUp, Edit3, Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
+import {
+    ArrowBigUp,
+    ChevronDown,
+    ChevronRight,
+    Edit3,
+    FolderOpen,
+    FolderPlus,
+    Loader2,
+    MoreHorizontal,
+    Pin,
+    Search,
+    Trash2
+} from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -57,17 +74,34 @@ interface Thread {
     createdAt: number
     authorId: string
     pinned?: boolean
+    projectId?: Id<"projects">
 }
 
-function ThreadItem({ thread }: { thread: Thread }) {
+interface Project {
+    _id: Id<"projects">
+    name: string
+    description?: string
+    color?: string
+    icon?: string
+}
+
+function ThreadItem({ thread, isInFolder = false }: { thread: Thread; isInFolder?: boolean }) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [showRenameDialog, setShowRenameDialog] = useState(false)
+    const [showMoveDialog, setShowMoveDialog] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [renameValue, setRenameValue] = useState("")
     const [isRenaming, setIsRenaming] = useState(false)
+    const [isMoving, setIsMoving] = useState(false)
+    const [selectedProjectId, setSelectedProjectId] = useState<string>(
+        thread.projectId || "no-folder"
+    )
+
     const deleteThreadMutation = useMutation(api.threads.deleteThread)
     const renameThreadMutation = useMutation(api.threads.renameThread)
     const togglePinMutation = useMutation(api.threads.togglePinThread)
+    const moveThreadMutation = useMutation(api.projects.moveThreadToProject)
+    const projects = useQuery(api.projects.getUserProjects) || []
     const params = useParams({ strict: false }) as { threadId?: string }
     const isActive = params.threadId === thread._id
     const navigate = useNavigate()
@@ -132,14 +166,55 @@ function ThreadItem({ thread }: { thread: Thread }) {
         }
     }
 
+    const handleMove = async () => {
+        const newProjectId =
+            selectedProjectId === "no-folder" ? undefined : (selectedProjectId as Id<"projects">)
+
+        // Don't move if it's already in the same location
+        if ((thread.projectId || "no-folder") === selectedProjectId) {
+            setShowMoveDialog(false)
+            return
+        }
+
+        setIsMoving(true)
+        try {
+            const result = await moveThreadMutation({
+                threadId: thread._id,
+                projectId: newProjectId
+            })
+
+            if (result && "error" in result) {
+                toast.error(
+                    typeof result.error === "string" ? result.error : "Failed to move thread"
+                )
+            } else {
+                const targetName = newProjectId
+                    ? projects.find((p) => p._id === newProjectId)?.name || "folder"
+                    : "General"
+                toast.success(`Thread moved to ${targetName}`)
+                setShowMoveDialog(false)
+            }
+        } catch (error) {
+            console.error("Failed to move thread:", error)
+            toast.error("Failed to move thread")
+        } finally {
+            setIsMoving(false)
+        }
+    }
+
     const openRenameDialog = () => {
         setRenameValue(thread.title)
         setShowRenameDialog(true)
     }
 
+    const openMoveDialog = () => {
+        setSelectedProjectId(thread.projectId || "no-folder")
+        setShowMoveDialog(true)
+    }
+
     return (
         <>
-            <SidebarMenuItem>
+            <SidebarMenuItem className={isInFolder ? "pl-6" : ""}>
                 <div
                     className={cn(
                         "group/item flex w-full items-center rounded-sm hover:bg-accent/50",
@@ -176,6 +251,10 @@ function ThreadItem({ thread }: { thread: Thread }) {
                             <DropdownMenuItem onClick={handleTogglePin}>
                                 <Pin className="h-4 w-4" />
                                 {thread.pinned ? "Unpin" : "Pin"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={openMoveDialog}>
+                                <FolderOpen className="h-4 w-4" />
+                                Move to folder
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => setShowDeleteDialog(true)}
@@ -243,6 +322,91 @@ function ThreadItem({ thread }: { thread: Thread }) {
                 </DialogContent>
             </Dialog>
 
+            {/* Move to Folder Dialog */}
+            <Dialog
+                open={showMoveDialog}
+                onOpenChange={(open) => {
+                    if (!isMoving) {
+                        setShowMoveDialog(open)
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Move to Folder</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <RadioGroup
+                            value={selectedProjectId}
+                            onValueChange={setSelectedProjectId}
+                            disabled={isMoving}
+                        >
+                            {/* No folder option */}
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="no-folder" id="no-folder" />
+                                <Label
+                                    htmlFor="no-folder"
+                                    className="flex cursor-pointer items-center gap-2"
+                                >
+                                    <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-gray-100 text-gray-600 text-xs">
+                                        📁
+                                    </div>
+                                    <span>General (No folder)</span>
+                                </Label>
+                            </div>
+
+                            {/* Folder options */}
+                            {projects.map((project) => {
+                                const colorClasses = getProjectColorClasses(project.color as any)
+                                return (
+                                    <div key={project._id} className="flex items-center space-x-2">
+                                        <RadioGroupItem value={project._id} id={project._id} />
+                                        <Label
+                                            htmlFor={project._id}
+                                            className="flex cursor-pointer items-center gap-2"
+                                        >
+                                            <div
+                                                className={cn(
+                                                    "flex h-5 w-5 items-center justify-center rounded-sm text-xs",
+                                                    colorClasses.split(" ").slice(1).join(" ")
+                                                )}
+                                            >
+                                                {project.icon || DEFAULT_PROJECT_ICON}
+                                            </div>
+                                            <span>{project.name}</span>
+                                        </Label>
+                                    </div>
+                                )
+                            })}
+                        </RadioGroup>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowMoveDialog(false)}
+                            disabled={isMoving}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleMove}
+                            disabled={
+                                isMoving || selectedProjectId === (thread.projectId || "no-folder")
+                            }
+                        >
+                            {isMoving ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Moving...
+                                </>
+                            ) : (
+                                "Move"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Delete Dialog */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
@@ -269,31 +433,168 @@ function ThreadItem({ thread }: { thread: Thread }) {
     )
 }
 
-function ThreadsGroup({
-    title,
-    threads,
-    icon
-}: {
-    title: string
-    threads: Thread[]
-    icon?: React.ReactNode
-}) {
-    if (threads.length === 0) return null
+function FolderItem({ project, threads }: { project: Project; threads: Thread[] }) {
+    const { expandedFolderId, setExpandedFolder } = useProjectStore()
+    const isExpanded = expandedFolderId === project._id
+    const colorClasses = getProjectColorClasses(project.color as any)
+
+    const handleToggleExpansion = () => {
+        if (isExpanded) {
+            // If this folder is expanded, collapse it
+            setExpandedFolder(null)
+        } else {
+            // If this folder is not expanded, expand it and collapse any other
+            setExpandedFolder(project._id)
+        }
+    }
+
+    const sortedThreads = useMemo(() => {
+        return threads.sort((a, b) => {
+            // Pinned threads first
+            if (a.pinned && !b.pinned) return -1
+            if (!a.pinned && b.pinned) return 1
+            // Then by creation time (newest first)
+            return b.createdAt - a.createdAt
+        })
+    }, [threads])
 
     return (
-        <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2">
-                {icon}
-                {title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-                <SidebarMenu>
-                    {threads.map((thread) => (
-                        <ThreadItem key={thread._id} thread={thread} />
-                    ))}
-                </SidebarMenu>
-            </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarMenuItem>
+            <Collapsible open={isExpanded} onOpenChange={handleToggleExpansion}>
+                <div className="flex w-full items-center">
+                    <CollapsibleTrigger className="group flex flex-1 items-center gap-2 rounded-sm p-2 hover:bg-accent/50">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                            {isExpanded ? (
+                                <ChevronDown className="h-4 w-4 opacity-50" />
+                            ) : (
+                                <ChevronRight className="h-4 w-4 opacity-50" />
+                            )}
+                            <div
+                                className={cn(
+                                    "flex h-5 w-5 items-center justify-center rounded-sm text-xs",
+                                    colorClasses.split(" ").slice(1).join(" ")
+                                )}
+                            >
+                                {project.icon || DEFAULT_PROJECT_ICON}
+                            </div>
+                            <Link
+                                to="/folder/$folderId"
+                                params={{ folderId: project._id }}
+                                className="min-w-0 flex-1 text-left hover:underline"
+                                onClick={(e) => {
+                                    e.stopPropagation() // Prevent collapsible from toggling
+                                    setExpandedFolder(project._id) // Expand when navigating to folder
+                                }}
+                            >
+                                <span className="truncate font-medium">{project.name}</span>
+                                <span className="ml-2 text-muted-foreground text-xs">
+                                    ({threads.length})
+                                </span>
+                            </Link>
+                        </div>
+                    </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent>
+                    <div className="mt-1">
+                        {sortedThreads.map((thread) => (
+                            <ThreadItem key={thread._id} thread={thread} isInFolder={true} />
+                        ))}
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
+        </SidebarMenuItem>
+    )
+}
+
+function NewFolderButton() {
+    const [showDialog, setShowDialog] = useState(false)
+    const [folderName, setFolderName] = useState("")
+    const [isCreating, setIsCreating] = useState(false)
+    const createProjectMutation = useMutation(api.projects.createProject)
+
+    const handleCreate = async () => {
+        const trimmedName = folderName.trim()
+        if (!trimmedName) {
+            toast.error("Folder name cannot be empty")
+            return
+        }
+
+        setIsCreating(true)
+        try {
+            const result = await createProjectMutation({
+                name: trimmedName,
+                icon: DEFAULT_PROJECT_ICON,
+                color: "blue"
+            })
+
+            if (result && !("error" in result)) {
+                toast.success("Folder created successfully")
+                setFolderName("")
+                setShowDialog(false)
+            } else {
+                toast.error("Failed to create folder")
+            }
+        } catch (error) {
+            console.error("Failed to create folder:", error)
+            toast.error("Failed to create folder")
+        } finally {
+            setIsCreating(false)
+        }
+    }
+
+    return (
+        <>
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    onClick={() => setShowDialog(true)}
+                    className="text-muted-foreground"
+                >
+                    <FolderPlus className="h-4 w-4" />
+                    <span>New folder</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <Dialog open={showDialog} onOpenChange={setShowDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Create New Folder</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="folder-name">Folder Name</Label>
+                            <Input
+                                id="folder-name"
+                                value={folderName}
+                                onChange={(e) => setFolderName(e.target.value)}
+                                placeholder="Enter folder name"
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !isCreating) {
+                                        handleCreate()
+                                    }
+                                }}
+                                disabled={isCreating}
+                                autoFocus
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowDialog(false)}
+                                disabled={isCreating}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleCreate}
+                                disabled={isCreating || !folderName.trim()}
+                            >
+                                {isCreating ? "Creating..." : "Create"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 
@@ -335,6 +636,34 @@ function groupThreadsByTime(threads: Thread[]) {
     }
 }
 
+function ThreadsGroup({
+    title,
+    threads,
+    icon
+}: {
+    title: string
+    threads: Thread[]
+    icon?: React.ReactNode
+}) {
+    if (threads.length === 0) return null
+
+    return (
+        <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+                {icon}
+                {title}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+                <SidebarMenu>
+                    {threads.map((thread) => (
+                        <ThreadItem key={thread._id} thread={thread} />
+                    ))}
+                </SidebarMenu>
+            </SidebarGroupContent>
+        </SidebarGroup>
+    )
+}
+
 function LoadingSkeleton() {
     return <></>
 }
@@ -356,18 +685,25 @@ export function ThreadsSidebar() {
     const { data: session } = authClient.useSession()
     const navigate = useNavigate()
 
+    // Get all threads (not filtered by project anymore)
     const {
-        results: threads,
+        results: allThreads,
         status,
         loadMore
     } = useDiskCachedPaginatedQuery(
         api.threads.getUserThreadsPaginated,
-        { key: "threads-sidebar", maxItems: 25 },
+        {
+            key: "threads-sidebar-all",
+            maxItems: 50
+        },
         session?.user?.id ? {} : "skip",
         {
-            initialNumItems: 25
+            initialNumItems: 50
         }
     )
+
+    // Get projects
+    const projects = useQuery(api.projects.getUserProjects) || []
 
     const isLoading = false
 
@@ -375,17 +711,39 @@ export function ThreadsSidebar() {
         hasMore: status === "CanLoadMore",
         isLoading: false,
         onLoadMore: () => loadMore(25),
-        rootMargin: "200px", // Start loading when sentinel is 200px away from viewport
+        rootMargin: "200px",
         threshold: 0.1
     })
 
     const isAuthenticated = Boolean(session?.user?.id)
-    const hasError = false // Remove error handling since we return empty results instead
-    const threadsData = Array.isArray(threads) ? threads : []
+    const hasError = false
+    const threadsData = Array.isArray(allThreads) ? allThreads : []
 
-    const groupedThreads = useMemo(() => {
-        return groupThreadsByTime(threadsData)
+    // Group threads by project and non-project
+    const { projectThreads, nonProjectThreads } = useMemo(() => {
+        const projectThreadsMap = new Map<Id<"projects">, Thread[]>()
+        const nonProjectThreadsList: Thread[] = []
+
+        threadsData.forEach((thread) => {
+            if (thread.projectId) {
+                if (!projectThreadsMap.has(thread.projectId)) {
+                    projectThreadsMap.set(thread.projectId, [])
+                }
+                projectThreadsMap.get(thread.projectId)!.push(thread)
+            } else {
+                nonProjectThreadsList.push(thread)
+            }
+        })
+
+        return {
+            projectThreads: projectThreadsMap,
+            nonProjectThreads: nonProjectThreadsList
+        }
     }, [threadsData])
+
+    const groupedNonProjectThreads = useMemo(() => {
+        return groupThreadsByTime(nonProjectThreads)
+    }, [nonProjectThreads])
 
     // Keyboard shortcut for new chat (Cmd+Shift+O)
     useEffect(() => {
@@ -411,14 +769,12 @@ export function ThreadsSidebar() {
             setShowGradient(hasScrollableContent && !isScrolledToBottom)
         }
 
-        handleScroll() // Initial check
+        handleScroll()
         container.addEventListener("scroll", handleScroll)
 
-        // Watch for container size changes
         const resizeObserver = new ResizeObserver(handleScroll)
         resizeObserver.observe(container)
 
-        // Watch for DOM content changes (threads added/removed)
         const mutationObserver = new MutationObserver(handleScroll)
         mutationObserver.observe(container, {
             childList: true,
@@ -445,21 +801,60 @@ export function ThreadsSidebar() {
             return <></>
         }
 
-        if (threadsData.length === 0) {
+        const hasProjects = projects.length > 0
+        const hasNonProjectThreads = nonProjectThreads.length > 0
+
+        if (!hasProjects && !hasNonProjectThreads) {
             return <EmptyState message="No threads found" />
         }
 
         return (
             <>
-                <ThreadsGroup
-                    title="Pinned"
-                    threads={groupedThreads.pinned}
-                    icon={<Pin className="h-4 w-4" />}
-                />
-                <ThreadsGroup title="Today" threads={groupedThreads.today} />
-                <ThreadsGroup title="Yesterday" threads={groupedThreads.yesterday} />
-                <ThreadsGroup title="Last 7 Days" threads={groupedThreads.lastSevenDays} />
-                <ThreadsGroup title="Last 30 Days" threads={groupedThreads.lastThirtyDays} />
+                {/* Folders Section */}
+                {hasProjects && (
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Folders</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {projects.map((project) => {
+                                    const threadsInProject = projectThreads.get(project._id) || []
+                                    return (
+                                        <FolderItem
+                                            key={project._id}
+                                            project={project}
+                                            threads={threadsInProject}
+                                        />
+                                    )
+                                })}
+                                <NewFolderButton />
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
+
+                {/* Non-Project Threads */}
+                {hasNonProjectThreads && (
+                    <>
+                        <ThreadsGroup
+                            title="Pinned"
+                            threads={groupedNonProjectThreads.pinned}
+                            icon={<Pin className="h-4 w-4" />}
+                        />
+                        <ThreadsGroup title="Today" threads={groupedNonProjectThreads.today} />
+                        <ThreadsGroup
+                            title="Yesterday"
+                            threads={groupedNonProjectThreads.yesterday}
+                        />
+                        <ThreadsGroup
+                            title="Last 7 Days"
+                            threads={groupedNonProjectThreads.lastSevenDays}
+                        />
+                        <ThreadsGroup
+                            title="Last 30 Days"
+                            threads={groupedNonProjectThreads.lastThirtyDays}
+                        />
+                    </>
+                )}
 
                 {/* Infinite Scroll Sentinel */}
                 {status === "CanLoadMore" && (
@@ -492,6 +887,7 @@ export function ThreadsSidebar() {
                     </div>
                 </div>
                 <div className="h-px w-full bg-border" />
+
                 <Tooltip>
                     <TooltipTrigger>
                         <Link

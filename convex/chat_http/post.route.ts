@@ -97,6 +97,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         targetMode?: "normal" | "edit" | "retry"
         imageSize?: ImageSize
         mcpOverrides?: Record<string, boolean>
+        folderId?: Id<"projects">
         reasoningEffort?: ReasoningEffort
     } = await req.json()
 
@@ -113,7 +114,8 @@ export const chatPOST = httpAction(async (ctx, req) => {
         userMessage: "message" in body ? body.message : undefined,
         proposedNewAssistantId: body.proposedNewAssistantId,
         targetFromMessageId: body.targetFromMessageId,
-        targetMode: body.targetMode
+        targetMode: body.targetMode,
+        folderId: body.folderId
     })
 
     if (mutationResult instanceof ChatError) return mutationResult.toResponse()

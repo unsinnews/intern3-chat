@@ -16,11 +16,13 @@ import { useCallback, useMemo, useRef } from "react"
 export function useChatIntegration<IsShared extends boolean>({
     threadId,
     sharedThreadId,
-    isShared
+    isShared,
+    folderId
 }: {
     threadId: string | undefined
     sharedThreadId?: string | undefined
     isShared?: IsShared
+    folderId?: Id<"projects">
 }) {
     const tokenData = useToken()
     const {
@@ -109,6 +111,7 @@ export function useChatIntegration<IsShared extends boolean>({
                 },
                 enabledTools,
                 imageSize: selectedImageSize,
+                folderId,
                 reasoningEffort,
                 mcpOverrides
             }

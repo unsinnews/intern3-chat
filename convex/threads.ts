@@ -25,11 +25,20 @@ export const createThreadOrInsertMessages = internalMutation({
         userMessage: v.optional(HTTPAIMessage),
         proposedNewAssistantId: v.string(),
         targetFromMessageId: v.optional(v.string()),
-        targetMode: v.optional(v.union(v.literal("normal"), v.literal("edit"), v.literal("retry")))
+        targetMode: v.optional(v.union(v.literal("normal"), v.literal("edit"), v.literal("retry"))),
+        folderId: v.optional(v.id("projects"))
     },
     handler: async (
         { db },
-        { threadId, authorId, userMessage, proposedNewAssistantId, targetFromMessageId, targetMode }
+        {
+            threadId,
+            authorId,
+            userMessage,
+            proposedNewAssistantId,
+            targetFromMessageId,
+            targetMode,
+            folderId
+        }
     ) => {
         if (!userMessage) return new ChatError("bad_request:chat")
 
@@ -56,8 +65,11 @@ export const createThreadOrInsertMessages = internalMutation({
                 authorId,
                 title: "New Chat",
                 createdAt: Date.now(),
-                updatedAt: Date.now()
+                updatedAt: Date.now(),
+                projectId: folderId // Set the project ID if creating from a folder
             })
+
+            // Thread count will be automatically updated by aggregate triggers
 
             await db.insert("messages", {
                 threadId: newId,
@@ -520,6 +532,8 @@ export const deleteThread = mutation({
         const thread = await ctx.db.get(threadId)
         if (!thread || thread.authorId !== user.id) return { error: "Unauthorized" }
 
+        // Thread count will be automatically updated by aggregate triggers
+
         await ctx.db.delete(threadId)
     }
 })
@@ -550,5 +564,152 @@ export const renameThread = mutation({
         })
 
         return { success: true }
+    }
+})
+
+// Get threads by project (or general threads if projectId is null)
+export const getThreadsByProject = query({
+    args: {
+        projectId: v.optional(v.id("projects")),
+        paginationOpts: paginationOptsValidator
+    },
+    handler: async ({ db, auth }, { projectId, paginationOpts }) => {
+        const user = await getUserIdentity(auth, { allowAnons: true })
+
+        if ("error" in user) {
+            return {
+                page: [],
+                isDone: true,
+                continueCursor: ""
+            }
+        }
+
+        if (projectId) {
+            // Get threads for specific project
+            return await db
+                .query("threads")
+                .withIndex("byAuthorAndProject", (q) =>
+                    q.eq("authorId", user.id).eq("projectId", projectId)
+                )
+                .order("desc")
+                .paginate(paginationOpts)
+        }
+
+        // Get threads without project (General)
+        return await db
+            .query("threads")
+            .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+            .filter((q) => q.eq(q.field("projectId"), undefined))
+            .order("desc")
+            .paginate(paginationOpts)
+    }
+})
+
+// Enhanced getUserThreadsPaginated with project filtering
+export const getUserThreadsPaginatedByProject = query({
+    args: {
+        paginationOpts: paginationOptsValidator,
+        projectId: v.optional(v.id("projects"))
+    },
+    handler: async ({ db, auth }, { paginationOpts, projectId }) => {
+        const user = await getUserIdentity(auth, { allowAnons: true })
+
+        if ("error" in user) {
+            return {
+                page: [],
+                isDone: true,
+                continueCursor: ""
+            }
+        }
+
+        // For the first page, include pinned threads at the top
+        const isFirstPage = !paginationOpts.cursor
+
+        if (isFirstPage) {
+            let pinnedThreads: any[] = []
+            let regularThreadsResult: any
+
+            if (projectId) {
+                // Get pinned threads for specific project
+                pinnedThreads = await db
+                    .query("threads")
+                    .withIndex("byAuthorAndProject", (q) =>
+                        q.eq("authorId", user.id).eq("projectId", projectId)
+                    )
+                    .filter((q) => q.eq(q.field("pinned"), true))
+                    .order("desc")
+                    .collect()
+
+                // Get regular threads (non-pinned) for specific project
+                regularThreadsResult = await db
+                    .query("threads")
+                    .withIndex("byAuthorAndProject", (q) =>
+                        q.eq("authorId", user.id).eq("projectId", projectId)
+                    )
+                    .filter((q) => q.neq(q.field("pinned"), true))
+                    .order("desc")
+                    .paginate(paginationOpts)
+            } else {
+                // Get pinned threads without project (General)
+                pinnedThreads = await db
+                    .query("threads")
+                    .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+                    .filter((q) =>
+                        q.and(q.eq(q.field("projectId"), undefined), q.eq(q.field("pinned"), true))
+                    )
+                    .order("desc")
+                    .collect()
+
+                // Get regular threads (non-pinned) without project
+                regularThreadsResult = await db
+                    .query("threads")
+                    .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+                    .filter((q) =>
+                        q.and(q.eq(q.field("projectId"), undefined), q.neq(q.field("pinned"), true))
+                    )
+                    .order("desc")
+                    .paginate(paginationOpts)
+            }
+
+            // Combine pinned threads with regular threads
+            const combinedPage = [...pinnedThreads, ...regularThreadsResult.page]
+
+            // If we have too many threads, trim to the requested page size
+            const maxItems = paginationOpts.numItems
+            if (combinedPage.length > maxItems) {
+                return {
+                    page: combinedPage.slice(0, maxItems),
+                    isDone: false,
+                    continueCursor: regularThreadsResult.continueCursor
+                }
+            }
+
+            return {
+                page: combinedPage,
+                isDone: regularThreadsResult.isDone,
+                continueCursor: regularThreadsResult.continueCursor
+            }
+        }
+
+        // For subsequent pages, only get regular threads (no pinned)
+        if (projectId) {
+            return await db
+                .query("threads")
+                .withIndex("byAuthorAndProject", (q) =>
+                    q.eq("authorId", user.id).eq("projectId", projectId)
+                )
+                .filter((q) => q.neq(q.field("pinned"), true))
+                .order("desc")
+                .paginate(paginationOpts)
+        }
+
+        return await db
+            .query("threads")
+            .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+            .filter((q) =>
+                q.and(q.eq(q.field("projectId"), undefined), q.neq(q.field("pinned"), true))
+            )
+            .order("desc")
+            .paginate(paginationOpts)
     }
 })
