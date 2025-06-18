@@ -11,11 +11,19 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle
+} from "@/components/ui/dialog"
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import {
     Sidebar,
     SidebarContent,
@@ -38,7 +46,7 @@ import { Link } from "@tanstack/react-router"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { ArrowBigUp, Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
+import { ArrowBigUp, Edit3, Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -52,8 +60,12 @@ interface Thread {
 
 function ThreadItem({ thread }: { thread: Thread }) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [showRenameDialog, setShowRenameDialog] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [renameValue, setRenameValue] = useState("")
+    const [isRenaming, setIsRenaming] = useState(false)
     const deleteThreadMutation = useMutation(api.threads.deleteThread)
+    const renameThreadMutation = useMutation(api.threads.renameThread)
     const togglePinMutation = useMutation(api.threads.togglePinThread)
     const params = useParams({ strict: false }) as { threadId?: string }
     const isActive = params.threadId === thread._id
@@ -80,6 +92,48 @@ function ThreadItem({ thread }: { thread: Thread }) {
             console.error("Failed to toggle pin:", error)
             toast.error(`Failed to ${pinned ? "unpin" : "pin"} thread`)
         }
+    }
+
+    const handleRename = async () => {
+        const trimmedValue = renameValue.trim()
+        if (!trimmedValue) {
+            toast.error("Thread name cannot be empty")
+            return
+        }
+
+        if (trimmedValue === thread.title) {
+            setShowRenameDialog(false)
+            setRenameValue("")
+            return
+        }
+
+        setIsRenaming(true)
+        try {
+            const result = await renameThreadMutation({
+                threadId: thread._id,
+                title: trimmedValue
+            })
+
+            if (result && "error" in result) {
+                toast.error(
+                    typeof result.error === "string" ? result.error : "Failed to rename thread"
+                )
+            } else {
+                toast.success("Thread renamed successfully")
+                setShowRenameDialog(false)
+                setRenameValue("")
+            }
+        } catch (error) {
+            console.error("Failed to rename thread:", error)
+            toast.error("Failed to rename thread")
+        } finally {
+            setIsRenaming(false)
+        }
+    }
+
+    const openRenameDialog = () => {
+        setRenameValue(thread.title)
+        setShowRenameDialog(true)
     }
 
     return (
@@ -114,6 +168,10 @@ function ThreadItem({ thread }: { thread: Thread }) {
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={openRenameDialog}>
+                                <Edit3 className="h-4 w-4" />
+                                Rename
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={handleTogglePin}>
                                 <Pin className="h-4 w-4" />
                                 {thread.pinned ? "Unpin" : "Pin"}
@@ -130,6 +188,61 @@ function ThreadItem({ thread }: { thread: Thread }) {
                 </div>
             </SidebarMenuItem>
 
+            {/* Rename Dialog */}
+            <Dialog
+                open={showRenameDialog}
+                onOpenChange={(open) => {
+                    if (!isRenaming) {
+                        setShowRenameDialog(open)
+                        if (!open) {
+                            setRenameValue("")
+                        }
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Rename Thread</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Input
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            placeholder="Enter thread name"
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !isRenaming) {
+                                    handleRename()
+                                } else if (e.key === "Escape" && !isRenaming) {
+                                    setShowRenameDialog(false)
+                                }
+                            }}
+                            disabled={isRenaming}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowRenameDialog(false)}
+                            disabled={isRenaming}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleRename} disabled={isRenaming || !renameValue.trim()}>
+                            {isRenaming ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Renaming...
+                                </>
+                            ) : (
+                                "Rename"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Dialog */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
