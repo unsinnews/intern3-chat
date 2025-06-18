@@ -37,6 +37,7 @@ import type { useChat } from "@ai-sdk/react"
 import { useLocation } from "@tanstack/react-router"
 import {
     ArrowUp,
+    Brain,
     Code,
     FileType,
     Image as ImageIcon,
@@ -137,7 +138,7 @@ const ReasoningEffortSelector = ({ selectedModel }: { selectedModel: string | nu
             <Select value={reasoningEffort} onValueChange={setReasoningEffort}>
                 <SelectTrigger className="!h-8 w-auto gap-0.5 border bg-secondary/70 px-1.5 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
                     <div className="hidden items-center gap-1.5 sm:flex">
-                        <Zap className="size-4" />
+                        <Brain className="size-4" />
                         <SelectValue />
                     </div>
                     <Zap className="size-4 sm:hidden" />
@@ -200,7 +201,7 @@ export function MultimodalInput({
     const [
         modelSupportsVision,
         modelSupportsFunctionCalling,
-        modelSupportsReasoning,
+        _modelSupportsReasoning,
         isImageModel
     ] = useMemo(() => {
         if (!selectedModel) return [false, false, false, false]
@@ -669,7 +670,6 @@ export function MultimodalInput({
                                             modelSupportsFunctionCalling={
                                                 modelSupportsFunctionCalling
                                             }
-                                            modelSupportsReasoning={modelSupportsReasoning}
                                         />
                                     </PromptInputAction>
 

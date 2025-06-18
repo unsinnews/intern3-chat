@@ -23,7 +23,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
-import { Brain, Globe, Settings2 } from "lucide-react"
+import { Globe, Settings2 } from "lucide-react"
 import { memo, useState } from "react"
 
 type ToolSelectorPopoverProps = {
@@ -31,7 +31,6 @@ type ToolSelectorPopoverProps = {
     enabledTools: AbilityId[]
     onEnabledToolsChange: (tools: AbilityId[]) => void
     modelSupportsFunctionCalling: boolean
-    modelSupportsReasoning: boolean
     className?: string
 }
 
@@ -41,7 +40,6 @@ export const ToolSelectorPopover = memo(
         enabledTools,
         onEnabledToolsChange,
         modelSupportsFunctionCalling,
-        modelSupportsReasoning,
         className
     }: ToolSelectorPopoverProps) => {
         const session = useSession()
@@ -201,20 +199,6 @@ export const ToolSelectorPopover = memo(
                                             <Switch
                                                 checked={enabledTools.includes("supermemory")}
                                                 onCheckedChange={handleSupermemoryToggle}
-                                            />
-                                        </CommandItem>
-                                    )}
-
-                                    {modelSupportsReasoning && (
-                                        <CommandItem className="flex items-center justify-between p-3">
-                                            <div className="flex items-center gap-3">
-                                                <Brain className="size-4" />
-                                                <span className="text-sm">Think for longer</span>
-                                            </div>
-                                            <Switch
-                                                checked={enabledTools.includes("reasoning")}
-                                                onCheckedChange={handleReasoningToggle}
-                                                disabled={!modelSupportsReasoning}
                                             />
                                         </CommandItem>
                                     )}
