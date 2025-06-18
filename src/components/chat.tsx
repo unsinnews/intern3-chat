@@ -7,11 +7,12 @@ import { useChatIntegration } from "@/hooks/use-chat-integration"
 import { useDynamicTitle } from "@/hooks/use-dynamic-title"
 import { useThreadSync } from "@/hooks/use-thread-sync"
 import type { UploadedFile } from "@/lib/chat-store"
-// import { useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
+import { useThemeStore } from "@/lib/theme-store"
 import { AnimatePresence, motion } from "motion/react"
 import { useMemo } from "react"
 import { useStickToBottom } from "use-stick-to-bottom"
+import { Logo } from "./logo"
 import { MultimodalInput } from "./multimodal-input"
 import { SignupMessagePrompt } from "./signup-message-prompt"
 import { StickToBottomButton } from "./stick-to-bottom-button"
@@ -27,6 +28,8 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
         initial: "instant",
         resize: "instant"
     })
+    const { themeState } = useThemeStore()
+    const mode = themeState.currentMode
     // const { setTargetFromMessageId } = useChatStore()
     const { data: session } = useSession()
 
@@ -85,6 +88,9 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                         transition={{ duration: 0.2, ease: "easeInOut" }}
                         className="absolute inset-0 flex flex-col items-center justify-center"
                     >
+                        <div className="mb-6 size-16 rounded-full border-2 opacity-80">
+                            <Logo />
+                        </div>
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -117,7 +123,7 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                        className="-bottom-[3.875rem] md:-bottom-10 absolute right-0 left-0 z-[10] flex flex-col items-center justify-center gap-2"
+                        className="-bottom-[3.875rem] md:-bottom-10 -left-2 absolute right-0 z-[10] flex flex-col items-center justify-center gap-2"
                     >
                         <StickToBottomButton
                             isAtBottom={isAtBottom}

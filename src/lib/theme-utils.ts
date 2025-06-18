@@ -1,4 +1,5 @@
 export const THEME_URLS = [
+    "https://tweakcn.com/themes/cmc1zf292000a04l12rw84qef",
     "https://tweakcn.com/editor/theme?theme=mono",
     "https://tweakcn.com/editor/theme?theme=t3-chat",
     "https://tweakcn.com/editor/theme?theme=tangerine",
