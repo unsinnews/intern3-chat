@@ -9,7 +9,7 @@ import { WebSearchAdapter } from "./tools/web_search"
 
 export type ToolAdapter = (params: ConditionalToolParams) => Promise<Partial<Record<string, Tool>>>
 export const TOOL_ADAPTERS = [WebSearchAdapter, SupermemoryAdapter, MCPAdapter]
-export const ABILITIES = ["web_search", "supermemory", "mcp"] as const
+export const ABILITIES = ["web_search", "supermemory", "mcp", "reasoning"] as const
 export type AbilityId = (typeof ABILITIES)[number]
 
 export type ConditionalToolParams = {

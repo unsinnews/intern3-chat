@@ -8,7 +8,9 @@ import { formatDataStreamPart } from "ai"
 import { nanoid } from "nanoid"
 
 import { ChatError } from "@/lib/errors"
+import type { AnthropicProviderOptions } from "@ai-sdk/anthropic"
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
 import { createDataStream, smoothStream, streamText } from "ai"
 import type { Infer } from "convex/values"
 import { internal } from "../_generated/api"
@@ -27,6 +29,59 @@ import { generateAndStoreImage } from "./image_generation"
 import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
 import { RESPONSE_OPTS } from "./shared"
+
+// Helper functions for provider options
+const isReasoningEnabled = (abilities: string[], enabledTools: AbilityId[]): boolean => {
+    return abilities.includes("reasoning") && enabledTools.includes("reasoning")
+}
+
+const buildGoogleProviderOptions = (
+    modelId: string,
+    abilities: string[],
+    enabledTools: AbilityId[]
+): GoogleGenerativeAIProviderOptions => {
+    const options: GoogleGenerativeAIProviderOptions = {}
+
+    if (modelId === "gemini-2.0-flash-image-generation") {
+        options.responseModalities = ["TEXT", "IMAGE"]
+    }
+
+    if (isReasoningEnabled(abilities, enabledTools)) {
+        options.thinkingConfig = {
+            includeThoughts: true
+        }
+    }
+
+    return options
+}
+
+const buildOpenAIProviderOptions = (
+    abilities: string[],
+    enabledTools: AbilityId[]
+): OpenAIResponsesProviderOptions => {
+    const options: OpenAIResponsesProviderOptions = {}
+
+    if (isReasoningEnabled(abilities, enabledTools)) {
+        options.reasoningEffort = "medium"
+    }
+
+    return options
+}
+
+const buildAnthropicProviderOptions = (
+    abilities: string[],
+    enabledTools: AbilityId[]
+): AnthropicProviderOptions => {
+    const options: AnthropicProviderOptions = {}
+
+    if (isReasoningEnabled(abilities, enabledTools)) {
+        options.thinking = {
+            type: "enabled"
+        }
+    }
+
+    return options
+}
 
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
@@ -312,22 +367,17 @@ export const chatPOST = httpAction(async (ctx, req) => {
                             : []),
                         ...mapped_messages
                     ],
-
                     providerOptions: {
-                        google: {
-                            ...(modelData.modelId === "gemini-2.0-flash-image-generation"
-                                ? {
-                                      responseModalities: ["TEXT", "IMAGE"]
-                                  }
-                                : {}),
-                            ...(modelData.abilities.includes("reasoning")
-                                ? {
-                                      thinkingConfig: {
-                                          includeThoughts: true
-                                      }
-                                  }
-                                : {})
-                        } satisfies GoogleGenerativeAIProviderOptions
+                        google: buildGoogleProviderOptions(
+                            modelData.modelId,
+                            modelData.abilities,
+                            body.enabledTools
+                        ),
+                        openai: buildOpenAIProviderOptions(modelData.abilities, body.enabledTools),
+                        anthropic: buildAnthropicProviderOptions(
+                            modelData.abilities,
+                            body.enabledTools
+                        )
                     }
                 })
 

@@ -147,12 +147,18 @@ export function MultimodalInput({
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
 
     // Check if current model supports vision and is image model
-    const [modelSupportsVision, modelSupportsFunctionCalling, isImageModel] = useMemo(() => {
-        if (!selectedModel) return [false, false, false]
+    const [
+        modelSupportsVision,
+        modelSupportsFunctionCalling,
+        modelSupportsReasoning,
+        isImageModel
+    ] = useMemo(() => {
+        if (!selectedModel) return [false, false, false, false]
         const model = MODELS_SHARED.find((m) => m.id === selectedModel)
         return [
             model?.abilities.includes("vision") ?? false,
             model?.abilities.includes("function_calling") ?? false,
+            model?.abilities.includes("reasoning") ?? false,
             model?.mode === "image"
         ]
     }, [selectedModel])
@@ -613,6 +619,7 @@ export function MultimodalInput({
                                             modelSupportsFunctionCalling={
                                                 modelSupportsFunctionCalling
                                             }
+                                            modelSupportsReasoning={modelSupportsReasoning}
                                         />
                                     </PromptInputAction>
                                 </>
