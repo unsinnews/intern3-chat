@@ -18,6 +18,18 @@ export {
     type BraveSearchConfig
 } from "./brave_search_adapter"
 
+// Tavily adapter
+export {
+    TavilySearchAdapter,
+    type TavilySearchConfig
+} from "./tavily_search_adapter"
+
+// Serper adapter
+export {
+    SerperSearchAdapter,
+    type SerperSearchConfig
+} from "./serper_search_adapter"
+
 // Search provider manager
 export {
     SearchProvider,
