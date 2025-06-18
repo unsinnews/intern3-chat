@@ -215,7 +215,7 @@ const EditableMessage = memo(
                     value={editedContent}
                     onChange={(e) => setEditedContent(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="my-12 w-full resize-none border-none bg-transparent p-4 pb-2 text-primary-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className=" my-12 w-full resize-none border-none bg-transparent p-4 pb-2 text-primary-foreground shadow-none outline-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                 />
                 <div className="flex justify-end gap-2 px-4 pb-3">
@@ -405,7 +405,7 @@ export function Messages({
                                             </div>
                                         )}
 
-                                        {message.role === "user" ? (
+                                        {!targetFromMessageId && message.role === "user" ? (
                                             <ChatActions
                                                 role={message.role}
                                                 message={message}
@@ -418,14 +418,14 @@ export function Messages({
                                                         : handleEdit
                                                 }
                                             />
-                                        ) : (
+                                        ) : !targetFromMessageId && message.role === "assistant" ? (
                                             <ChatActions
                                                 role={message.role}
                                                 message={message}
                                                 onRetry={undefined}
                                                 onEdit={undefined}
                                             />
-                                        )}
+                                        ) : null}
                                     </>
                                 )}
                             </div>
