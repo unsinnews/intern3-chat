@@ -105,11 +105,12 @@ The implementation automatically detects and uses the best supported format:
    - User must be logged in to use voice input
    - Check authentication status
 
-5. **iOS-specific issues**
-   - Try refreshing the page and trying again
-   - Ensure you're using Safari (not Chrome/Firefox on iOS)
-   - Check that iOS is version 14.3 or higher
-   - Try closing other apps to free up memory
+5. **iOS Safari specific issues**
+   - **"Not supported" error**: Update to iOS 14.3+ and use Safari directly (not PWA/home screen app)
+   - **Silent recordings after first use**: Refresh the page - iOS Safari requires fresh audio streams
+   - **Fails after switching apps**: This is a known iOS Safari bug - refresh the page to recover
+   - **Red recording bar**: Normal behavior - it clears when recording stops
+   - **Home screen PWA**: Launch from Safari directly, not from home screen shortcut
 
 ### Debug Steps:
 

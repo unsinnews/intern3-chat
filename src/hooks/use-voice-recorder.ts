@@ -30,6 +30,11 @@ const isMediaRecorderUsable = (): boolean => {
         return false
     }
 
+    // Check if we're in a context where mediaDevices is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return false
+    }
+
     // On iOS Safari, MediaRecorder might exist but not work properly
     if (isIOSSafari()) {
         try {
@@ -121,24 +126,56 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
         }
     }, [])
 
-    const setupAudioAnalysis = useCallback((stream: MediaStream) => {
+    // Complete cleanup function to address iOS Safari stability issues
+    const cleanupRecording = useCallback(() => {
+        console.log("Cleaning up recording resources...")
+
+        // Clear intervals first
+        if (durationIntervalRef.current) {
+            clearInterval(durationIntervalRef.current)
+            durationIntervalRef.current = null
+        }
+        if (audioLevelIntervalRef.current) {
+            clearInterval(audioLevelIntervalRef.current)
+            audioLevelIntervalRef.current = null
+        }
+
+        // Stop and clean up media stream tracks (important for iOS Safari)
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => {
+                track.stop()
+                console.log(`Stopped ${track.kind} track`)
+            })
+            streamRef.current = null
+        }
+
+        // Close audio context properly (important for iOS Safari stability)
+        if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+            audioContextRef.current.close()
+            console.log("Audio context closed")
+            audioContextRef.current = null
+        }
+
+        // Clean up analyser references
+        analyserRef.current = null
+        dataArrayRef.current = null
+
+        // Clean up MediaRecorder
+        if (mediaRecorderRef.current) {
+            mediaRecorderRef.current = null
+        }
+
+        // Clear audio chunks
+        audioChunksRef.current = []
+    }, [])
+
+    const setupAudioAnalysis = useCallback((stream: MediaStream, audioContext: AudioContext) => {
         try {
-            // On iOS, AudioContext creation might fail or be restricted
-            audioContextRef.current = new (
-                window.AudioContext ||
-                (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-            )()
-
-            // iOS requires AudioContext to be resumed after user gesture
-            if (audioContextRef.current.state === "suspended") {
-                audioContextRef.current.resume()
-            }
-
-            analyserRef.current = audioContextRef.current.createAnalyser()
+            analyserRef.current = audioContext.createAnalyser()
             analyserRef.current.fftSize = 256
             analyserRef.current.smoothingTimeConstant = 0.8
 
-            const source = audioContextRef.current.createMediaStreamSource(stream)
+            const source = audioContext.createMediaStreamSource(stream)
             source.connect(analyserRef.current)
 
             dataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount)
@@ -149,7 +186,6 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 "Audio analysis setup failed (this is normal on some iOS versions):",
                 error
             )
-            // Don't fail the recording if audio analysis fails
             return false
         }
     }, [])
@@ -158,6 +194,11 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
         try {
             // Enhanced browser support checks
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                if (isIOSSafari()) {
+                    throw new Error(
+                        "Microphone access is not available. This can happen when launching from the home screen. Please open this page directly in Safari."
+                    )
+                }
                 throw new Error(
                     "Your browser doesn't support audio recording. Please try using the latest version of Safari."
                 )
@@ -166,10 +207,31 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             if (!isMediaRecorderUsable()) {
                 if (isIOSSafari()) {
                     throw new Error(
-                        "Audio recording is not available on this version of iOS Safari. Please update to iOS 14.3 or later, or try using a different browser."
+                        "Audio recording is not available on this version of iOS Safari. Please update to iOS 14.3 or later."
                     )
                 }
                 throw new Error("MediaRecorder not supported in your browser")
+            }
+
+            // CRITICAL: Create AudioContext BEFORE getUserMedia for iOS Safari compatibility
+            // This ensures we're still in the user click handler security context
+            console.log("Creating AudioContext before getUserMedia for iOS Safari compatibility...")
+
+            try {
+                audioContextRef.current = new (
+                    window.AudioContext ||
+                    (window as Window & { webkitAudioContext?: typeof AudioContext })
+                        .webkitAudioContext
+                )()
+
+                // iOS requires AudioContext to be resumed after user gesture
+                if (audioContextRef.current.state === "suspended") {
+                    await audioContextRef.current.resume()
+                    console.log("AudioContext resumed")
+                }
+            } catch (audioContextError) {
+                console.warn("Failed to create AudioContext:", audioContextError)
+                // Continue without audio analysis if AudioContext fails
             }
 
             // iOS Safari specific constraints
@@ -187,15 +249,20 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             }
 
             console.log("Requesting microphone access...")
+
+            // IMPORTANT: Always get a fresh stream for each recording on iOS Safari
+            // Reusing streams can cause subsequent recordings to be silent
             const stream = await navigator.mediaDevices.getUserMedia(constraints)
             streamRef.current = stream
 
-            // Set up audio analysis (may fail on iOS, that's okay)
-            const audioAnalysisWorking = setupAudioAnalysis(stream)
+            // Set up audio analysis if AudioContext was created successfully
+            let audioAnalysisWorking = false
+            if (audioContextRef.current) {
+                audioAnalysisWorking = setupAudioAnalysis(stream, audioContextRef.current)
+            }
 
             // Get the best supported MIME type
             const mimeType = getBestSupportedMimeType()
-
             console.log(`Using MIME type: ${mimeType || "browser default"}`)
 
             // Set up MediaRecorder with iOS-compatible options
@@ -234,14 +301,8 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
 
                 await transcribeAudio(audioBlob)
 
-                // Clean up
-                if (streamRef.current) {
-                    streamRef.current.getTracks().forEach((track) => track.stop())
-                    streamRef.current = null
-                }
-                if (audioContextRef.current && audioContextRef.current.state !== "closed") {
-                    audioContextRef.current.close()
-                }
+                // IMPORTANT: Clean up everything for iOS Safari stability
+                cleanupRecording()
             }
 
             mediaRecorderRef.current.onerror = (event) => {
@@ -252,6 +313,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 } else {
                     toast.error("Recording failed. Please try again.")
                 }
+                cleanupRecording()
             }
 
             // Start recording with small chunks for better iOS compatibility
@@ -286,10 +348,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             console.error("Error starting recording:", error)
 
             // Clean up on error
-            if (streamRef.current) {
-                streamRef.current.getTracks().forEach((track) => track.stop())
-                streamRef.current = null
-            }
+            cleanupRecording()
 
             if (error instanceof Error) {
                 if (error.name === "NotAllowedError") {
@@ -313,7 +372,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 toast.error("Failed to start recording. Please check microphone permissions.")
             }
         }
-    }, [updateAudioLevel, setupAudioAnalysis])
+    }, [updateAudioLevel, setupAudioAnalysis, cleanupRecording])
 
     const stopRecording = useCallback(() => {
         if (mediaRecorderRef.current && state.isRecording) {
@@ -327,15 +386,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 audioLevel: 0
             }))
 
-            // Clear intervals
-            if (durationIntervalRef.current) {
-                clearInterval(durationIntervalRef.current)
-                durationIntervalRef.current = null
-            }
-            if (audioLevelIntervalRef.current) {
-                clearInterval(audioLevelIntervalRef.current)
-                audioLevelIntervalRef.current = null
-            }
+            // Note: cleanup will happen in the onstop handler
         }
     }, [state.isRecording])
 
@@ -394,13 +445,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             mediaRecorderRef.current.ondataavailable = null
             mediaRecorderRef.current.onstop = () => {
                 // Clean up without transcribing
-                if (streamRef.current) {
-                    streamRef.current.getTracks().forEach((track) => track.stop())
-                    streamRef.current = null
-                }
-                if (audioContextRef.current && audioContextRef.current.state !== "closed") {
-                    audioContextRef.current.close()
-                }
+                cleanupRecording()
             }
             mediaRecorderRef.current.stop()
 
@@ -411,36 +456,15 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 recordingDuration: 0,
                 audioLevel: 0
             }))
-
-            // Clear intervals
-            if (durationIntervalRef.current) {
-                clearInterval(durationIntervalRef.current)
-                durationIntervalRef.current = null
-            }
-            if (audioLevelIntervalRef.current) {
-                clearInterval(audioLevelIntervalRef.current)
-                audioLevelIntervalRef.current = null
-            }
         }
-    }, [state.isRecording])
+    }, [state.isRecording, cleanupRecording])
 
     // Clean up on unmount
     useEffect(() => {
         return () => {
-            if (durationIntervalRef.current) {
-                clearInterval(durationIntervalRef.current)
-            }
-            if (audioLevelIntervalRef.current) {
-                clearInterval(audioLevelIntervalRef.current)
-            }
-            if (streamRef.current) {
-                streamRef.current.getTracks().forEach((track) => track.stop())
-            }
-            if (audioContextRef.current && audioContextRef.current.state !== "closed") {
-                audioContextRef.current.close()
-            }
+            cleanupRecording()
         }
-    }, [])
+    }, [cleanupRecording])
 
     return {
         state,
