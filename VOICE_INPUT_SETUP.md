@@ -58,9 +58,9 @@ The voice input uses Groq's Whisper API for speech-to-text transcription. You ne
 ## Browser Requirements
 
 - **Microphone permissions**: Users will be prompted to allow microphone access
-- **HTTPS required**: Voice input only works on HTTPS (or localhost for development)
+- **HTTPS required**: Voice input only works on HTTPS (or localhost for development) - **critical for iOS Safari**
 - **Modern browser**: Supports MediaRecorder API and Web Audio API
-- **iOS Support**: Compatible with iOS Safari 14.3+ (iPad/iPhone)
+- **iOS Support**: Compatible with iOS Safari 14.3+ (iPad/iPhone) - must open directly in Safari browser, not PWA/home screen app
 
 ## Supported Audio Formats
 
@@ -143,3 +143,12 @@ The implementation automatically detects and uses the best supported format:
 - `src/components/multimodal-input.tsx` - Integration with chat input
 
 The implementation follows security best practices with proper authentication, error handling, and user feedback.
+
+## iOS Safari Compatibility
+
+The voice input implementation has been updated based on [kaliatech's web-audio-recording-tests](https://github.com/kaliatech/web-audio-recording-tests) to ensure iOS Safari compatibility:
+
+- **Audio Graph Architecture**: Uses `createMediaStreamDestination()` instead of raw getUserMedia stream for MediaRecorder
+- **Proper Audio Routing**: Creates gain nodes and audio analysis before getUserMedia call
+- **Enhanced Cleanup**: Comprehensive resource cleanup to prevent iOS Safari stability issues
+- **Stream Management**: Always uses fresh audio streams for each recording session

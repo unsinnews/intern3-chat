@@ -31,7 +31,8 @@ const isMediaRecorderUsable = (): boolean => {
     }
 
     // Check if we're in a context where mediaDevices is available
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    // This is the case on ios/chrome, when clicking links from within ios/slack (sometimes), etc.
+    if (!navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         return false
     }
 
@@ -108,7 +109,13 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
     const durationIntervalRef = useRef<number | null>(null)
     const audioLevelIntervalRef = useRef<number | null>(null)
     const audioChunksRef = useRef<Blob[]>([])
-    const streamRef = useRef<MediaStream | null>(null)
+
+    // Audio graph nodes - following the working kaliatech approach
+    const micAudioStreamRef = useRef<MediaStream | null>(null)
+    const inputStreamNodeRef = useRef<MediaStreamAudioSourceNode | null>(null)
+    const micGainNodeRef = useRef<GainNode | null>(null)
+    const outputGainNodeRef = useRef<GainNode | null>(null)
+    const destinationNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null)
 
     const updateAudioLevel = useCallback(() => {
         if (!analyserRef.current || !dataArrayRef.current) return
@@ -140,13 +147,36 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             audioLevelIntervalRef.current = null
         }
 
+        // Disconnect and clean up audio graph nodes
+        if (destinationNodeRef.current) {
+            destinationNodeRef.current.disconnect()
+            destinationNodeRef.current = null
+        }
+        if (outputGainNodeRef.current) {
+            outputGainNodeRef.current.disconnect()
+            outputGainNodeRef.current = null
+        }
+        if (analyserRef.current) {
+            analyserRef.current.disconnect()
+            analyserRef.current = null
+        }
+        if (micGainNodeRef.current) {
+            micGainNodeRef.current.disconnect()
+            micGainNodeRef.current = null
+        }
+        if (inputStreamNodeRef.current) {
+            inputStreamNodeRef.current.disconnect()
+            inputStreamNodeRef.current = null
+        }
+
         // Stop and clean up media stream tracks (important for iOS Safari)
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => {
+        // This removes the red bar in iOS/Safari
+        if (micAudioStreamRef.current) {
+            micAudioStreamRef.current.getTracks().forEach((track) => {
                 track.stop()
                 console.log(`Stopped ${track.kind} track`)
             })
-            streamRef.current = null
+            micAudioStreamRef.current = null
         }
 
         // Close audio context properly (important for iOS Safari stability)
@@ -156,36 +186,51 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             audioContextRef.current = null
         }
 
-        // Clean up analyser references
-        analyserRef.current = null
+        // Clean up other references
         dataArrayRef.current = null
-
-        // Clean up MediaRecorder
-        if (mediaRecorderRef.current) {
-            mediaRecorderRef.current = null
-        }
-
-        // Clear audio chunks
+        mediaRecorderRef.current = null
         audioChunksRef.current = []
     }, [])
 
-    const setupAudioAnalysis = useCallback((stream: MediaStream, audioContext: AudioContext) => {
+    const setupAudioGraph = useCallback((micStream: MediaStream, audioContext: AudioContext) => {
         try {
+            // Create audio graph nodes - following kaliatech's working approach
+            micGainNodeRef.current = audioContext.createGain()
+            outputGainNodeRef.current = audioContext.createGain()
+
+            // Create stream destination - this is key for iOS Safari compatibility!
+            if (audioContext.createMediaStreamDestination) {
+                destinationNodeRef.current = audioContext.createMediaStreamDestination()
+            } else {
+                // Fallback for older browsers
+                destinationNodeRef.current = audioContext.destination as any
+            }
+
+            // Create analyser for audio level visualization
             analyserRef.current = audioContext.createAnalyser()
             analyserRef.current.fftSize = 256
             analyserRef.current.smoothingTimeConstant = 0.8
-
-            const source = audioContext.createMediaStreamSource(stream)
-            source.connect(analyserRef.current)
-
             dataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount)
+
+            // Set up the audio graph following the working kaliatech pattern
+            inputStreamNodeRef.current = audioContext.createMediaStreamSource(micStream)
+
+            // Connect the nodes: input -> micGain -> analyser -> outputGain -> destination
+            inputStreamNodeRef.current.connect(micGainNodeRef.current)
+            micGainNodeRef.current.connect(analyserRef.current)
+            micGainNodeRef.current.connect(outputGainNodeRef.current)
+            if (destinationNodeRef.current) {
+                outputGainNodeRef.current.connect(destinationNodeRef.current)
+            }
+
+            // Set gain levels
+            micGainNodeRef.current.gain.setValueAtTime(1.0, audioContext.currentTime)
+            // Set output gain to 0 to prevent feedback (important for iOS Safari)
+            outputGainNodeRef.current.gain.setValueAtTime(0, audioContext.currentTime)
 
             return true
         } catch (error) {
-            console.warn(
-                "Audio analysis setup failed (this is normal on some iOS versions):",
-                error
-            )
+            console.warn("Audio graph setup failed:", error)
             return false
         }
     }, [])
@@ -193,10 +238,10 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
     const startRecording = useCallback(async () => {
         try {
             // Enhanced browser support checks
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (!navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 if (isIOSSafari()) {
                     throw new Error(
-                        "Microphone access is not available. This can happen when launching from the home screen. Please open this page directly in Safari."
+                        "Microphone access is not available. This can happen when launching from the home screen or when not using HTTPS. Please open this page directly in Safari with HTTPS."
                     )
                 }
                 throw new Error(
@@ -217,21 +262,14 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             // This ensures we're still in the user click handler security context
             console.log("Creating AudioContext before getUserMedia for iOS Safari compatibility...")
 
-            try {
-                audioContextRef.current = new (
-                    window.AudioContext ||
-                    (window as Window & { webkitAudioContext?: typeof AudioContext })
-                        .webkitAudioContext
-                )()
+            // Use the same AudioContext creation as the working kaliatech implementation
+            window.AudioContext = window.AudioContext || (window as any).webkitAudioContext
+            audioContextRef.current = new AudioContext()
 
-                // iOS requires AudioContext to be resumed after user gesture
-                if (audioContextRef.current.state === "suspended") {
-                    await audioContextRef.current.resume()
-                    console.log("AudioContext resumed")
-                }
-            } catch (audioContextError) {
-                console.warn("Failed to create AudioContext:", audioContextError)
-                // Continue without audio analysis if AudioContext fails
+            // iOS requires AudioContext to be resumed after user gesture
+            if (audioContextRef.current.state === "suspended") {
+                await audioContextRef.current.resume()
+                console.log("AudioContext resumed")
             }
 
             // iOS Safari specific constraints
@@ -252,13 +290,19 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
 
             // IMPORTANT: Always get a fresh stream for each recording on iOS Safari
             // Reusing streams can cause subsequent recordings to be silent
-            const stream = await navigator.mediaDevices.getUserMedia(constraints)
-            streamRef.current = stream
+            const micStream = await navigator.mediaDevices.getUserMedia(constraints)
+            micAudioStreamRef.current = micStream
 
-            // Set up audio analysis if AudioContext was created successfully
-            let audioAnalysisWorking = false
-            if (audioContextRef.current) {
-                audioAnalysisWorking = setupAudioAnalysis(stream, audioContextRef.current)
+            // Set up audio graph using the working kaliatech approach
+            const audioGraphWorking = setupAudioGraph(micStream, audioContextRef.current)
+            if (!audioGraphWorking) {
+                throw new Error("Failed to set up audio processing graph")
+            }
+
+            // CRITICAL: Use destinationNode.stream for MediaRecorder (kaliatech's approach)
+            // This is what makes it work on iOS Safari!
+            if (!destinationNodeRef.current || !destinationNodeRef.current.stream) {
+                throw new Error("Audio destination stream not available")
             }
 
             // Get the best supported MIME type
@@ -277,11 +321,15 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
             }
 
             try {
-                mediaRecorderRef.current = new MediaRecorder(stream, options)
+                // KEY DIFFERENCE: Use destinationNode.stream instead of raw getUserMedia stream
+                mediaRecorderRef.current = new MediaRecorder(
+                    destinationNodeRef.current.stream,
+                    options
+                )
             } catch (optionsError) {
                 console.warn("Failed with options, trying without:", optionsError)
                 // Fallback: try without options
-                mediaRecorderRef.current = new MediaRecorder(stream)
+                mediaRecorderRef.current = new MediaRecorder(destinationNodeRef.current.stream)
             }
 
             audioChunksRef.current = []
@@ -340,10 +388,8 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 setState((prev) => ({ ...prev, recordingDuration: duration }))
             }, 1000)
 
-            // Start audio level monitoring only if audio analysis is working
-            if (audioAnalysisWorking) {
-                audioLevelIntervalRef.current = window.setInterval(updateAudioLevel, 100)
-            }
+            // Start audio level monitoring
+            audioLevelIntervalRef.current = window.setInterval(updateAudioLevel, 100)
         } catch (error) {
             console.error("Error starting recording:", error)
 
@@ -372,7 +418,7 @@ export const useVoiceRecorder = ({ onTranscript }: UseVoiceRecorderOptions) => {
                 toast.error("Failed to start recording. Please check microphone permissions.")
             }
         }
-    }, [updateAudioLevel, setupAudioAnalysis, cleanupRecording])
+    }, [updateAudioLevel, setupAudioGraph, cleanupRecording])
 
     const stopRecording = useCallback(() => {
         if (mediaRecorderRef.current && state.isRecording) {
