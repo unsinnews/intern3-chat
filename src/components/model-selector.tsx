@@ -226,10 +226,11 @@ export function ModelSelector({
                     {selectedModelData && (
                         <div className="flex items-center gap-2">
                             <div className="block min-[390px]:hidden">{icon}</div>
-                            <span className="hidden min-[390px]:block">
+                            <span className="hidden md:hidden min-[390px]:block">
                                 {(selectedModelData as SharedModel)?.shortName ||
                                     selectedModelData?.name}
                             </span>
+                            <span className="hidden md:block">{selectedModelData?.name}</span>
                         </div>
                     )}
                     <ChevronDown className="ml-auto h-4 w-4" />

@@ -110,7 +110,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="mb-8 w-full max-w-3xl text-left"
+                className="mb-8 w-full max-w-4xl px-8 text-left"
             >
                 {/* Large folder icon */}
                 <div
