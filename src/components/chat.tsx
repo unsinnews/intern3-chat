@@ -123,7 +123,7 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                        className="-bottom-[3.875rem] md:-bottom-10 -left-2 absolute right-0 z-[10] flex flex-col items-center justify-center gap-2"
+                        className="-bottom-[3.875rem] md:-bottom-10 absolute inset-x-0 z-[10] flex flex-col items-center justify-center gap-2"
                     >
                         <StickToBottomButton
                             isAtBottom={isAtBottom}

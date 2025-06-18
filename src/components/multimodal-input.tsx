@@ -585,7 +585,7 @@ export function MultimodalInput({
     return (
         <>
             <div
-                className="@container w-full md:px-2"
+                className="@container w-full px-1"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
