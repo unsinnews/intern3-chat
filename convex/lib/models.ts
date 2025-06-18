@@ -160,7 +160,7 @@ export const MODELS_SHARED: SharedModel[] = [
             "google:gemini-2.5-flash-lite-preview-06-17",
             "openrouter:google/gemini-2.5-flash-lite-preview-06-17"
         ],
-        abilities: ["vision", "function_calling", "reasoning", "pdf"],
+        abilities: ["vision", "function_calling", "reasoning", "pdf", "effort_control"],
         supportsDisablingReasoning: true
     },
     {
