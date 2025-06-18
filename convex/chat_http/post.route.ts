@@ -287,7 +287,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
                             ? [
                                   {
                                       role: "system",
-                                      content: buildPrompt(body.enabledTools)
+                                      content: buildPrompt(body.enabledTools, settings)
                                   } as const
                               ]
                             : []),

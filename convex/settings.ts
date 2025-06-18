@@ -18,7 +18,8 @@ const DefaultSettings = (userId: string) =>
         customModels: {},
         titleGenerationModel: "gemini-2.0-flash-lite",
         customThemes: [],
-        supermemory: undefined
+        supermemory: undefined,
+        customization: undefined
     }) satisfies Infer<typeof UserSettings>
 
 const getSettings = async (
@@ -144,6 +145,25 @@ export const updateUserSettings = mutation({
     handler: async (ctx, args) => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
         if ("error" in user) throw new ChatError("unauthorized:chat")
+
+        // Validate customization field character limits
+        if (args.baseSettings.customization) {
+            const { aiPersonality, additionalContext } = args.baseSettings.customization
+
+            if (aiPersonality && aiPersonality.length > 2000) {
+                throw new ChatError(
+                    "bad_request:api",
+                    "AI personality must be 2000 characters or less"
+                )
+            }
+
+            if (additionalContext && additionalContext.length > 2000) {
+                throw new ChatError(
+                    "bad_request:api",
+                    "Additional context must be 2000 characters or less"
+                )
+            }
+        }
 
         const settings = await getSettings(ctx, user.id)
 
