@@ -174,7 +174,7 @@ export const ToolSelectorPopover = memo(
                         )}
                         <CommandList>
                             <CommandEmpty>No tools found.</CommandEmpty>
-                            <ScrollArea className="h-[400px]">
+                            <ScrollArea className="h-fit">
                                 <CommandGroup heading="Tools">
                                     <CommandItem className="flex items-center justify-between p-3">
                                         <div className="flex items-center gap-3">
