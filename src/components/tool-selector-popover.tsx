@@ -70,7 +70,7 @@ export const ToolSelectorPopover = memo(
                     className={cn(
                         "size-8 shrink-0",
                         !enabledTools.includes("web_search") &&
-                            "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
+                            "bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
                         !modelSupportsFunctionCalling && "cursor-not-allowed opacity-50",
                         className
                     )}
@@ -149,7 +149,7 @@ export const ToolSelectorPopover = memo(
                         className={cn(
                             "relative size-8 shrink-0",
                             activeCount === 0 &&
-                                "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
+                                "bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
                             !modelSupportsFunctionCalling && "cursor-not-allowed opacity-50",
                             className
                         )}

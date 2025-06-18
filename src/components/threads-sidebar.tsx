@@ -165,7 +165,7 @@ function ThreadItem({ thread }: { thread: Thread }) {
                                     isMenuOpen || "opacity-0 group-hover/item:opacity-100"
                                 )}
                             >
-                                <MoreHorizontal className="h-4 w-4" />
+                                <MoreHorizontal className="mr-1 h-4 w-4" />
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
