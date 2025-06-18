@@ -1,5 +1,6 @@
 import MCPIcon from "@/assets/mcp.svg"
 import SupermemoryIcon from "@/assets/supermemory.svg"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
     Command,
@@ -174,7 +175,7 @@ export const ToolSelectorPopover = memo(
                         )}
                         <CommandList>
                             <CommandEmpty>No tools found.</CommandEmpty>
-                            <ScrollArea className="h-[400px]">
+                            <ScrollArea className="h-fit">
                                 <CommandGroup heading="Tools">
                                     <CommandItem className="flex items-center justify-between p-3">
                                         <div className="flex items-center gap-3">
@@ -218,13 +219,16 @@ export const ToolSelectorPopover = memo(
                                                         <div className="flex size-4 items-center justify-center">
                                                             <MCPIcon />
                                                         </div>
-                                                        <div className="flex flex-col">
+                                                        <div className="flex items-center gap-2">
                                                             <span className="text-sm">
                                                                 {server.name}
                                                             </span>
-                                                            <span className="text-muted-foreground text-xs">
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="text-xs"
+                                                            >
                                                                 {server.type.toUpperCase()}
-                                                            </span>
+                                                            </Badge>
                                                         </div>
                                                     </div>
                                                     <Switch
