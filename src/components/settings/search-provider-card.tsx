@@ -1,11 +1,13 @@
 import BraveIcon from "@/assets/brave.svg"
+import SerperIcon from "@/assets/serper.svg"
+import TavilyIcon from "@/assets/tavily.svg"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { CheckCircle } from "lucide-react"
 import { memo } from "react"
 
-type SearchProvider = "firecrawl" | "brave"
+type SearchProvider = "firecrawl" | "brave" | "tavily" | "serper"
 
 type SearchProviderCardProps = {
     provider: SearchProvider
@@ -18,7 +20,9 @@ type SearchProviderCardProps = {
 const providerIcons: Record<SearchProvider, React.ComponentType<{ className?: string }> | string> =
     {
         firecrawl: "🔥",
-        brave: BraveIcon
+        brave: BraveIcon,
+        tavily: TavilyIcon,
+        serper: SerperIcon
     }
 
 export const SearchProviderCard = memo(

@@ -25,12 +25,36 @@ OPENAI_API_KEY=your_openai_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
 
+### Search Provider API Keys
+Choose one or more search providers to enable web search functionality:
+```bash
+# Firecrawl - Advanced web scraping with content extraction
+FIRECRAWL_API_KEY=fc-your_firecrawl_api_key
+
+# Brave Search - Privacy-focused search results
+BRAVE_API_KEY=your_brave_api_key
+
+# Tavily - AI-powered search with advanced content chunking
+TAVILY_API_KEY=tvly-your_tavily_api_key
+
+# Serper - Google-powered search with smart content scraping
+SERPER_API_KEY=your_serper_api_key
+```
+
 ## Supported Providers
 
+### AI Providers
 The system supports the following AI providers:
 - OpenAI (GPT models)
 - Anthropic (Claude models)
 - Google (Gemini models)
+
+### Search Providers
+The system supports the following web search providers:
+- **Firecrawl**: Advanced web scraping with content extraction and markdown support
+- **Brave Search**: Fast, privacy-focused search results from Brave's independent index
+- **Tavily**: AI-powered search with advanced content chunking and source analysis (supports both basic and advanced search modes)
+- **Serper**: Google-powered search with smart content scraping and context management (24k character window)
 
 ## How It Works
 
