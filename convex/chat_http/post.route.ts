@@ -8,6 +8,7 @@ import { formatDataStreamPart } from "ai"
 import { nanoid } from "nanoid"
 
 import { ChatError } from "@/lib/errors"
+import type { ReasoningEffort } from "@/lib/model-store"
 import type { AnthropicProviderOptions } from "@ai-sdk/anthropic"
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
 import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
@@ -30,15 +31,9 @@ import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
 import { RESPONSE_OPTS } from "./shared"
 
-// Helper functions for provider options
-const isReasoningEnabled = (abilities: string[], enabledTools: AbilityId[]): boolean => {
-    return abilities.includes("reasoning") && enabledTools.includes("reasoning")
-}
-
 const buildGoogleProviderOptions = (
     modelId: string,
-    abilities: string[],
-    enabledTools: AbilityId[]
+    reasoningEffort?: ReasoningEffort
 ): GoogleGenerativeAIProviderOptions => {
     const options: GoogleGenerativeAIProviderOptions = {}
 
@@ -46,9 +41,11 @@ const buildGoogleProviderOptions = (
         options.responseModalities = ["TEXT", "IMAGE"]
     }
 
-    if (isReasoningEnabled(abilities, enabledTools)) {
+    if (reasoningEffort !== "off" && ["2.5-flash", "2.5-pro"].some((m) => modelId.includes(m))) {
         options.thinkingConfig = {
-            includeThoughts: true
+            includeThoughts: true,
+            thinkingBudget:
+                reasoningEffort === "low" ? 1000 : reasoningEffort === "medium" ? 6000 : 12000
         }
     }
 
@@ -56,27 +53,33 @@ const buildGoogleProviderOptions = (
 }
 
 const buildOpenAIProviderOptions = (
-    abilities: string[],
-    enabledTools: AbilityId[]
+    modelId: string,
+    reasoningEffort?: ReasoningEffort
 ): OpenAIResponsesProviderOptions => {
     const options: OpenAIResponsesProviderOptions = {}
 
-    if (isReasoningEnabled(abilities, enabledTools)) {
-        options.reasoningEffort = "medium"
+    if (["o1", "o3", "o4"].some((m) => modelId.includes(m)) && reasoningEffort !== "off") {
+        options.reasoningEffort = reasoningEffort
+        options.reasoningSummary = "detailed"
     }
 
     return options
 }
 
 const buildAnthropicProviderOptions = (
-    abilities: string[],
-    enabledTools: AbilityId[]
+    modelId: string,
+    reasoningEffort?: ReasoningEffort
 ): AnthropicProviderOptions => {
     const options: AnthropicProviderOptions = {}
 
-    if (isReasoningEnabled(abilities, enabledTools)) {
+    if (
+        reasoningEffort !== "off" &&
+        ["sonnet-4", "4-sonnet", "4-opus", "opus-4", "3.7"].some((m) => modelId.includes(m))
+    ) {
         options.thinking = {
-            type: "enabled"
+            type: "enabled",
+            budgetTokens:
+                reasoningEffort === "low" ? 1000 : reasoningEffort === "medium" ? 6000 : 12000
         }
     }
 
@@ -94,6 +97,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         targetMode?: "normal" | "edit" | "retry"
         imageSize?: ImageSize
         mcpOverrides?: Record<string, boolean>
+        reasoningEffort?: ReasoningEffort
     } = await req.json()
 
     if (body.targetFromMessageId && !body.id) {
@@ -346,7 +350,6 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         return overrideValue !== false
                     })
                 }
-
                 const result = streamText({
                     model: model,
                     maxSteps: 100,
@@ -368,15 +371,11 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         ...mapped_messages
                     ],
                     providerOptions: {
-                        google: buildGoogleProviderOptions(
-                            modelData.modelId,
-                            modelData.abilities,
-                            body.enabledTools
-                        ),
-                        openai: buildOpenAIProviderOptions(modelData.abilities, body.enabledTools),
+                        google: buildGoogleProviderOptions(modelData.modelId, body.reasoningEffort),
+                        openai: buildOpenAIProviderOptions(modelData.modelId, body.reasoningEffort),
                         anthropic: buildAnthropicProviderOptions(
-                            modelData.abilities,
-                            body.enabledTools
+                            modelData.modelId,
+                            body.reasoningEffort
                         )
                     }
                 })

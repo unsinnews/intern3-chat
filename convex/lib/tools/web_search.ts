@@ -16,7 +16,6 @@ export const WebSearchAdapter: ToolAdapter = async (params) => {
                 query: z.string().describe("The search query"),
                 scrapeContent: z
                     .boolean()
-                    .optional()
                     .describe("Whether to scrape and include content from search results")
             }),
             execute: async ({ query, scrapeContent }) => {

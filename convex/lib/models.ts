@@ -32,6 +32,7 @@ export type SharedModel<Abilities extends ModelAbility[] = ModelAbility[]> = {
     maxTokens?: number
     supportedImageSizes?: ImageSize[]
     customIcon?: "stability-ai" | "openai" | "bflabs" | "google"
+    supportsDisablingReasoning?: boolean
 }
 
 export const MODELS_SHARED: SharedModel[] = [
@@ -51,25 +52,25 @@ export const MODELS_SHARED: SharedModel[] = [
         id: "o3-mini",
         name: "o3 mini",
         adapters: ["i3-openai:o3-mini", "openai:o3-mini", "openrouter:openai/o3-mini"],
-        abilities: ["reasoning", "function_calling"]
+        abilities: ["reasoning", "function_calling", "effort_control"]
     },
     {
         id: "o4-mini",
         name: "o4 mini",
         adapters: ["i3-openai:o4-mini", "openai:o4-mini", "openrouter:openai/o4-mini"],
-        abilities: ["reasoning", "vision", "function_calling", "pdf"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"]
     },
     {
         id: "o3",
         name: "o3",
         adapters: ["openai:o3", "openrouter:openai/o3"],
-        abilities: ["reasoning", "vision", "function_calling", "pdf"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"]
     },
     {
         id: "o3-pro",
         name: "o3 pro",
         adapters: ["openai:o3-pro", "openrouter:openai/o3-pro"],
-        abilities: ["reasoning", "vision", "function_calling", "pdf"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"]
     },
     {
         id: "gpt-4.1",
@@ -101,19 +102,22 @@ export const MODELS_SHARED: SharedModel[] = [
         id: "claude-opus-4",
         name: "Claude Opus 4",
         adapters: ["anthropic:claude-opus-4-0", "openrouter:anthropic/claude-opus-4"],
-        abilities: ["reasoning", "vision", "function_calling", "pdf"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
+        supportsDisablingReasoning: true
     },
     {
         id: "claude-sonnet-4",
         name: "Claude Sonnet 4",
         adapters: ["anthropic:claude-sonnet-4-0", "openrouter:anthropic/claude-sonnet-4"],
-        abilities: ["reasoning", "vision", "function_calling", "pdf"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
+        supportsDisablingReasoning: true
     },
     {
         id: "claude-3-7-sonnet",
         name: "Claude Sonnet 3.7",
         adapters: ["anthropic:claude-3-7-sonnet", "openrouter:anthropic/claude-3.7-sonnet"],
-        abilities: ["reasoning", "vision", "function_calling", "pdf"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
+        supportsDisablingReasoning: true
     },
     {
         id: "claude-3-5-sonnet",
@@ -145,7 +149,8 @@ export const MODELS_SHARED: SharedModel[] = [
             "google:gemini-2.5-flash",
             "openrouter:google/gemini-2.5-flash"
         ],
-        abilities: ["vision", "function_calling", "reasoning", "pdf"]
+        abilities: ["vision", "function_calling", "reasoning", "pdf", "effort_control"],
+        supportsDisablingReasoning: true
     },
     {
         id: "gemini-2.5-flash-lite",
@@ -155,7 +160,8 @@ export const MODELS_SHARED: SharedModel[] = [
             "google:gemini-2.5-flash-lite-preview-06-17",
             "openrouter:google/gemini-2.5-flash-lite-preview-06-17"
         ],
-        abilities: ["vision", "function_calling", "reasoning", "pdf"]
+        abilities: ["vision", "function_calling", "reasoning", "pdf"],
+        supportsDisablingReasoning: true
     },
     {
         id: "gemini-2.0-flash",
@@ -171,7 +177,8 @@ export const MODELS_SHARED: SharedModel[] = [
         id: "gemini-2.5-pro",
         name: "Gemini 2.5 Pro",
         adapters: ["google:gemini-2.5-pro", "openrouter:google/gemini-2.5-pro"],
-        abilities: ["reasoning", "vision", "function_calling", "pdf"]
+        abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"],
+        supportsDisablingReasoning: true
     },
     // Image Generation Models
     {

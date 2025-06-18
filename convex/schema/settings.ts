@@ -49,7 +49,8 @@ const ModelAbilitySchema = v.union(
     v.literal("reasoning"),
     v.literal("vision"),
     v.literal("function_calling"),
-    v.literal("pdf")
+    v.literal("pdf"),
+    v.literal("effort_control")
 )
 export type ModelAbility = Infer<typeof ModelAbilitySchema>
 

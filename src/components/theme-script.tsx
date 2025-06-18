@@ -22,6 +22,10 @@ export function ThemeScript() {
           ? themeState?.cssVars?.dark
           : themeState?.cssVars?.light;
 
+      if (!activeStyles) {
+        return;
+      }
+
       const stylesToApply = Object.keys(activeStyles);
 
       for (const styleName of stylesToApply) {

@@ -13,7 +13,7 @@ import { useSession } from "@/hooks/auth-hooks"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
-import { Brain, Globe, Settings2 } from "lucide-react"
+import { Globe, Settings2 } from "lucide-react"
 import { memo } from "react"
 
 type ToolSelectorPopoverProps = {
@@ -95,15 +95,6 @@ export const ToolSelectorPopover = memo(
             )
         }
 
-        const handleReasoningToggle = () => {
-            if (!modelSupportsReasoning) return
-            onEnabledToolsChange(
-                enabledTools.includes("reasoning")
-                    ? enabledTools.filter((tool) => tool !== "reasoning")
-                    : [...enabledTools, "reasoning"]
-            )
-        }
-
         const handleSupermemoryToggle = () => {
             onEnabledToolsChange(
                 enabledTools.includes("supermemory")
@@ -126,7 +117,6 @@ export const ToolSelectorPopover = memo(
             let count = 0
             if (enabledTools.includes("web_search")) count++
             if (enabledTools.includes("supermemory")) count++
-            if (modelSupportsReasoning && enabledTools.includes("reasoning")) count++
             if (hasMcpServers) {
                 // Count enabled MCP servers for this thread
                 const enabledMcpCount = mcpServers.filter(
@@ -222,22 +212,6 @@ export const ToolSelectorPopover = memo(
                                     <Switch
                                         checked={enabledTools.includes("supermemory")}
                                         onCheckedChange={handleSupermemoryToggle}
-                                    />
-                                </div>
-                            )}
-
-                            {modelSupportsReasoning && (
-                                <div className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-4 items-center justify-center">
-                                            <Brain className="size-4" />
-                                        </div>
-                                        <span className="text-sm">Think for longer</span>
-                                    </div>
-                                    <Switch
-                                        checked={enabledTools.includes("reasoning")}
-                                        onCheckedChange={handleReasoningToggle}
-                                        disabled={!modelSupportsReasoning}
                                     />
                                 </div>
                             )}

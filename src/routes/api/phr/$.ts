@@ -28,6 +28,7 @@ export const ServerRoute = createServerFileRoute("/api/phr/$").methods({
             statusText: response.statusText,
             headers: {
                 ...Object.fromEntries(response.headers.entries()),
+                "Content-Encoding": "",
                 // Ensure CORS headers are preserved
                 "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
                 "Access-Control-Allow-Credentials": "true"
@@ -54,6 +55,7 @@ export const ServerRoute = createServerFileRoute("/api/phr/$").methods({
             headers: {
                 ...Object.fromEntries(response.headers.entries()),
                 // Ensure CORS headers are preserved
+                "Content-Encoding": "",
                 "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
                 "Access-Control-Allow-Credentials": "true"
             }
@@ -74,6 +76,7 @@ export const ServerRoute = createServerFileRoute("/api/phr/$").methods({
             headers: {
                 ...Object.fromEntries(response.headers.entries()),
                 // Ensure CORS headers are preserved
+                "Content-Encoding": "",
                 "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
                 "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
