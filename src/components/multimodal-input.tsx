@@ -41,6 +41,7 @@ import {
     Globe,
     Image as ImageIcon,
     Loader2,
+    Mic,
     Paperclip,
     Square,
     Upload,
@@ -48,6 +49,8 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
+import { useVoiceRecorder } from "@/hooks/use-voice-recorder"
+import { VoiceRecorder } from "@/components/voice-recorder"
 
 interface ExtendedUploadedFile extends UploadedFile {
     file?: File
@@ -140,6 +143,23 @@ export function MultimodalInput({
     const [dialogOpen, setDialogOpen] = useState(false)
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
 
+    // Voice recording state
+    const { state: voiceState, startRecording, stopRecording } = useVoiceRecorder({
+        onTranscript: (text: string) => {
+            // Insert transcribed text into the input
+            if (promptInputRef.current) {
+                const currentValue = promptInputRef.current.getValue()
+                const newValue = currentValue ? `${currentValue} ${text}` : text
+                promptInputRef.current.setValue(newValue)
+                // Save to localStorage like the existing system does
+                localStorage.setItem("user-input", newValue)
+                promptInputRef.current.focus()
+                // Update our input value state
+                setInputValue(newValue)
+            }
+        }
+    })
+
     // Check if current model supports vision and is image model
     const [modelSupportsVision, modelSupportsFunctionCalling, isImageModel] = useMemo(() => {
         if (!selectedModel) return [false, false, false]
@@ -171,7 +191,39 @@ export function MultimodalInput({
 
         promptInputRef.current?.clear()
         localStorage.removeItem("user-input")
+        setInputValue("") // Update our state too
         onSubmit(inputValue, uploadedFiles)
+    }
+
+    // Check if input is empty for mic button display
+    const [inputValue, setInputValue] = useState("")
+    const isInputEmpty = !inputValue.trim()
+
+    // Listen to input changes by checking the prompt input value periodically
+    // This is simpler and avoids accessing internal refs
+    useEffect(() => {
+        const checkInputValue = () => {
+            const value = promptInputRef.current?.getValue() || ""
+            setInputValue(value)
+        }
+
+        // Check initial value from localStorage
+        const initialValue = localStorage.getItem("user-input") || ""
+        setInputValue(initialValue)
+
+        // Check periodically for changes
+        const interval = setInterval(checkInputValue, 200)
+        return () => clearInterval(interval)
+    }, [])
+
+    const handleVoiceButtonClick = () => {
+        if (voiceState.isRecording) {
+            stopRecording()
+        } else if (isInputEmpty && !isLoading) {
+            startRecording()
+        } else {
+            handleSubmit()
+        }
     }
 
     const readFileContent = useCallback(async (file: File): Promise<string> => {
@@ -521,6 +573,24 @@ export function MultimodalInput({
 
     if (!isClient) return null
 
+    // Show voice recorder UI when recording or transcribing
+    if (voiceState.isRecording || voiceState.isTranscribing) {
+        return (
+            <div
+                className="@container w-full md:px-2"
+            >
+                <VoiceRecorder
+                    state={voiceState}
+                    onStop={stopRecording}
+                    className={cn(
+                        "mx-auto w-full",
+                        getChatWidthClass(chatWidthState.chatWidth)
+                    )}
+                />
+            </div>
+        )
+    }
+
     return (
         <>
             <div
@@ -641,19 +711,27 @@ export function MultimodalInput({
                             )}
                         </div>
 
-                        <PromptInputAction tooltip={isLoading ? "Stop generation" : "Send message"}>
+                        <PromptInputAction tooltip={
+                            isInputEmpty && !isLoading 
+                                ? "Voice input" 
+                                : isLoading 
+                                ? "Stop generation" 
+                                : "Send message"
+                        }>
                             <Button
                                 variant="default"
                                 size="icon"
                                 className="size-8 shrink-0 rounded-md"
                                 disabled={status === "submitted" || uploading}
-                                onClick={handleSubmit}
+                                onClick={handleVoiceButtonClick}
                                 type="submit"
                             >
                                 {isLoading ? (
                                     <Square className="size-5 fill-current" />
                                 ) : status === "submitted" ? (
                                     <Loader2 className="size-5 animate-spin" />
+                                ) : isInputEmpty ? (
+                                    <Mic className="size-5" />
                                 ) : (
                                     <ArrowUp className="size-5" />
                                 )}
