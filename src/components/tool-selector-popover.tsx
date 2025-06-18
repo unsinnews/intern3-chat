@@ -169,7 +169,24 @@ export const ToolSelectorPopover = memo(
                         </div>
 
                         <div className="space-y-1">
-                            <div className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50">
+                            <div
+                                className="flex cursor-pointer items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
+                                onClick={
+                                    modelSupportsFunctionCalling ? handleWebSearchToggle : undefined
+                                }
+                                onKeyDown={(e) => {
+                                    if (
+                                        modelSupportsFunctionCalling &&
+                                        (e.key === "Enter" || e.key === " ")
+                                    ) {
+                                        e.preventDefault()
+                                        handleWebSearchToggle()
+                                    }
+                                }}
+                                role="switch"
+                                aria-checked={enabledTools.includes("web_search")}
+                                tabIndex={modelSupportsFunctionCalling ? 0 : -1}
+                            >
                                 <div className="flex items-center gap-3">
                                     <Globe className="h-4 w-4" />
                                     <span className="text-sm">Web Search</span>
@@ -183,7 +200,19 @@ export const ToolSelectorPopover = memo(
 
                             {/* Supermemory */}
                             {hasSupermemory && (
-                                <div className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50">
+                                <div
+                                    className="flex cursor-pointer items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
+                                    onClick={handleSupermemoryToggle}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault()
+                                            handleSupermemoryToggle()
+                                        }
+                                    }}
+                                    role="switch"
+                                    aria-checked={enabledTools.includes("supermemory")}
+                                    tabIndex={0}
+                                >
                                     <div className="flex items-center gap-3">
                                         <div className="flex size-4 items-center justify-center">
                                             <SupermemoryIcon />
@@ -225,7 +254,19 @@ export const ToolSelectorPopover = memo(
                                     return (
                                         <div
                                             key={server.name}
-                                            className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
+                                            className="flex cursor-pointer items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
+                                            onClick={() =>
+                                                handleMcpServerToggle(server.name, !isEnabled)
+                                            }
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter" || e.key === " ") {
+                                                    e.preventDefault()
+                                                    handleMcpServerToggle(server.name, !isEnabled)
+                                                }
+                                            }}
+                                            role="switch"
+                                            aria-checked={isEnabled}
+                                            tabIndex={0}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="flex size-4 items-center justify-center">
