@@ -33,7 +33,8 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem
+    SidebarMenuItem,
+    SidebarRail
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
@@ -531,6 +532,7 @@ export function ThreadsSidebar() {
                 <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
             )}
             <CommandK open={commandKOpen} onOpenChange={setCommandKOpen} />
+            <SidebarRail />
         </Sidebar>
     )
 }
