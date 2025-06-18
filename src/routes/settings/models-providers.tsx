@@ -45,12 +45,14 @@ import type { Infer } from "convex/values"
 import {
     AlertCircle,
     Bot,
+    Box,
     Brain,
     Check,
     Code,
     Eye,
     File,
     Key,
+    PackageIcon,
     Plus,
     RotateCcw,
     Settings2,
@@ -1432,17 +1434,16 @@ function ModelsProvidersSettings() {
                         </Card>
                     ) : (
                         <Card className="border-dashed p-4 shadow-xs">
-                            <div className="flex flex-col items-center justify-center py-6 text-center">
-                                <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-muted">
-                                    <Plus className="size-5" />
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                                <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-muted">
+                                    <PackageIcon className="size-6" />
                                 </div>
-                                <h4 className="mb-1 font-semibold text-sm">Add Custom Provider</h4>
-                                <p className="mb-3 text-muted-foreground text-xs">
+                                <h4 className="mb-2 font-semibold">Add Custom Provider</h4>
+                                <p className="mb-4 text-muted-foreground text-sm">
                                     Add any OpenAI-compatible provider with an API key and base URL
                                 </p>
                                 <Button
                                     variant="outline"
-                                    size="sm"
                                     onClick={() => setAddingCustomProvider(true)}
                                 >
                                     <Plus className="h-4 w-4" />
@@ -1905,7 +1906,7 @@ function ModelsProvidersSettings() {
                             <Card className="border-dashed p-4 shadow-xs">
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
                                     <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-muted">
-                                        <Plus className="size-6" />
+                                        <Box className="size-6" />
                                     </div>
                                     <h4 className="mb-2 font-semibold">Add Custom Model</h4>
                                     <p className="mb-4 text-muted-foreground text-sm">

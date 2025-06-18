@@ -31,7 +31,7 @@ import {
     isSupportedFile,
     isTextMimeType
 } from "@/lib/file_constants"
-import { useModelStore } from "@/lib/model-store"
+import { type ReasoningEffort, useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
 import { useLocation } from "@tanstack/react-router"
@@ -44,7 +44,8 @@ import {
     Paperclip,
     Square,
     Upload,
-    X
+    X,
+    Zap
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -98,7 +99,7 @@ const AspectRatioSelector = ({ selectedModel }: { selectedModel: string | null }
     return (
         <PromptInputAction tooltip="Select aspect ratio">
             <Select value={selectedImageSize} onValueChange={setSelectedImageSize}>
-                <SelectTrigger className="h-8 w-auto min-w-[80px] border border-accent bg-secondary/70 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
+                <SelectTrigger className="!h-8 w-auto min-w-[80px] border bg-secondary/70 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -107,6 +108,55 @@ const AspectRatioSelector = ({ selectedModel }: { selectedModel: string | null }
                             {formatImageSizeForDisplay(size)}
                         </SelectItem>
                     ))}
+                </SelectContent>
+            </Select>
+        </PromptInputAction>
+    )
+}
+
+const ReasoningEffortSelector = ({ selectedModel }: { selectedModel: string | null }) => {
+    const { reasoningEffort, setReasoningEffort } = useModelStore()
+
+    const [modelSupportsEffortControl, modelSupportsDisablingReasoning] = useMemo(() => {
+        if (!selectedModel) return [false, false]
+        const model = MODELS_SHARED.find((m) => m.id === selectedModel)
+        return [
+            model?.abilities.includes("effort_control") ?? false,
+            model?.supportsDisablingReasoning ?? false
+        ]
+    }, [selectedModel])
+
+    if (!modelSupportsEffortControl) return null
+
+    const formatEffortForDisplay = (effort: ReasoningEffort) => {
+        return effort.charAt(0).toUpperCase() + effort.slice(1)
+    }
+
+    return (
+        <PromptInputAction tooltip="Select reasoning effort">
+            <Select value={reasoningEffort} onValueChange={setReasoningEffort}>
+                <SelectTrigger className="!h-8 w-auto gap-0.5 border bg-secondary/70 px-1.5 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
+                    <div className="hidden items-center gap-1.5 sm:flex">
+                        <Zap className="size-4" />
+                        <SelectValue />
+                    </div>
+                    <Zap className="size-4 sm:hidden" />
+                </SelectTrigger>
+                <SelectContent>
+                    {modelSupportsDisablingReasoning && (
+                        <SelectItem value="off" className="text-xs sm:text-sm">
+                            {formatEffortForDisplay("off")}
+                        </SelectItem>
+                    )}
+                    <SelectItem value="low" className="text-xs sm:text-sm">
+                        {formatEffortForDisplay("low")}
+                    </SelectItem>
+                    <SelectItem value="medium" className="text-xs sm:text-sm">
+                        {formatEffortForDisplay("medium")}
+                    </SelectItem>
+                    <SelectItem value="high" className="text-xs sm:text-sm">
+                        {formatEffortForDisplay("high")}
+                    </SelectItem>
                 </SelectContent>
             </Select>
         </PromptInputAction>
@@ -147,12 +197,18 @@ export function MultimodalInput({
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
 
     // Check if current model supports vision and is image model
-    const [modelSupportsVision, modelSupportsFunctionCalling, isImageModel] = useMemo(() => {
-        if (!selectedModel) return [false, false, false]
+    const [
+        modelSupportsVision,
+        modelSupportsFunctionCalling,
+        modelSupportsReasoning,
+        isImageModel
+    ] = useMemo(() => {
+        if (!selectedModel) return [false, false, false, false]
         const model = MODELS_SHARED.find((m) => m.id === selectedModel)
         return [
             model?.abilities.includes("vision") ?? false,
             model?.abilities.includes("function_calling") ?? false,
+            model?.abilities.includes("reasoning") ?? false,
             model?.mode === "image"
         ]
     }, [selectedModel])
@@ -586,7 +642,7 @@ export function MultimodalInput({
                                             variant="ghost"
                                             onClick={() => uploadInputRef.current?.click()}
                                             className={cn(
-                                                "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
+                                                "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md bg-secondary/70 text-foreground backdrop-blur-lg hover:bg-secondary/80"
                                             )}
                                         >
                                             <input
@@ -598,14 +654,14 @@ export function MultimodalInput({
                                                 accept={getFileAcceptAttribute(modelSupportsVision)}
                                             />
                                             {uploading ? (
-                                                <Loader2 className="size-4 animate-spin text-foreground" />
+                                                <Loader2 className="size-4 animate-spin" />
                                             ) : (
-                                                <Paperclip className="-rotate-45 size-4 text-foreground" />
+                                                <Paperclip className="-rotate-45 size-4 hover:text-primary" />
                                             )}
                                         </Button>
                                     </PromptInputAction>
 
-                                    <PromptInputAction tooltip="Configure AI tools">
+                                    <PromptInputAction tooltip="Tools">
                                         <ToolSelectorPopover
                                             threadId={threadId}
                                             enabledTools={enabledTools}
@@ -613,8 +669,11 @@ export function MultimodalInput({
                                             modelSupportsFunctionCalling={
                                                 modelSupportsFunctionCalling
                                             }
+                                            modelSupportsReasoning={modelSupportsReasoning}
                                         />
                                     </PromptInputAction>
+
+                                    <ReasoningEffortSelector selectedModel={selectedModel} />
                                 </>
                             )}
                         </div>

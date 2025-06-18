@@ -20,7 +20,8 @@
         "isolatedModules": true,
         "noEmit": true,
         "paths": {
-            "@/*": ["../src/*"]
+            "@/*": ["../src/*"],
+            "@/convex/*": ["./*"]
         }
     },
     "include": ["./**/*", "../src/lib/browser-env.ts"],

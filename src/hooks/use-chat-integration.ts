@@ -25,8 +25,13 @@ export function useChatIntegration<IsShared extends boolean>({
     folderId?: Id<"projects">
 }) {
     const tokenData = useToken()
-    const { selectedModel, enabledTools, selectedImageSize, getEffectiveMcpOverrides } =
-        useModelStore()
+    const {
+        selectedModel,
+        enabledTools,
+        selectedImageSize,
+        reasoningEffort,
+        getEffectiveMcpOverrides
+    } = useModelStore()
     const { rerenderTrigger, shouldUpdateQuery, setShouldUpdateQuery, triggerRerender } =
         useChatStore()
     const seededNextId = useRef<string | null>(null)
@@ -106,8 +111,9 @@ export function useChatIntegration<IsShared extends boolean>({
                 },
                 enabledTools,
                 imageSize: selectedImageSize,
-                mcpOverrides,
-                folderId
+                folderId,
+                reasoningEffort,
+                mcpOverrides
             }
         },
         initialMessages,

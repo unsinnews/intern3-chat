@@ -1,3 +1,4 @@
+import SupermemoryIcon from "@/assets/supermemory.svg"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -5,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import type { UserSettings } from "@/convex/schema/settings"
 import type { Infer } from "convex/values"
-import { AlertCircle, Brain, Check, Key, RotateCcw, SquarePen, X } from "lucide-react"
+import { AlertCircle, Check, Key, RotateCcw, SquarePen, X } from "lucide-react"
 import { memo, useState } from "react"
 
 type SupermemoryCardProps = {
@@ -50,7 +51,9 @@ export const SupermemoryCard = memo(({ userSettings, onSave, loading }: Supermem
         <Card className="p-4 shadow-xs">
             <div className="flex items-start gap-2 space-y-4">
                 <div className="flex size-8 items-center justify-center rounded-lg">
-                    <Brain className="size-5" />
+                    <div className="flex size-5 items-center justify-center">
+                        <SupermemoryIcon />
+                    </div>
                 </div>
                 <div className="flex-1">
                     <div className="mb-4 flex items-start justify-between">

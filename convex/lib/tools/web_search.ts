@@ -16,10 +16,12 @@ export const WebSearchAdapter: ToolAdapter = async (params) => {
                 query: z.string().describe("The search query"),
                 scrapeContent: z
                     .boolean()
-                    .default(userSettings.searchIncludeSourcesByDefault)
                     .describe("Whether to scrape and include content from search results")
             }),
             execute: async ({ query, scrapeContent }) => {
+                // Use the user's default setting if scrapeContent is not provided
+                const shouldScrapeContent =
+                    scrapeContent ?? userSettings.searchIncludeSourcesByDefault
                 try {
                     const searchProvider = new SearchProvider({
                         provider: userSettings.searchProvider
@@ -27,8 +29,8 @@ export const WebSearchAdapter: ToolAdapter = async (params) => {
 
                     const results = await searchProvider.search(query, {
                         limit: 5,
-                        scrapeContent,
-                        formats: scrapeContent ? ["markdown", "links"] : []
+                        scrapeContent: shouldScrapeContent,
+                        formats: shouldScrapeContent ? ["markdown", "links"] : []
                     })
 
                     return {

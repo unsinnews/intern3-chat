@@ -14,17 +14,21 @@ export const SupermemoryAdapter: ToolAdapter = async ({ ctx, enabledTools, userS
                 content: z.string().describe("The content to store in memory"),
                 metadata: z
                     .object({
-                        title: z.string().optional().describe("A title for this memory"),
-                        category: z
-                            .string()
-                            .optional()
-                            .describe("Category to organize this memory"),
-                        tags: z
-                            .array(z.string())
-                            .optional()
-                            .describe("Tags to help find this memory later")
+                        title: z.union([
+                            z.string().describe("A title for this memory. Optional."),
+                            z.null()
+                        ]),
+                        category: z.union([
+                            z.string().describe("Category to organize this memory. Optional."),
+                            z.null()
+                        ]),
+                        tags: z.union([
+                            z
+                                .array(z.string())
+                                .describe("Tags to help find this memory later. Optional."),
+                            z.null()
+                        ])
                     })
-                    .optional()
                     .describe("Optional metadata to organize the memory")
             }),
             execute: async ({ content, metadata }) => {
@@ -86,11 +90,16 @@ export const SupermemoryAdapter: ToolAdapter = async ({ ctx, enabledTools, userS
                     .number()
                     .min(1)
                     .max(10)
-                    .optional()
                     .default(5)
-                    .describe("Maximum number of memories to return"),
-                category: z.string().optional().describe("Filter by specific category"),
-                tags: z.array(z.string()).optional().describe("Filter by specific tags")
+                    .describe("Maximum number of memories to return. Default is 5."),
+                category: z.union([
+                    z.string().describe("Filter by specific category. Optional."),
+                    z.null()
+                ]),
+                tags: z.union([
+                    z.array(z.string()).describe("Filter by specific tags. Optional."),
+                    z.null()
+                ])
             }),
             execute: async ({ query, limit = 5, category, tags }) => {
                 try {

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
 import { Code, FileType, FileType2, Image as ImageIcon, RotateCcw } from "lucide-react"
 import { memo, useState } from "react"
-import { StickToBottom } from "use-stick-to-bottom"
+import type { useStickToBottom } from "use-stick-to-bottom"
 import { ChatActions } from "./chat-actions"
 import { MemoizedMarkdown } from "./memoized-markdown"
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "./reasoning"
@@ -246,12 +246,16 @@ export function Messages({
     messages,
     onRetry,
     onEditAndRetry,
-    status
+    status,
+    contentRef,
+    scrollRef
 }: {
     messages: UIMessage[]
     onRetry?: (message: UIMessage) => void
     onEditAndRetry?: (messageId: string, newContent: string) => void
     status: ReturnType<typeof useChatIntegration>["status"]
+    contentRef: ReturnType<typeof useStickToBottom>["contentRef"]
+    scrollRef: ReturnType<typeof useStickToBottom>["scrollRef"]
 }) {
     const { setTargetFromMessageId, targetFromMessageId, setTargetMode, targetMode } =
         useChatStore()
@@ -339,43 +343,62 @@ export function Messages({
 
     return (
         <>
-            <StickToBottom.Content>
-                <div className="p-4 pt-0">
-                    <div
-                        className={cn(
-                            "mx-auto space-y-3 pb-40",
-                            getChatWidthClass(chatWidthState.chatWidth)
-                        )}
-                    >
-                        {messages.map((message) => (
-                            <div
-                                key={message.id}
-                                className={cn(
-                                    "prose relative prose-ol:my-2 prose-p:my-0 prose-pre:my-2 prose-ul:my-2 prose-li:mt-1 prose-li:mb-0 max-w-none prose-pre:bg-transparent prose-pre:p-0 font-claude-message prose-headings:font-semibold prose-strong:font-medium prose-pre:text-foreground leading-[1.65rem] [&>div>div>:is(p,blockquote,h1,h2,h3,h4,h5,h6)]:pl-2 [&>div>div>:is(p,blockquote,ul,ol,h1,h2,h3,h4,h5,h6)]:pr-8 [&_.ignore-pre-bg>div]:bg-transparent [&_pre>div]:border-0.5 [&_pre>div]:border-border [&_pre>div]:bg-background",
-                                    "group prose-img:mx-auto prose-img:my-4 prose-code:before:hidden prose-code:after:hidden",
-                                    "mb-8",
-                                    message.role === "user" &&
-                                        targetFromMessageId !== message.id &&
-                                        "my-12 ml-auto w-fit max-w-md rounded-md border border-border bg-secondary/50 px-4 py-2 text-foreground"
-                                )}
-                            >
-                                {targetFromMessageId === message.id && targetMode === "edit" ? (
-                                    <EditableMessage
-                                        message={message}
-                                        onSave={handleSaveEdit}
-                                        onCancel={handleCancelEdit}
-                                    />
-                                ) : (
-                                    <>
-                                        <div className="prose-p:not-last:mb-4">
+            <div className="min-h-[90vh] overflow-y-auto p-4 pt-0" ref={scrollRef}>
+                <div
+                    ref={contentRef}
+                    className={cn(
+                        "mx-auto space-y-3 pb-40",
+                        getChatWidthClass(chatWidthState.chatWidth)
+                    )}
+                >
+                    {messages.map((message) => (
+                        <div
+                            key={message.id}
+                            className={cn(
+                                "prose relative prose-ol:my-2 prose-p:my-0 prose-pre:my-2 prose-ul:my-2 prose-li:mt-1 prose-li:mb-0 max-w-none prose-pre:bg-transparent prose-pre:p-0 font-claude-message prose-headings:font-semibold prose-strong:font-medium prose-pre:text-foreground leading-[1.65rem] [&>div>div>:is(p,blockquote,h1,h2,h3,h4,h5,h6)]:pl-2 [&>div>div>:is(p,blockquote,ul,ol,h1,h2,h3,h4,h5,h6)]:pr-8 [&_.ignore-pre-bg>div]:bg-transparent [&_pre>div]:border-0.5 [&_pre>div]:border-border [&_pre>div]:bg-background",
+                                "group prose-img:mx-auto prose-img:my-4 prose-code:before:hidden prose-code:after:hidden",
+                                "mb-8",
+                                message.role === "user" &&
+                                    targetFromMessageId !== message.id &&
+                                    "my-12 ml-auto w-fit max-w-md rounded-md border border-border bg-secondary/50 px-4 py-2 text-foreground"
+                            )}
+                        >
+                            {targetFromMessageId === message.id && targetMode === "edit" ? (
+                                <EditableMessage
+                                    message={message}
+                                    onSave={handleSaveEdit}
+                                    onCancel={handleCancelEdit}
+                                />
+                            ) : (
+                                <>
+                                    <div className="prose-p:not-last:mb-4">
+                                        {message.parts
+                                            .filter((part) => part.type !== "file")
+                                            .map((part, index) => (
+                                                <PartsRenderer
+                                                    key={`${message.id}-text-${index}`}
+                                                    part={part}
+                                                    markdown={message.role === "assistant"}
+                                                    id={`${message.id}-text-${index}`}
+                                                    onFilePreview={handleFilePreview}
+                                                    isStreaming={
+                                                        status === "streaming" &&
+                                                        message === lastMessage
+                                                    }
+                                                />
+                                            ))}
+                                    </div>
+
+                                    {message.parts.some((part) => part.type === "file") && (
+                                        <div className="not-prose mt-3 flex flex-col justify-start space-y-3">
                                             {message.parts
-                                                .filter((part) => part.type !== "file")
+                                                .filter((part) => part.type === "file")
                                                 .map((part, index) => (
                                                     <PartsRenderer
-                                                        key={`${message.id}-text-${index}`}
+                                                        key={`${message.id}-file-${index}`}
                                                         part={part}
                                                         markdown={message.role === "assistant"}
-                                                        id={`${message.id}-text-${index}`}
+                                                        id={`${message.id}-file-${index}`}
                                                         onFilePreview={handleFilePreview}
                                                         isStreaming={
                                                             status === "streaming" &&
@@ -384,80 +407,58 @@ export function Messages({
                                                     />
                                                 ))}
                                         </div>
+                                    )}
 
-                                        {message.parts.some((part) => part.type === "file") && (
-                                            <div className="not-prose mt-3 flex flex-col justify-start space-y-3">
-                                                {message.parts
-                                                    .filter((part) => part.type === "file")
-                                                    .map((part, index) => (
-                                                        <PartsRenderer
-                                                            key={`${message.id}-file-${index}`}
-                                                            part={part}
-                                                            markdown={message.role === "assistant"}
-                                                            id={`${message.id}-file-${index}`}
-                                                            onFilePreview={handleFilePreview}
-                                                            isStreaming={
-                                                                status === "streaming" &&
-                                                                message === lastMessage
-                                                            }
-                                                        />
-                                                    ))}
-                                            </div>
-                                        )}
+                                    {!targetFromMessageId && message.role === "user" ? (
+                                        <ChatActions
+                                            role={message.role}
+                                            message={message}
+                                            onRetry={onRetry}
+                                            onEdit={
+                                                message.parts.some((part) => part.type === "file")
+                                                    ? undefined
+                                                    : handleEdit
+                                            }
+                                        />
+                                    ) : !targetFromMessageId && message.role === "assistant" ? (
+                                        <ChatActions
+                                            role={message.role}
+                                            message={message}
+                                            onRetry={undefined}
+                                            onEdit={undefined}
+                                        />
+                                    ) : null}
+                                </>
+                            )}
+                        </div>
+                    ))}
 
-                                        {!targetFromMessageId && message.role === "user" ? (
-                                            <ChatActions
-                                                role={message.role}
-                                                message={message}
-                                                onRetry={onRetry}
-                                                onEdit={
-                                                    message.parts.some(
-                                                        (part) => part.type === "file"
-                                                    )
-                                                        ? undefined
-                                                        : handleEdit
-                                                }
-                                            />
-                                        ) : !targetFromMessageId && message.role === "assistant" ? (
-                                            <ChatActions
-                                                role={message.role}
-                                                message={message}
-                                                onRetry={undefined}
-                                                onEdit={undefined}
-                                            />
-                                        ) : null}
-                                    </>
+                    {status === "error" && (
+                        <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive p-4">
+                            <div className="flex w-full items-center justify-between">
+                                <p className="text-destructive-foreground">
+                                    Oops! Something went wrong.
+                                </p>
+                                {lastUserMessage && (
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => onRetry?.(lastUserMessage)}
+                                        className="text-destructive-foreground hover:text-destructive-foreground/80"
+                                    >
+                                        <RotateCcw />
+                                        Retry
+                                    </Button>
                                 )}
                             </div>
-                        ))}
-
-                        {status === "error" && (
-                            <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive p-4">
-                                <div className="flex w-full items-center justify-between">
-                                    <p className="text-destructive-foreground">
-                                        Oops! Something went wrong.
-                                    </p>
-                                    {lastUserMessage && (
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => onRetry?.(lastUserMessage)}
-                                            className="text-destructive-foreground hover:text-destructive-foreground/80"
-                                        >
-                                            <RotateCcw />
-                                            Retry
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex min-h-[3rem] items-center gap-2 py-4">
-                            {showTypingLoader && <Loader variant="typing" size="md" />}
                         </div>
+                    )}
+
+                    <div className="flex min-h-[3rem] items-center gap-2 py-4">
+                        {showTypingLoader && <Loader variant="typing" size="md" />}
                     </div>
                 </div>
-            </StickToBottom.Content>
+            </div>
 
             <Dialog
                 open={previewDialogOpen}

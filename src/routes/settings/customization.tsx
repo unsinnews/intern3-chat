@@ -1,6 +1,5 @@
 import { SettingsLayout } from "@/components/settings/settings-layout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -142,78 +141,85 @@ function CustomizationSettings() {
             title="Customization"
             description="Personalize how the AI interacts with you"
         >
-            <Card>
-                <CardHeader>
-                    <CardTitle>AI Personalization</CardTitle>
-                    <CardDescription>
-                        Customize how the AI addresses you and behaves in conversations
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">What should I call you?</Label>
-                        <Input
-                            ref={nameRef}
-                            id="name"
-                            placeholder="e.g., Alex, Dr. Smith, Captain"
-                            defaultValue={userSettings.customization?.name || ""}
-                            className="max-w-md"
-                        />
-                        <p className="text-muted-foreground text-sm">
-                            Leave blank to use your account name
+            <div className="space-y-8">
+                <div className="space-y-4">
+                    <div>
+                        <h3 className="font-semibold text-foreground">AI Personalization</h3>
+                        <p className="mt-1 text-muted-foreground text-sm">
+                            Customize how the AI addresses you and behaves in conversations
                         </p>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="personality">AI Personality Traits</Label>
-                        <Textarea
-                            ref={personalityRef}
-                            id="personality"
-                            placeholder="e.g., Be concise and direct. Use casual language. Include relevant examples. Focus on practical solutions."
-                            defaultValue={userSettings.customization?.aiPersonality || ""}
-                            rows={6}
-                            maxLength={2000}
-                            className="resize-none"
-                        />
-                        <p className="text-muted-foreground text-sm">
-                            Describe how you'd like the AI to communicate (max 2000 characters)
-                        </p>
-                    </div>
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">What should I call you?</Label>
+                            <Input
+                                ref={nameRef}
+                                id="name"
+                                placeholder="e.g. Theo (t3.gg), Mark (also t3.gg)"
+                                defaultValue={userSettings.customization?.name || ""}
+                                className="max-w-md"
+                            />
+                            <p className="text-muted-foreground text-sm">
+                                Leave blank to use your account name
+                            </p>
+                        </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="context">Additional Context</Label>
-                        <Textarea
-                            ref={contextRef}
-                            id="context"
-                            placeholder="e.g., I'm a software developer working primarily with React and TypeScript. I prefer functional programming patterns. I'm learning Rust."
-                            defaultValue={userSettings.customization?.additionalContext || ""}
-                            rows={6}
-                            maxLength={2000}
-                            className="resize-none"
-                        />
-                        <p className="text-muted-foreground text-sm">
-                            Any background information the AI should know about you (max 2000
-                            characters)
-                        </p>
-                    </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="personality">AI Personality Traits</Label>
+                            <Textarea
+                                ref={personalityRef}
+                                id="personality"
+                                placeholder="e.g., Be concise and direct. Use casual language. Include relevant examples. Focus on practical solutions."
+                                defaultValue={userSettings.customization?.aiPersonality || ""}
+                                rows={6}
+                                maxLength={2000}
+                                className="resize-none"
+                            />
+                            <p className="text-muted-foreground text-sm">
+                                Describe how you'd like the AI to communicate (max 2000 characters)
+                            </p>
+                        </div>
 
-                    <div className="flex justify-end pt-4">
-                        <Button onClick={handleSave} disabled={isSaving} className="min-w-[100px]">
-                            {isSaving ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="mr-2 h-4 w-4" />
-                                    Save Changes
-                                </>
-                            )}
-                        </Button>
+                        <div className="space-y-2">
+                            <Label htmlFor="context">Additional Context</Label>
+                            <Textarea
+                                ref={contextRef}
+                                id="context"
+                                placeholder="e.g., I'm a software developer working primarily with React and TypeScript. I prefer functional programming patterns. I'm learning Rust. Personally, Tauri > Electron any day of the week."
+                                defaultValue={userSettings.customization?.additionalContext || ""}
+                                rows={6}
+                                maxLength={2000}
+                                className="resize-none"
+                            />
+                            <p className="text-muted-foreground text-sm">
+                                Any background information the AI should know about you (max 2000
+                                characters)
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end pt-4">
+                            <Button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="min-w-[100px]"
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-2 h-4 w-4" />
+                                        Save Changes
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </SettingsLayout>
     )
 }

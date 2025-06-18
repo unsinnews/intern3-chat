@@ -35,7 +35,8 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem
+    SidebarMenuItem,
+    SidebarRail
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
@@ -189,7 +190,7 @@ function ThreadItem({ thread, isInFolder = false }: { thread: Thread; isInFolder
                                     isMenuOpen || "opacity-0 group-hover/item:opacity-100"
                                 )}
                             >
-                                <MoreHorizontal className="h-4 w-4" />
+                                <MoreHorizontal className="mr-1 h-4 w-4" />
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -742,8 +743,8 @@ export function ThreadsSidebar() {
         <Sidebar variant="inset">
             <SidebarHeader className="mt-1 gap-3">
                 <div className="flex items-center justify-between">
-                    <div className="cursor-default select-none font-semibold text-sidebar-foreground text-xl tracking-tighter">
-                        intern3.chat
+                    <div className="cursor-default select-none font-semibold text-sidebar-foreground text-xl">
+                        <span>intern3.chat</span>
                     </div>
                 </div>
                 <div className="h-px w-full bg-border" />
@@ -770,6 +771,13 @@ export function ThreadsSidebar() {
                         </div>
                     </TooltipContent>
                 </Tooltip>
+                {/* <Link
+                    to="/library"
+                    className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
+                >
+                    <FolderOpen className="h-4 w-4" />
+                    Library
+                </Link> */}
                 <Button onClick={() => setCommandKOpen(true)} variant="outline">
                     <Search className="h-4 w-4" />
                     Search chats
@@ -788,6 +796,7 @@ export function ThreadsSidebar() {
                 <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
             )}
             <CommandK open={commandKOpen} onOpenChange={setCommandKOpen} />
+            <SidebarRail />
         </Sidebar>
     )
 }

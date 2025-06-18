@@ -8,7 +8,10 @@ import { formatDataStreamPart } from "ai"
 import { nanoid } from "nanoid"
 
 import { ChatError } from "@/lib/errors"
+import type { ReasoningEffort } from "@/lib/model-store"
+import type { AnthropicProviderOptions } from "@ai-sdk/anthropic"
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
 import { createDataStream, smoothStream, streamText } from "ai"
 import type { Infer } from "convex/values"
 import { internal } from "../_generated/api"
@@ -28,6 +31,61 @@ import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
 import { RESPONSE_OPTS } from "./shared"
 
+const buildGoogleProviderOptions = (
+    modelId: string,
+    reasoningEffort?: ReasoningEffort
+): GoogleGenerativeAIProviderOptions => {
+    const options: GoogleGenerativeAIProviderOptions = {}
+
+    if (modelId === "gemini-2.0-flash-image-generation") {
+        options.responseModalities = ["TEXT", "IMAGE"]
+    }
+
+    if (reasoningEffort !== "off" && ["2.5-flash", "2.5-pro"].some((m) => modelId.includes(m))) {
+        options.thinkingConfig = {
+            includeThoughts: true,
+            thinkingBudget:
+                reasoningEffort === "low" ? 1000 : reasoningEffort === "medium" ? 6000 : 12000
+        }
+    }
+
+    return options
+}
+
+const buildOpenAIProviderOptions = (
+    modelId: string,
+    reasoningEffort?: ReasoningEffort
+): OpenAIResponsesProviderOptions => {
+    const options: OpenAIResponsesProviderOptions = {}
+
+    if (["o1", "o3", "o4"].some((m) => modelId.includes(m)) && reasoningEffort !== "off") {
+        options.reasoningEffort = reasoningEffort
+        options.reasoningSummary = "detailed"
+    }
+
+    return options
+}
+
+const buildAnthropicProviderOptions = (
+    modelId: string,
+    reasoningEffort?: ReasoningEffort
+): AnthropicProviderOptions => {
+    const options: AnthropicProviderOptions = {}
+
+    if (
+        reasoningEffort !== "off" &&
+        ["sonnet-4", "4-sonnet", "4-opus", "opus-4", "3.7"].some((m) => modelId.includes(m))
+    ) {
+        options.thinking = {
+            type: "enabled",
+            budgetTokens:
+                reasoningEffort === "low" ? 1000 : reasoningEffort === "medium" ? 6000 : 12000
+        }
+    }
+
+    return options
+}
+
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
         id?: string
@@ -40,6 +98,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         imageSize?: ImageSize
         mcpOverrides?: Record<string, boolean>
         folderId?: Id<"projects">
+        reasoningEffort?: ReasoningEffort
     } = await req.json()
 
     if (body.targetFromMessageId && !body.id) {
@@ -293,7 +352,6 @@ export const chatPOST = httpAction(async (ctx, req) => {
                         return overrideValue !== false
                     })
                 }
-
                 const result = streamText({
                     model: model,
                     maxSteps: 100,
@@ -314,22 +372,13 @@ export const chatPOST = httpAction(async (ctx, req) => {
                             : []),
                         ...mapped_messages
                     ],
-
                     providerOptions: {
-                        google: {
-                            ...(modelData.modelId === "gemini-2.0-flash-image-generation"
-                                ? {
-                                      responseModalities: ["TEXT", "IMAGE"]
-                                  }
-                                : {}),
-                            ...(modelData.abilities.includes("reasoning")
-                                ? {
-                                      thinkingConfig: {
-                                          includeThoughts: true
-                                      }
-                                  }
-                                : {})
-                        } satisfies GoogleGenerativeAIProviderOptions
+                        google: buildGoogleProviderOptions(modelData.modelId, body.reasoningEffort),
+                        openai: buildOpenAIProviderOptions(modelData.modelId, body.reasoningEffort),
+                        anthropic: buildAnthropicProviderOptions(
+                            modelData.modelId,
+                            body.reasoningEffort
+                        )
                     }
                 })
 
