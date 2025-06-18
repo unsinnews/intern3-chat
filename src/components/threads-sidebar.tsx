@@ -47,7 +47,16 @@ import { Link } from "@tanstack/react-router"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { ArrowBigUp, Edit3, Loader2, MoreHorizontal, Pin, Search, Trash2 } from "lucide-react"
+import {
+    ArrowBigUp,
+    Edit3,
+    FolderOpen,
+    Loader2,
+    MoreHorizontal,
+    Pin,
+    Search,
+    Trash2
+} from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -514,6 +523,13 @@ export function ThreadsSidebar() {
                         </div>
                     </TooltipContent>
                 </Tooltip>
+                <Link
+                    to="/library"
+                    className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
+                >
+                    <FolderOpen className="h-4 w-4" />
+                    Library
+                </Link>
                 <Button onClick={() => setCommandKOpen(true)} variant="outline">
                     <Search className="h-4 w-4" />
                     Search chats

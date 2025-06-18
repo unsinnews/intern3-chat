@@ -98,7 +98,7 @@ const AspectRatioSelector = ({ selectedModel }: { selectedModel: string | null }
     return (
         <PromptInputAction tooltip="Select aspect ratio">
             <Select value={selectedImageSize} onValueChange={setSelectedImageSize}>
-                <SelectTrigger className="h-8 w-auto min-w-[80px] border border-accent bg-secondary/70 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
+                <SelectTrigger className="!h-8 w-auto min-w-[80px] border bg-secondary/70 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
