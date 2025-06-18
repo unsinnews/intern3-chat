@@ -106,7 +106,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
 
     return (
         <div className="flex h-screen flex-col overflow-y-auto bg-background">
-            <div className="container mx-auto flex max-w-6xl flex-1 flex-col p-3 md:max-h-dvh md:overflow-y-hidden md:p-6">
+            <div className="container mx-auto flex max-w-6xl flex-1 flex-col p-3 pb-6 lg:max-h-dvh lg:overflow-y-hidden lg:p-6">
                 {/* Header */}
                 <div className="mb-8 max-md:px-2">
                     <div className="mb-6 flex items-center gap-4">
@@ -159,7 +159,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
 
                     {/* Main Content */}
                     <div className="col-span-3 flex-1">
-                        <div className="space-y-6 px-0.5 md:max-h-[calc(100dvh-12rem)] md:overflow-y-auto">
+                        <div className="space-y-6 px-0.5 lg:max-h-[calc(100dvh-12rem)] lg:overflow-y-auto">
                             <Inner />
                         </div>
                     </div>

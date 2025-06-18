@@ -91,7 +91,9 @@ export const getUserRegistryInternal = internalQuery({
                 id: model.id,
                 name: model.name,
                 adapters: available_adapters,
-                abilities: model.abilities
+                abilities: model.abilities,
+                mode: model.mode,
+                supportedImageSizes: model.supportedImageSizes
             }
         }
 

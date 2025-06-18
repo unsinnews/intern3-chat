@@ -35,6 +35,7 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
         return getPriority(providerA) - getPriority(providerB)
     })
 
+    console.log("[getModel] model", model, "sortedAdapters", sortedAdapters)
     let finalModel: LanguageModelV1 | ImageModelV1 | undefined = undefined
 
     for (const adapter of sortedAdapters) {
@@ -72,7 +73,7 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
             continue
         }
 
-        if (["openrouter", "openai", "anthropic", "google"].includes(providerIdRaw)) {
+        if (["openrouter", ...CoreProviders].includes(providerIdRaw)) {
             const sdk_provider = createProvider(providerIdRaw as CoreProvider, provider.key)
             if (model.mode === "image") {
                 if (!sdk_provider.imageModel) {

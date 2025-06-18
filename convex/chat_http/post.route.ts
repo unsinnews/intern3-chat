@@ -4,6 +4,8 @@ import type {
     TextUIPart,
     ToolInvocationUIPart
 } from "@ai-sdk/ui-utils"
+import { formatDataStreamPart } from "ai"
+import { nanoid } from "nanoid"
 
 import { ChatError } from "@/lib/errors"
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
@@ -14,12 +16,14 @@ import type { Id } from "../_generated/dataModel"
 import { httpAction } from "../_generated/server"
 import { dbMessagesToCore } from "../lib/db_to_core_messages"
 import { getUserIdentity } from "../lib/identity"
+import type { ImageSize } from "../lib/models"
 import { getResumableStreamContext } from "../lib/resumable_stream_context"
 import { type AbilityId, getToolkit } from "../lib/toolkit"
 import type { HTTPAIMessage } from "../schema/message"
 import type { ErrorUIPart } from "../schema/parts"
 import { generateThreadName } from "./generate_thread_name"
 import { getModel } from "./get_model"
+import { generateAndStoreImage } from "./image_generation"
 import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
 import { RESPONSE_OPTS } from "./shared"
@@ -33,6 +37,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         enabledTools: AbilityId[]
         targetFromMessageId?: string
         targetMode?: "normal" | "edit" | "retry"
+        imageSize?: ImageSize
     } = await req.json()
 
     if (body.targetFromMessageId && !body.id) {
@@ -129,6 +134,143 @@ export const chatPOST = httpAction(async (ctx, req) => {
             })
 
             if (model.modelType === "image") {
+                console.log("[cvx][chat][stream] Image generation mode detected")
+
+                // Extract the prompt from the user message
+                const userMessage = mapped_messages.find((m) => m.role === "user")
+
+                const prompt =
+                    typeof userMessage?.content === "string"
+                        ? userMessage.content
+                        : userMessage?.content
+                              .map((t) => (t.type === "text" ? t.text : undefined))
+                              .filter((t) => t !== undefined)
+                              .join(" ")
+
+                if (typeof prompt !== "string" || !prompt.trim()) {
+                    console.error("[cvx][chat][stream] No valid prompt found for image generation")
+                    parts.push({
+                        type: "error",
+                        error: {
+                            code: "unknown",
+                            message:
+                                "No prompt provided for image generation. Please provide a description of the image you want to create."
+                        }
+                    })
+                    dataStream.write(
+                        formatDataStreamPart(
+                            "error",
+                            "No prompt provided for image generation. Please provide a description of the image you want to create."
+                        )
+                    )
+                } else {
+                    // Use the provided imageSize or fall back to default
+                    const imageSize: ImageSize = (body.imageSize || "1:1") as ImageSize
+
+                    // Create mock tool call for image generation
+                    const mockToolCall: ToolInvocationUIPart = {
+                        type: "tool-invocation",
+                        toolInvocation: {
+                            state: "call",
+                            args: {
+                                imageSize,
+                                prompt
+                            },
+                            toolCallId: nanoid(),
+                            toolName: "image_generation"
+                        }
+                    }
+
+                    parts.push(mockToolCall)
+                    dataStream.write(
+                        formatDataStreamPart("tool_call", {
+                            toolCallId: mockToolCall.toolInvocation.toolCallId,
+                            toolName: mockToolCall.toolInvocation.toolName,
+                            args: mockToolCall.toolInvocation.args
+                        })
+                    )
+
+                    // Patch the message with the tool call first
+                    await ctx.runMutation(internal.messages.patchMessage, {
+                        threadId: mutationResult.threadId,
+                        messageId: mutationResult.assistantMessageId,
+                        parts: parts,
+                        metadata: {
+                            modelId: body.model,
+                            modelName,
+                            serverDurationMs: Date.now() - streamStartTime
+                        }
+                    })
+
+                    try {
+                        // Generate the image
+                        const result = await generateAndStoreImage({
+                            prompt,
+                            imageSize,
+                            imageModel: model,
+                            modelId: body.model,
+                            userId: user.id,
+                            threadId: mutationResult.threadId,
+                            actionCtx: ctx
+                        })
+
+                        // Send tool result
+                        dataStream.write(
+                            formatDataStreamPart("tool_result", {
+                                toolCallId: mockToolCall.toolInvocation.toolCallId,
+                                result: {
+                                    assets: result.assets,
+                                    prompt: result.prompt,
+                                    modelId: result.modelId
+                                }
+                            })
+                        )
+
+                        // Update parts with successful result
+                        parts[0] = {
+                            type: "tool-invocation",
+                            toolInvocation: {
+                                state: "result",
+                                args: mockToolCall.toolInvocation.args,
+                                result: {
+                                    assets: result.assets,
+                                    prompt: result.prompt,
+                                    modelId: result.modelId
+                                },
+                                toolCallId: mockToolCall.toolInvocation.toolCallId,
+                                toolName: "image_generation"
+                            }
+                        } satisfies ToolInvocationUIPart
+                    } catch (error) {
+                        console.error("[cvx][chat][stream] Image generation failed:", error)
+
+                        // Send error in tool result
+                        const errorMessage =
+                            error instanceof Error ? error.message : "Unknown error occurred"
+                        dataStream.write(
+                            formatDataStreamPart("tool_result", {
+                                toolCallId: mockToolCall.toolInvocation.toolCallId,
+                                result: {
+                                    error: errorMessage
+                                }
+                            })
+                        )
+
+                        // Update parts with error
+                        parts[0] = {
+                            type: "tool-invocation",
+                            toolInvocation: {
+                                state: "result",
+                                args: mockToolCall.toolInvocation.args,
+                                result: {
+                                    error: errorMessage
+                                },
+                                toolCallId: mockToolCall.toolInvocation.toolCallId,
+                                toolName: "image_generation"
+                            }
+                        } satisfies ToolInvocationUIPart
+                    }
+                }
             } else {
                 const result = streamText({
                     model: model,

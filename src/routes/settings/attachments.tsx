@@ -74,6 +74,9 @@ const FileCard = memo(
         const fileName = useMemo(() => {
             // Extract filename from key (format: attachments/userId/timestamp-uuid-filename)
             const parts = file.key.split("/")
+            if (parts[0] === "generations") {
+                return "Generated image"
+            }
             if (parts.length >= 3) {
                 const filenamePart = parts[parts.length - 1]
                 // Remove timestamp and UUID prefix

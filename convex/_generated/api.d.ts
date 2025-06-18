@@ -12,6 +12,7 @@ import type * as analytics from "../analytics.js";
 import type * as attachments from "../attachments.js";
 import type * as chat_http_generate_thread_name from "../chat_http/generate_thread_name.js";
 import type * as chat_http_get_model from "../chat_http/get_model.js";
+import type * as chat_http_image_generation from "../chat_http/image_generation.js";
 import type * as chat_http_manual_stream_transform from "../chat_http/manual_stream_transform.js";
 import type * as chat_http_prompt from "../chat_http/prompt.js";
 import type * as chat_http_shared from "../chat_http/shared.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   attachments: typeof attachments;
   "chat_http/generate_thread_name": typeof chat_http_generate_thread_name;
   "chat_http/get_model": typeof chat_http_get_model;
+  "chat_http/image_generation": typeof chat_http_image_generation;
   "chat_http/manual_stream_transform": typeof chat_http_manual_stream_transform;
   "chat_http/prompt": typeof chat_http_prompt;
   "chat_http/shared": typeof chat_http_shared;

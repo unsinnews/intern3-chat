@@ -23,7 +23,7 @@ export function useChatIntegration<IsShared extends boolean>({
     isShared?: IsShared
 }) {
     const tokenData = useToken()
-    const { selectedModel, enabledTools } = useModelStore()
+    const { selectedModel, enabledTools, selectedImageSize } = useModelStore()
     const { rerenderTrigger, shouldUpdateQuery, setShouldUpdateQuery, triggerRerender } =
         useChatStore()
     const seededNextId = useRef<string | null>(null)
@@ -97,7 +97,8 @@ export function useChatIntegration<IsShared extends boolean>({
                     role: message?.role,
                     messageId: message?.id
                 },
-                enabledTools
+                enabledTools,
+                imageSize: selectedImageSize
             }
         },
         initialMessages,
