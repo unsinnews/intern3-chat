@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
+import { useFunction } from "@/hooks/use-function"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { authClient } from "@/lib/auth-client"
 import { useDiskCachedPaginatedQuery, useDiskCachedQuery } from "@/lib/convex-cached-query"
@@ -25,6 +26,7 @@ import { LogoSymbol } from "./logo"
 import { FolderItem } from "./threads/folder-item"
 import { NewFolderButton } from "./threads/new-folder-button"
 import { ThreadItem } from "./threads/thread-item"
+import { ThreadItemDialogs } from "./threads/thread-item-dialogs"
 import type { Thread } from "./threads/types"
 
 function groupThreadsByTime(threads: Thread[]) {
@@ -68,11 +70,17 @@ function groupThreadsByTime(threads: Thread[]) {
 function ThreadsGroup({
     title,
     threads,
-    icon
+    icon,
+    onOpenRenameDialog,
+    onOpenMoveDialog,
+    onOpenDeleteDialog
 }: {
     title: string
     threads: Thread[]
     icon?: React.ReactNode
+    onOpenRenameDialog?: (thread: Thread) => void
+    onOpenMoveDialog?: (thread: Thread) => void
+    onOpenDeleteDialog?: (thread: Thread) => void
 }) {
     if (threads.length === 0) return null
 
@@ -85,7 +93,13 @@ function ThreadsGroup({
             <SidebarGroupContent>
                 <SidebarMenu>
                     {threads.map((thread) => (
-                        <ThreadItem key={thread._id} thread={thread} />
+                        <ThreadItem
+                            key={thread._id}
+                            thread={thread}
+                            onOpenRenameDialog={onOpenRenameDialog}
+                            onOpenMoveDialog={onOpenMoveDialog}
+                            onOpenDeleteDialog={onOpenDeleteDialog}
+                        />
                     ))}
                 </SidebarMenu>
             </SidebarGroupContent>
@@ -110,6 +124,13 @@ function EmptyState({ message }: { message: string }) {
 export function ThreadsSidebar() {
     const [showGradient, setShowGradient] = useState(false)
     const [commandKOpen, setCommandKOpen] = useState(false)
+
+    // Dialog state
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [showRenameDialog, setShowRenameDialog] = useState(false)
+    const [showMoveDialog, setShowMoveDialog] = useState(false)
+    const [currentThread, setCurrentThread] = useState<Thread | null>(null)
+
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const { data: session } = authClient.useSession()
     const navigate = useNavigate()
@@ -161,6 +182,50 @@ export function ThreadsSidebar() {
     const groupedNonProjectThreads = useMemo(() => {
         return groupThreadsByTime(allThreads)
     }, [allThreads])
+
+    // Dialog handlers
+    const handleOpenRenameDialog = useFunction((thread: Thread) => {
+        setCurrentThread(thread)
+        setShowRenameDialog(true)
+    })
+
+    const handleOpenMoveDialog = useFunction((thread: Thread) => {
+        setCurrentThread(thread)
+        setShowMoveDialog(true)
+    })
+
+    const handleOpenDeleteDialog = useFunction((thread: Thread) => {
+        setCurrentThread(thread)
+        setShowDeleteDialog(true)
+    })
+
+    const handleCloseRenameDialog = useFunction(() => {
+        setShowRenameDialog(false)
+        // Keep currentThread until animation completes
+        setTimeout(() => {
+            if (!showRenameDialog && !showMoveDialog && !showDeleteDialog) {
+                setCurrentThread(null)
+            }
+        }, 150)
+    })
+
+    const handleCloseMoveDialog = useFunction(() => {
+        setShowMoveDialog(false)
+        setTimeout(() => {
+            if (!showRenameDialog && !showMoveDialog && !showDeleteDialog) {
+                setCurrentThread(null)
+            }
+        }, 150)
+    })
+
+    const handleCloseDeleteDialog = useFunction(() => {
+        setShowDeleteDialog(false)
+        setTimeout(() => {
+            if (!showRenameDialog && !showMoveDialog && !showDeleteDialog) {
+                setCurrentThread(null)
+            }
+        }, 150)
+    })
 
     // Keyboard shortcut for new chat (Cmd+Shift+O)
     useEffect(() => {
@@ -256,19 +321,37 @@ export function ThreadsSidebar() {
                             title="Pinned"
                             threads={groupedNonProjectThreads.pinned}
                             icon={<Pin className="h-4 w-4" />}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
                         />
-                        <ThreadsGroup title="Today" threads={groupedNonProjectThreads.today} />
+                        <ThreadsGroup
+                            title="Today"
+                            threads={groupedNonProjectThreads.today}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
+                        />
                         <ThreadsGroup
                             title="Yesterday"
                             threads={groupedNonProjectThreads.yesterday}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
                         />
                         <ThreadsGroup
                             title="Last 7 Days"
                             threads={groupedNonProjectThreads.lastSevenDays}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
                         />
                         <ThreadsGroup
                             title="Last 30 Days"
                             threads={groupedNonProjectThreads.lastThirtyDays}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
                         />
                     </>
                 )}
@@ -353,6 +436,19 @@ export function ThreadsSidebar() {
                 <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
             )}
             <CommandK open={commandKOpen} onOpenChange={setCommandKOpen} />
+
+            {/* Centralized Thread Dialogs */}
+            <ThreadItemDialogs
+                showDeleteDialog={showDeleteDialog}
+                showRenameDialog={showRenameDialog}
+                showMoveDialog={showMoveDialog}
+                onCloseDeleteDialog={handleCloseDeleteDialog}
+                onCloseRenameDialog={handleCloseRenameDialog}
+                onCloseMoveDialog={handleCloseMoveDialog}
+                currentThread={currentThread}
+                projects={projects}
+            />
+
             <SidebarRail />
         </Sidebar>
     )
