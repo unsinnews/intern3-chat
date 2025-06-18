@@ -34,6 +34,8 @@ import type * as lib_tools_mcp_adapter from "../lib/tools/mcp_adapter.js";
 import type * as lib_tools_supermemory from "../lib/tools/supermemory.js";
 import type * as lib_tools_web_search from "../lib/tools/web_search.js";
 import type * as messages from "../messages.js";
+import type * as projects from "../projects.js";
+import type * as schema_folders from "../schema/folders.js";
 import type * as schema_message from "../schema/message.js";
 import type * as schema_parts from "../schema/parts.js";
 import type * as schema_settings from "../schema/settings.js";
@@ -85,6 +87,8 @@ declare const fullApi: ApiFromModules<{
   "lib/tools/supermemory": typeof lib_tools_supermemory;
   "lib/tools/web_search": typeof lib_tools_web_search;
   messages: typeof messages;
+  projects: typeof projects;
+  "schema/folders": typeof schema_folders;
   "schema/message": typeof schema_message;
   "schema/parts": typeof schema_parts;
   "schema/settings": typeof schema_settings;

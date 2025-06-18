@@ -1,4 +1,6 @@
+import { FolderView } from "@/components/folder-view"
 import { Messages } from "@/components/messages"
+import type { Id } from "@/convex/_generated/dataModel"
 import { MODELS_SHARED } from "@/convex/lib/models"
 import { useSession } from "@/hooks/auth-hooks"
 import { useChatActions } from "@/hooks/use-chat-actions"
@@ -18,9 +20,10 @@ import { StickToBottomButton } from "./stick-to-bottom-button"
 
 interface ChatProps {
     threadId: string | undefined
+    folderId?: Id<"projects">
 }
 
-const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
+const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     const { selectedModel, setSelectedModel } = useModelStore()
     const { threadId } = useThreadSync({ routeThreadId })
     const { scrollToBottom } = useStickToBottomContext()
@@ -35,12 +38,26 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
         }
     }, [selectedModel, setSelectedModel])
 
+    // If we have a folderId, render the folder view
+    if (folderId) {
+        if (!session?.user) {
+            return (
+                <div className="relative flex h-[calc(100vh-64px)] items-center justify-center">
+                    <SignupMessagePrompt />
+                </div>
+            )
+        }
+        return <FolderView folderId={folderId} />
+    }
+
     const { status, data, messages } = useChatIntegration({
-        threadId
+        threadId,
+        folderId
     })
 
     const { handleInputSubmit, handleRetry, handleEditAndRetry } = useChatActions({
-        threadId
+        threadId,
+        folderId
     })
 
     useChatDataProcessor({ data, messages })
@@ -123,10 +140,10 @@ const ChatContent = ({ threadId: routeThreadId }: ChatProps) => {
     )
 }
 
-export const Chat = ({ threadId }: ChatProps) => {
+export const Chat = ({ threadId, folderId }: ChatProps) => {
     return (
         <StickToBottom className="relative h-full" resize="instant" initial="instant">
-            <ChatContent threadId={threadId} />
+            <ChatContent threadId={threadId} folderId={folderId} />
         </StickToBottom>
     )
 }

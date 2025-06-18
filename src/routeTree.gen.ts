@@ -25,6 +25,7 @@ import { Route as SettingsAiOptionsRouteImport } from './routes/settings/ai-opti
 import { Route as AuthPathnameRouteImport } from './routes/auth/$pathname'
 import { Route as ChatThreadThreadIdRouteImport } from './routes/_chat.thread.$threadId'
 import { Route as ChatSSharedThreadIdRouteImport } from './routes/_chat.s.$sharedThreadId'
+import { Route as ChatFolderFolderIdRouteImport } from './routes/_chat.folder.$folderId'
 import { ServerRoute as ApiPhrSplatServerRouteImport } from './routes/api/phr/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
@@ -99,6 +100,11 @@ const ChatSSharedThreadIdRoute = ChatSSharedThreadIdRouteImport.update({
   path: '/s/$sharedThreadId',
   getParentRoute: () => ChatRoute,
 } as any)
+const ChatFolderFolderIdRoute = ChatFolderFolderIdRouteImport.update({
+  id: '/folder/$folderId',
+  path: '/folder/$folderId',
+  getParentRoute: () => ChatRoute,
+} as any)
 const ApiPhrSplatServerRoute = ApiPhrSplatServerRouteImport.update({
   id: '/api/phr/$',
   path: '/api/phr/$',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
+  '/folder/$folderId': typeof ChatFolderFolderIdRoute
   '/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
 }
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
+  '/folder/$folderId': typeof ChatFolderFolderIdRoute
   '/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
 }
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/_chat/': typeof ChatIndexRoute
+  '/_chat/folder/$folderId': typeof ChatFolderFolderIdRoute
   '/_chat/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/_chat/thread/$threadId': typeof ChatThreadThreadIdRoute
 }
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/usage'
     | '/'
+    | '/folder/$folderId'
     | '/s/$sharedThreadId'
     | '/thread/$threadId'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/usage'
     | '/'
+    | '/folder/$folderId'
     | '/s/$sharedThreadId'
     | '/thread/$threadId'
   id:
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/usage'
     | '/_chat/'
+    | '/_chat/folder/$folderId'
     | '/_chat/s/$sharedThreadId'
     | '/_chat/thread/$threadId'
   fileRoutesById: FileRoutesById
@@ -338,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatSSharedThreadIdRouteImport
       parentRoute: typeof ChatRoute
     }
+    '/_chat/folder/$folderId': {
+      id: '/_chat/folder/$folderId'
+      path: '/folder/$folderId'
+      fullPath: '/folder/$folderId'
+      preLoaderRoute: typeof ChatFolderFolderIdRouteImport
+      parentRoute: typeof ChatRoute
+    }
   }
 }
 declare module '@tanstack/react-start/server' {
@@ -385,12 +404,14 @@ const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
 
 interface ChatRouteChildren {
   ChatIndexRoute: typeof ChatIndexRoute
+  ChatFolderFolderIdRoute: typeof ChatFolderFolderIdRoute
   ChatSSharedThreadIdRoute: typeof ChatSSharedThreadIdRoute
   ChatThreadThreadIdRoute: typeof ChatThreadThreadIdRoute
 }
 
 const ChatRouteChildren: ChatRouteChildren = {
   ChatIndexRoute: ChatIndexRoute,
+  ChatFolderFolderIdRoute: ChatFolderFolderIdRoute,
   ChatSSharedThreadIdRoute: ChatSSharedThreadIdRoute,
   ChatThreadThreadIdRoute: ChatThreadThreadIdRoute,
 }
