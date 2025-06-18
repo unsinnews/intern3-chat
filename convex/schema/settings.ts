@@ -24,6 +24,27 @@ export const SupermemoryConfig = v.object({
     encryptedKey: v.string()
 })
 
+export const UserCustomization = v.object({
+    name: v.optional(v.string()),
+    aiPersonality: v.optional(v.string()),
+    additionalContext: v.optional(v.string())
+})
+
+export const MCPServerConfig = v.object({
+    name: v.string(),
+    url: v.string(),
+    type: v.union(v.literal("sse"), v.literal("http")),
+    enabled: v.optional(v.boolean()),
+    headers: v.optional(
+        v.array(
+            v.object({
+                key: v.string(),
+                value: v.string()
+            })
+        )
+    )
+})
+
 const ModelAbilitySchema = v.union(
     v.literal("reasoning"),
     v.literal("vision"),
@@ -49,7 +70,9 @@ export const NonSensitiveUserSettings = v.object({
     customModels: v.record(v.string(), CustomModel),
     titleGenerationModel: v.string(),
     customThemes: v.optional(v.array(v.string())),
-    supermemory: v.optional(SupermemoryConfig)
+    supermemory: v.optional(SupermemoryConfig),
+    mcpServers: v.optional(v.array(MCPServerConfig)),
+    customization: v.optional(UserCustomization)
 })
 
 export const UserSettings = v.object({

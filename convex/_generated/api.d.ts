@@ -30,6 +30,7 @@ import type * as lib_tools_adapters_firecrawl_search_adapter from "../lib/tools/
 import type * as lib_tools_adapters_index from "../lib/tools/adapters/index.js";
 import type * as lib_tools_adapters_search_adapter from "../lib/tools/adapters/search_adapter.js";
 import type * as lib_tools_adapters_search_provider from "../lib/tools/adapters/search_provider.js";
+import type * as lib_tools_mcp_adapter from "../lib/tools/mcp_adapter.js";
 import type * as lib_tools_supermemory from "../lib/tools/supermemory.js";
 import type * as lib_tools_web_search from "../lib/tools/web_search.js";
 import type * as messages from "../messages.js";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   "lib/tools/adapters/index": typeof lib_tools_adapters_index;
   "lib/tools/adapters/search_adapter": typeof lib_tools_adapters_search_adapter;
   "lib/tools/adapters/search_provider": typeof lib_tools_adapters_search_provider;
+  "lib/tools/mcp_adapter": typeof lib_tools_mcp_adapter;
   "lib/tools/supermemory": typeof lib_tools_supermemory;
   "lib/tools/web_search": typeof lib_tools_web_search;
   messages: typeof messages;

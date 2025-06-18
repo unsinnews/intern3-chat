@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { ChevronDownIcon } from "lucide-react"
+import { Brain, ChevronDownIcon } from "lucide-react"
 import type React from "react"
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { MemoizedMarkdown } from "./memoized-markdown"
@@ -76,12 +76,18 @@ function ReasoningTrigger({ children, className, ...props }: ReasoningTriggerPro
 
     return (
         <button
-            className={cn("flex cursor-pointer items-center gap-2", className)}
+            className={cn("flex w-full cursor-pointer items-center gap-2", className)}
             onClick={() => onOpenChange(!isOpen)}
             {...props}
         >
+            <Brain className="size-4 text-primary" />
             <span className="text-primary">{children}</span>
-            <div className={cn("transform transition-transform", isOpen ? "rotate-180" : "")}>
+            <div
+                className={cn(
+                    "ml-auto transform transition-all duration-200",
+                    isOpen ? "rotate-180" : ""
+                )}
+            >
                 <ChevronDownIcon className="size-4" />
             </div>
         </button>

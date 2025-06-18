@@ -211,7 +211,7 @@ export function ModelSelector({
                     variant="ghost"
                     aria-expanded={open}
                     className={cn(
-                        "h-8 gap-2 border border-accent bg-secondary/70 font-normal text-xs backdrop-blur-lg sm:text-sm md:rounded-md",
+                        "h-8 gap-2 border bg-secondary/70 font-normal text-xs backdrop-blur-lg sm:text-sm md:rounded-md",
                         className
                     )}
                 >

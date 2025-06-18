@@ -7,7 +7,16 @@ import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, BarChart3, Bot, Key, PaintBucket, Paperclip, User } from "lucide-react"
+import {
+    ArrowLeft,
+    BarChart3,
+    Bot,
+    Key,
+    PaintBucket,
+    Paperclip,
+    Sparkles,
+    User
+} from "lucide-react"
 import type { ReactNode } from "react"
 
 interface SettingsLayoutProps {
@@ -31,6 +40,11 @@ const settingsNavItems = [
         title: "AI Options",
         href: "/settings/ai-options",
         icon: Bot
+    },
+    {
+        title: "Customization",
+        href: "/settings/customization",
+        icon: Sparkles
     },
     {
         title: "Usage Analytics",
@@ -159,7 +173,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
 
                     {/* Main Content */}
                     <div className="col-span-3 flex-1">
-                        <div className="space-y-6 px-0.5 lg:max-h-[calc(100dvh-12rem)] lg:overflow-y-auto">
+                        <div className="space-y-6 p-0.5 lg:max-h-[calc(100dvh-12rem)] lg:overflow-y-auto">
                             <Inner />
                         </div>
                     </div>

@@ -1,10 +1,9 @@
-import { Loader } from "@/components/ui/loader"
+import { ImageSkeleton } from "@/components/ui/image-skeleton"
 import { MODELS_SHARED } from "@/convex/lib/models"
 import { browserEnv } from "@/lib/browser-env"
 import type { ToolInvocation } from "ai"
-import { AlertCircle, Download } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { memo, useMemo, useState } from "react"
-import { Button } from "../ui/button"
 
 export const ImageGenerationToolRenderer = memo(
     ({ toolInvocation }: { toolInvocation: ToolInvocation }) => {
@@ -43,16 +42,36 @@ export const ImageGenerationToolRenderer = memo(
             return aspectRatio.replace("-hd", " (HD)")
         }, [aspectRatio])
 
+        // Calculate optimal rows and cols based on aspect ratio
+        const { rows, cols } = useMemo(() => {
+            const [widthRatio, heightRatio] = cssAspectRatio.split("/").map(Number)
+            const baseSize = 20 // Base number of dots for smaller dimension
+
+            if (widthRatio >= heightRatio) {
+                // Landscape or square
+                const calculatedCols = Math.round(baseSize * (widthRatio / heightRatio))
+                return { rows: baseSize, cols: calculatedCols }
+            }
+            // Portrait
+            const calculatedRows = Math.round(baseSize * (heightRatio / widthRatio))
+            return { rows: calculatedRows, cols: baseSize }
+        }, [cssAspectRatio])
+
         if (isLoading) {
             return (
                 <div
-                    className="flex w-full max-w-md items-center justify-center rounded-lg border bg-muted/50"
+                    className="w-full max-w-md overflow-hidden rounded-xl border bg-muted/5"
                     style={{ aspectRatio: cssAspectRatio }}
                 >
-                    <div className="flex flex-col items-center gap-2">
-                        <Loader variant="circular" size="lg" />
-                        <p className="text-muted-foreground text-sm">Creating your image...</p>
-                    </div>
+                    <ImageSkeleton
+                        rows={rows}
+                        cols={cols}
+                        dotSize={3}
+                        gap={4}
+                        loadingDuration={99999}
+                        autoLoop={false}
+                        className="h-full w-full rounded-xl border-0 bg-transparent"
+                    />
                 </div>
             )
         }
@@ -60,7 +79,7 @@ export const ImageGenerationToolRenderer = memo(
         if (hasError) {
             return (
                 <div
-                    className="flex w-full max-w-md flex-col items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10"
+                    className="flex w-full max-w-md flex-col items-center justify-center rounded-xl border border-destructive/50 bg-destructive/10"
                     style={{ aspectRatio: cssAspectRatio }}
                 >
                     <AlertCircle className="mx-auto mb-2 size-8 text-destructive/70" />
@@ -108,7 +127,7 @@ const ImageWithErrorHandler = memo(
         if (isError) {
             return (
                 <div
-                    className="flex w-full max-w-md items-center justify-center rounded-lg border bg-muted/50"
+                    className="flex w-full max-w-md items-center justify-center rounded-xl border bg-muted/50"
                     style={{ aspectRatio: cssAspectRatio }}
                 >
                     <div className="flex flex-col items-center gap-2">
@@ -120,43 +139,18 @@ const ImageWithErrorHandler = memo(
         }
         return (
             <div
-                className="not-prose group relative w-full max-w-md overflow-hidden"
+                className="not-prose relative w-full max-w-md overflow-hidden"
                 style={{ aspectRatio: cssAspectRatio }}
             >
                 <img
                     src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${asset.imageUrl}`}
                     alt={prompt || "Generated image"}
-                    className="absolute inset-0 w-full max-w-md border bg-background object-cover"
+                    className="w-full max-w-md rounded-xl border bg-background object-cover"
                     style={{ aspectRatio: cssAspectRatio }}
                     onError={(e) => {
-                        // const target = e.target as HTMLImageElement
-                        // target.style.display = "none"
-                        // const errorDiv = target.nextElementSibling as HTMLElement
-                        // if (errorDiv) errorDiv.style.display = "flex"
                         setIsError(true)
                     }}
                 />
-
-                <div className="absolute inset-0 z-10 flex h-full w-full items-end justify-start bg-black/30 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
-                    <div className="flex w-full items-center gap-2">
-                        <p className="flex h-8 items-center justify-center rounded-md bg-secondary px-2.5 text-xs">
-                            {modelName}
-                        </p>
-                        <div className="flex-grow" />
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={async () => {
-                                const url = `${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${asset.imageUrl}`
-                                window.open(url, "_blank")
-                            }}
-                            className="hover:bg-primary hover:text-primary-foreground"
-                        >
-                            <Download className="size-4" />
-                            Download
-                        </Button>
-                    </div>
-                </div>
             </div>
         )
     }

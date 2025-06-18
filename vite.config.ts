@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite"
 // vite.config.ts
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import { defineConfig } from "vite"
-import mkcert from "vite-plugin-mkcert"
+import analyzer from "vite-bundle-analyzer"
 import svgr from "vite-plugin-svgr"
 import tsConfigPaths from "vite-tsconfig-paths"
 
@@ -19,7 +19,7 @@ export default defineConfig({
         proxy: {}
     },
     plugins: [
-        (process.env.HTTPS && mkcert()) || null,
+        (process.env.ANALYZE && analyzer()) || null,
         tanstackStart({
             target: "vercel",
             react: {

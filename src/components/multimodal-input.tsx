@@ -6,6 +6,7 @@ import {
     type PromptInputRef,
     PromptInputTextarea
 } from "@/components/prompt-kit/prompt-input"
+import { ToolSelectorPopover } from "@/components/tool-selector-popover"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
@@ -40,7 +41,6 @@ import {
     ArrowUp,
     Code,
     FileType,
-    Globe,
     Image as ImageIcon,
     Loader2,
     Mic,
@@ -101,7 +101,7 @@ const AspectRatioSelector = ({ selectedModel }: { selectedModel: string | null }
     return (
         <PromptInputAction tooltip="Select aspect ratio">
             <Select value={selectedImageSize} onValueChange={setSelectedImageSize}>
-                <SelectTrigger className="h-8 w-auto min-w-[80px] border border-accent bg-secondary/70 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
+                <SelectTrigger className="!h-8 w-auto min-w-[80px] border bg-secondary/70 font-normal text-xs backdrop-blur-lg hover:bg-secondary/80 sm:text-sm">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -124,6 +124,12 @@ export function MultimodalInput({
     status: ReturnType<typeof useChat>["status"]
 }) {
     const { token } = useToken()
+    const location = useLocation()
+
+    // Extract threadId from URL
+    const threadId = location.pathname.includes("/thread/")
+        ? location.pathname.split("/thread/")[1]?.split("/")[0]
+        : undefined
 
     const { selectedModel, setSelectedModel, enabledTools, setEnabledTools } = useModelStore()
     const { uploadedFiles, addUploadedFile, removeUploadedFile, uploading, setUploading } =
@@ -165,12 +171,18 @@ export function MultimodalInput({
     })
 
     // Check if current model supports vision and is image model
-    const [modelSupportsVision, modelSupportsFunctionCalling, isImageModel] = useMemo(() => {
-        if (!selectedModel) return [false, false, false]
+    const [
+        modelSupportsVision,
+        modelSupportsFunctionCalling,
+        modelSupportsReasoning,
+        isImageModel
+    ] = useMemo(() => {
+        if (!selectedModel) return [false, false, false, false]
         const model = MODELS_SHARED.find((m) => m.id === selectedModel)
         return [
             model?.abilities.includes("vision") ?? false,
             model?.abilities.includes("function_calling") ?? false,
+            model?.abilities.includes("reasoning") ?? false,
             model?.mode === "image"
         ]
     }, [selectedModel])
@@ -546,7 +558,6 @@ export function MultimodalInput({
     }
 
     const [isClient, setIsClient] = useState(false)
-    const location = useLocation()
 
     useEffect(() => {
         setIsClient(true)
@@ -650,7 +661,7 @@ export function MultimodalInput({
                                             variant="ghost"
                                             onClick={() => uploadInputRef.current?.click()}
                                             className={cn(
-                                                "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80"
+                                                "flex size-8 cursor-pointer items-center justify-center gap-1 rounded-md bg-secondary/70 text-foreground backdrop-blur-lg hover:bg-secondary/80"
                                             )}
                                         >
                                             <input
@@ -662,49 +673,23 @@ export function MultimodalInput({
                                                 accept={getFileAcceptAttribute(modelSupportsVision)}
                                             />
                                             {uploading ? (
-                                                <Loader2 className="size-4 animate-spin text-foreground" />
+                                                <Loader2 className="size-4 animate-spin" />
                                             ) : (
-                                                <Paperclip className="-rotate-45 size-4 text-foreground" />
+                                                <Paperclip className="-rotate-45 size-4 hover:text-primary" />
                                             )}
                                         </Button>
                                     </PromptInputAction>
 
-                                    <PromptInputAction
-                                        tooltip={
-                                            modelSupportsFunctionCalling
-                                                ? "Search the web"
-                                                : "Current model doesn't support function calling"
-                                        }
-                                    >
-                                        <Button
-                                            type="button"
-                                            variant={
-                                                enabledTools.includes("web_search")
-                                                    ? "default"
-                                                    : "ghost"
+                                    <PromptInputAction tooltip="Tools">
+                                        <ToolSelectorPopover
+                                            threadId={threadId}
+                                            enabledTools={enabledTools}
+                                            onEnabledToolsChange={setEnabledTools}
+                                            modelSupportsFunctionCalling={
+                                                modelSupportsFunctionCalling
                                             }
-                                            disabled={!modelSupportsFunctionCalling}
-                                            onClick={() => {
-                                                if (modelSupportsFunctionCalling) {
-                                                    setEnabledTools(
-                                                        enabledTools.includes("web_search")
-                                                            ? enabledTools.filter(
-                                                                  (tool) => tool !== "web_search"
-                                                              )
-                                                            : [...enabledTools, "web_search"]
-                                                    )
-                                                }
-                                            }}
-                                            className={cn(
-                                                "size-8 shrink-0",
-                                                !enabledTools.includes("web_search") &&
-                                                    "border border-accent bg-secondary/70 backdrop-blur-lg hover:bg-secondary/80",
-                                                !modelSupportsFunctionCalling &&
-                                                    "cursor-not-allowed opacity-50"
-                                            )}
-                                        >
-                                            <Globe className="size-4" />
-                                        </Button>
+                                            modelSupportsReasoning={modelSupportsReasoning}
+                                        />
                                     </PromptInputAction>
                                 </>
                             )}

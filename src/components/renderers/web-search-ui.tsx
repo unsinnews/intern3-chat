@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils"
 import type { ToolInvocation } from "ai"
-import { ChevronDown, ExternalLink, Loader2, Search } from "lucide-react"
+import { ChevronDown, ExternalLink, Globe, Loader2 } from "lucide-react"
 import { memo, useEffect, useRef, useState } from "react"
 
 function getFaviconUrl(url: string): string {
     try {
         const domain = new URL(url).hostname
-        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
     } catch {
         return ""
     }
@@ -20,6 +20,30 @@ function getOpenGraphImage(url: string): string {
         return ""
     }
 }
+
+const FaviconWithLoader = memo(({ url }: { url: string }) => {
+    const [imageLoaded, setImageLoaded] = useState(false)
+
+    return (
+        <div className="relative flex aspect-square h-4 w-4 items-center justify-center rounded-full">
+            {!imageLoaded && (
+                <div className="absolute inset-0 animate-pulse bg-muted-foreground/10" />
+            )}
+            <img
+                src={getFaviconUrl(url)}
+                alt=""
+                className={cn("h-4 w-4 rounded-full object-contain", !imageLoaded && "opacity-0")}
+                onLoad={() => setImageLoaded(true)}
+                onError={(e) => {
+                    setImageLoaded(true)
+                    const target = e.target as HTMLImageElement
+                    target.src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='16'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E%3C/svg%3E"
+                }}
+            />
+        </div>
+    )
+})
 
 export const WebSearchToolRenderer = memo(
     ({ toolInvocation }: { toolInvocation: ToolInvocation }) => {
@@ -62,30 +86,40 @@ export const WebSearchToolRenderer = memo(
                         {isLoading ? (
                             <Loader2 className="size-4 animate-spin text-primary" />
                         ) : (
-                            <Search className="size-4 text-primary" />
+                            <Globe className="size-4 text-primary" />
                         )}
                         <span className="font-medium text-primary">Web Search</span>
-                        {toolInvocation.args?.query && (
-                            <span className="text-muted-foreground text-sm">
-                                "{toolInvocation.args.query}"
-                            </span>
-                        )}
-                        {hasResults && (
-                            <span className="text-muted-foreground text-sm">
-                                • {toolInvocation.result.results.length} results
-                            </span>
+
+                        <div className="flex flex-1 items-center justify-end gap-2">
+                            <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1 text-muted-foreground text-sm">
+                                {toolInvocation.args?.query && (
+                                    <span className="max-w-16 truncate text-muted-foreground text-sm md:max-w-full">
+                                        "{toolInvocation.args.query}"
+                                    </span>
+                                )}
+                                {hasResults && (
+                                    <span className="text-muted-foreground text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-1 rounded-full bg-primary" />
+                                            <span className="truncate">
+                                                {toolInvocation.result.results.length} results
+                                            </span>
+                                        </div>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        {!isLoading && hasResults && (
+                            <div
+                                className={cn(
+                                    "transform transition-transform",
+                                    isExpanded ? "rotate-180" : ""
+                                )}
+                            >
+                                <ChevronDown className="size-4 text-foreground" />
+                            </div>
                         )}
                     </div>
-                    {!isLoading && hasResults && (
-                        <div
-                            className={cn(
-                                "transform transition-transform",
-                                isExpanded ? "rotate-180" : ""
-                            )}
-                        >
-                            <ChevronDown className="size-4 text-muted-foreground" />
-                        </div>
-                    )}
                 </button>
 
                 <div
@@ -110,7 +144,7 @@ export const WebSearchToolRenderer = memo(
                                                 className={cn(
                                                     "group relative flex-shrink-0 rounded-lg border bg-card text-left",
                                                     "transition-all duration-200 hover:border-primary/20 hover:shadow-lg",
-                                                    "hover:bg-accent/50",
+                                                    "hover:border-primary/20 hover:bg-accent/50",
                                                     "w-64 min-w-64 overflow-hidden"
                                                 )}
                                                 onClick={() =>
@@ -123,7 +157,11 @@ export const WebSearchToolRenderer = memo(
                                                         <img
                                                             src={getOpenGraphImage(result.url)}
                                                             alt=""
-                                                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                            className="aspect-video h-full w-full object-cover"
+                                                            style={{
+                                                                margin: "0 auto",
+                                                                maxHeight: "100%"
+                                                            }}
                                                             onError={(e) => {
                                                                 const target =
                                                                     e.target as HTMLImageElement
@@ -134,44 +172,28 @@ export const WebSearchToolRenderer = memo(
                                                                     fallback.style.display = "flex"
                                                             }}
                                                         />
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                                                         <div
                                                             className="absolute inset-0 hidden items-center justify-center bg-muted/50"
                                                             style={{ display: "none" }}
                                                         >
-                                                            <Search className="size-8 text-muted-foreground/50" />
+                                                            <Globe className="size-8 text-muted-foreground/50" />
                                                         </div>
                                                     </div>
                                                 )}
 
                                                 <div className="space-y-2 p-4">
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="size-4 flex-shrink-0">
-                                                                {result.url && (
-                                                                    <img
-                                                                        src={getFaviconUrl(
-                                                                            result.url
-                                                                        )}
-                                                                        alt=""
-                                                                        className="size-4 rounded-sm"
-                                                                        onError={(e) => {
-                                                                            const target =
-                                                                                e.target as HTMLImageElement
-                                                                            target.style.display =
-                                                                                "none"
-                                                                        }}
-                                                                    />
-                                                                )}
-                                                            </div>
-                                                            <h1 className="m-0 flex-1 truncate font-semibold text-foreground text-sm leading-none">
-                                                                {result.title}
-                                                            </h1>
-                                                        </div>
-                                                        <p className="line-clamp-3 text-muted-foreground text-xs leading-relaxed">
-                                                            {result.description || result.snippet}
-                                                        </p>
+                                                    <div className="flex items-center gap-2">
+                                                        {result.url && (
+                                                            <FaviconWithLoader url={result.url} />
+                                                        )}
+
+                                                        <h1 className="leading m-0 mb-0 truncate font-semibold text-base text-foreground">
+                                                            {result.title}
+                                                        </h1>
                                                     </div>
+                                                    <p className="line-clamp-3 text-muted-foreground text-sm leading-relaxed">
+                                                        {result.description || result.snippet}
+                                                    </p>
 
                                                     {result.url && (
                                                         <div className="flex items-center gap-1.5 border-border/50 border-t pt-2">

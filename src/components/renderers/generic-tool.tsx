@@ -1,68 +1,111 @@
+import { cn } from "@/lib/utils"
 import type { ToolInvocation } from "ai"
 import { ChevronDown, Loader2, Wrench } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
-import { memo, useState } from "react"
+import { memo, useEffect, useRef, useState } from "react"
+import { Codeblock } from "../codeblock"
 
 export const GenericToolRenderer = memo(
     ({ toolInvocation }: { toolInvocation: ToolInvocation }) => {
         const [isExpanded, setIsExpanded] = useState(false)
+        const contentRef = useRef<HTMLDivElement>(null)
+        const innerRef = useRef<HTMLDivElement>(null)
 
         const isLoading = toolInvocation.state === "partial-call" || toolInvocation.state === "call"
         const hasResults = toolInvocation.state === "result" && toolInvocation.result
 
+        useEffect(() => {
+            if (!contentRef.current || !innerRef.current) return
+
+            const observer = new ResizeObserver(() => {
+                if (contentRef.current && innerRef.current && isExpanded) {
+                    contentRef.current.style.maxHeight = `${innerRef.current.scrollHeight}px`
+                }
+            })
+
+            observer.observe(innerRef.current)
+
+            if (isExpanded) {
+                contentRef.current.style.maxHeight = `${innerRef.current.scrollHeight}px`
+            }
+
+            return () => observer.disconnect()
+        }, [isExpanded])
+
         return (
-            <div className="w-full rounded-md border bg-background">
+            <div className="w-full">
                 <button
                     type="button"
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex h-8 w-full items-center gap-1.5 px-2 text-sm transition-colors hover:bg-muted/50"
+                    className="flex w-full cursor-pointer items-center gap-2 text-left"
                     disabled={isLoading}
                 >
-                    {isLoading ? (
-                        <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                        <Wrench className="size-4" />
-                    )}
-                    <span className="font-medium">{toolInvocation.toolName}</span>
+                    <div className="flex flex-1 items-center gap-2">
+                        {isLoading ? (
+                            <Loader2 className="size-4 animate-spin text-primary" />
+                        ) : (
+                            <Wrench className="size-4 text-primary" />
+                        )}
+                        <span className="font-medium text-primary">{toolInvocation.toolName}</span>
 
-                    {!isLoading && (
-                        <ChevronDown
-                            className={`ml-auto size-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                        />
-                    )}
+                        {!isLoading && hasResults && (
+                            <div
+                                className={cn(
+                                    "ml-auto transform transition-transform",
+                                    isExpanded ? "rotate-180" : ""
+                                )}
+                            >
+                                <ChevronDown className="size-4 text-foreground" />
+                            </div>
+                        )}
+                    </div>
                 </button>
 
-                <AnimatePresence>
-                    {isExpanded && hasResults && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="overflow-hidden"
-                        >
-                            <div className="scrollbar-thin max-h-64 overflow-y-auto border-t px-3 pt-1 pb-3">
-                                <span className="font-medium text-muted-foreground text-xs">
+                <div
+                    ref={contentRef}
+                    className={cn(
+                        "overflow-hidden transition-[max-height] duration-150 ease-out",
+                        "my-4 rounded-lg border bg-muted/50"
+                    )}
+                    style={{
+                        maxHeight: isExpanded ? contentRef.current?.scrollHeight : "0px"
+                    }}
+                >
+                    <div ref={innerRef} className="text-muted-foreground">
+                        {hasResults && (
+                            <div className="scrollbar-thin max-h-full overflow-y-auto px-3 pt-3 pb-3">
+                                <span className="font-medium text-foreground text-sm">
                                     Arguments
                                 </span>
-                                <div className="flex w-full items-center gap-1 whitespace-pre-wrap rounded bg-accent px-1.5 py-0.5 font-medium text-muted-foreground text-xs">
-                                    {JSON.stringify(toolInvocation.args, null, 2)}
+                                <div className="mt-2 mb-3">
+                                    <Codeblock
+                                        className="language-json"
+                                        disable={{ expand: true }}
+                                        default={{ wrap: true }}
+                                    >
+                                        {JSON.stringify(toolInvocation.args, null, 2)}
+                                    </Codeblock>
                                 </div>
 
                                 {toolInvocation.result && (
                                     <>
-                                        <span className="font-medium text-muted-foreground text-xs">
+                                        <span className="font-medium text-foreground text-sm">
                                             Result
                                         </span>
-                                        <div className="flex w-full items-center gap-1 whitespace-pre-wrap rounded bg-accent px-1.5 py-0.5 font-medium text-muted-foreground text-xs">
-                                            {JSON.stringify(toolInvocation.result, null, 2)}
+                                        <div className="mt-2 mb-3">
+                                            <Codeblock
+                                                className="language-json"
+                                                disable={{ expand: true }}
+                                                default={{ wrap: true }}
+                                            >
+                                                {JSON.stringify(toolInvocation.result, null, 2)}
+                                            </Codeblock>
                                         </div>
                                     </>
                                 )}
                             </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                        )}
+                    </div>
+                </div>
             </div>
         )
     }

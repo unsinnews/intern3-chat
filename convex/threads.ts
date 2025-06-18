@@ -523,3 +523,32 @@ export const deleteThread = mutation({
         await ctx.db.delete(threadId)
     }
 })
+
+export const renameThread = mutation({
+    args: {
+        threadId: v.id("threads"),
+        title: v.string()
+    },
+    handler: async (ctx, { threadId, title }) => {
+        const user = await getUserIdentity(ctx.auth, {
+            allowAnons: false
+        })
+
+        if ("error" in user) return { error: user.error }
+
+        const thread = await ctx.db.get(threadId)
+        if (!thread || thread.authorId !== user.id) return { error: "Unauthorized" }
+
+        // Validate title is not empty and reasonable length
+        const trimmedTitle = title.trim()
+        if (!trimmedTitle) return { error: "Title cannot be empty" }
+        if (trimmedTitle.length > 100) return { error: "Title too long" }
+
+        await ctx.db.patch(threadId, {
+            title: trimmedTitle,
+            updatedAt: Date.now()
+        })
+
+        return { success: true }
+    }
+})

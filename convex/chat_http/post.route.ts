@@ -8,7 +8,9 @@ import { formatDataStreamPart } from "ai"
 import { nanoid } from "nanoid"
 
 import { ChatError } from "@/lib/errors"
+import type { AnthropicProviderOptions } from "@ai-sdk/anthropic"
 import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google"
+import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai"
 import { createDataStream, smoothStream, streamText } from "ai"
 import type { Infer } from "convex/values"
 import { internal } from "../_generated/api"
@@ -28,6 +30,59 @@ import { manualStreamTransform } from "./manual_stream_transform"
 import { buildPrompt } from "./prompt"
 import { RESPONSE_OPTS } from "./shared"
 
+// Helper functions for provider options
+const isReasoningEnabled = (abilities: string[], enabledTools: AbilityId[]): boolean => {
+    return abilities.includes("reasoning") && enabledTools.includes("reasoning")
+}
+
+const buildGoogleProviderOptions = (
+    modelId: string,
+    abilities: string[],
+    enabledTools: AbilityId[]
+): GoogleGenerativeAIProviderOptions => {
+    const options: GoogleGenerativeAIProviderOptions = {}
+
+    if (modelId === "gemini-2.0-flash-image-generation") {
+        options.responseModalities = ["TEXT", "IMAGE"]
+    }
+
+    if (isReasoningEnabled(abilities, enabledTools)) {
+        options.thinkingConfig = {
+            includeThoughts: true
+        }
+    }
+
+    return options
+}
+
+const buildOpenAIProviderOptions = (
+    abilities: string[],
+    enabledTools: AbilityId[]
+): OpenAIResponsesProviderOptions => {
+    const options: OpenAIResponsesProviderOptions = {}
+
+    if (isReasoningEnabled(abilities, enabledTools)) {
+        options.reasoningEffort = "medium"
+    }
+
+    return options
+}
+
+const buildAnthropicProviderOptions = (
+    abilities: string[],
+    enabledTools: AbilityId[]
+): AnthropicProviderOptions => {
+    const options: AnthropicProviderOptions = {}
+
+    if (isReasoningEnabled(abilities, enabledTools)) {
+        options.thinking = {
+            type: "enabled"
+        }
+    }
+
+    return options
+}
+
 export const chatPOST = httpAction(async (ctx, req) => {
     const body: {
         id?: string
@@ -38,6 +93,7 @@ export const chatPOST = httpAction(async (ctx, req) => {
         targetFromMessageId?: string
         targetMode?: "normal" | "edit" | "retry"
         imageSize?: ImageSize
+        mcpOverrides?: Record<string, boolean>
     } = await req.json()
 
     if (body.targetFromMessageId && !body.id) {
@@ -88,8 +144,16 @@ export const chatPOST = httpAction(async (ctx, req) => {
         userId: user.id
     })
 
-    if (settings.supermemory?.enabled) {
-        body.enabledTools.push("supermemory")
+    if (settings.mcpServers && settings.mcpServers.length > 0) {
+        const enabledMcpServers = settings.mcpServers.filter((server) => {
+            const overrideValue = body.mcpOverrides?.[server.name]
+            if (overrideValue === undefined) return server.enabled
+            return overrideValue !== false
+        })
+
+        if (enabledMcpServers.length > 0) {
+            body.enabledTools.push("mcp")
+        }
     }
 
     // Track token usage
@@ -273,6 +337,16 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     }
                 }
             } else {
+                // Pass the filtered settings (with MCP overrides applied) to the toolkit
+                const filteredSettings = {
+                    ...settings,
+                    mcpServers: settings.mcpServers?.filter((server) => {
+                        if (server.enabled === false) return false
+                        const overrideValue = body.mcpOverrides?.[server.name]
+                        return overrideValue !== false
+                    })
+                }
+
                 const result = streamText({
                     model: model,
                     maxSteps: 100,
@@ -280,35 +354,30 @@ export const chatPOST = httpAction(async (ctx, req) => {
                     experimental_transform: smoothStream(),
                     toolCallStreaming: true,
                     tools: modelData.abilities.includes("function_calling")
-                        ? getToolkit(ctx, body.enabledTools, settings)
+                        ? await getToolkit(ctx, body.enabledTools, filteredSettings)
                         : undefined,
                     messages: [
                         ...(modelData.modelId !== "gemini-2.0-flash-image-generation"
                             ? [
                                   {
                                       role: "system",
-                                      content: buildPrompt(body.enabledTools)
+                                      content: buildPrompt(body.enabledTools, settings)
                                   } as const
                               ]
                             : []),
                         ...mapped_messages
                     ],
-
                     providerOptions: {
-                        google: {
-                            ...(modelData.modelId === "gemini-2.0-flash-image-generation"
-                                ? {
-                                      responseModalities: ["TEXT", "IMAGE"]
-                                  }
-                                : {}),
-                            ...(modelData.abilities.includes("reasoning")
-                                ? {
-                                      thinkingConfig: {
-                                          includeThoughts: true
-                                      }
-                                  }
-                                : {})
-                        } satisfies GoogleGenerativeAIProviderOptions
+                        google: buildGoogleProviderOptions(
+                            modelData.modelId,
+                            modelData.abilities,
+                            body.enabledTools
+                        ),
+                        openai: buildOpenAIProviderOptions(modelData.abilities, body.enabledTools),
+                        anthropic: buildAnthropicProviderOptions(
+                            modelData.abilities,
+                            body.enabledTools
+                        )
                     }
                 })
 
