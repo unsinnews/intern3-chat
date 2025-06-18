@@ -1,128 +1,46 @@
-# Better Auth TanStack Starter
+# Intern3 Chat
 
-[Demo](https://tanstack.better-auth-starter.com)
+A modern, feature-rich AI chat application built by interns, for interns. It's the second-best chat app in the world, after T3 chat. It's fast, has lots of features, and is open-source.
 
-- [Next.js](https://github.com/daveyplate/better-auth-nextjs-starter)
+🔗 **Live demo →** [https://intern3.chat](https://intern3.chat)
 
-## Installation
+📚 **Documentation →** [https://docs.intern3.chat](https://docs.intern3.chat)
 
-First, create a PostgreSQL Database then configure your environment variables.
+## Core features
 
-You can generate a `BETTER_AUTH_SECRET` [here](https://www.better-auth.com/docs/installation#set-environment-variables).
+- **Multi-model support** with Gemini, OpenAI, Claude, and more.
+- **BYOK API key system**: Native Provider BYOK → OpenRouter BYOK → In-house credits.
+- **In-house credits** for select models (no API key required)
+- **Custom AI prompt** configuration
+- **Web Search** integration with Brave Search and Firecrawl
+- **Image Generation** using fal.ai models and GPT-Image-1
+- **HTTP/SSE MCP Support** for Model Context Protocol
+- **Supermemory API** integration for persistent memories
+- **File Attachments** - Upload code, text files, PDFs, and images
 
-```bash
-BETTER_AUTH_SECRET=""
-DATABASE_URL=""
-```
+### Experience features
+- **Resumable streams** for reliable message delivery
+- **Edit & Regenerate** any message
+- **Copy messages** with one click
+- **Thread management** with sidebar navigation
+- **Folder organization** for chat threads
+- **CMD+K search bar** for quick chat navigation
 
-Then generate your schema and perform migrations with drizzle-kit.
+### Customization & UI
+- **Beautiful, modern interface** with multiple theming options
+- **Normal/Wide chat view** options
+- **Responsive design** for all devices
 
-```bash
-npx @better-auth/cli generate
-npx drizzle-kit generate
-npx drizzle-kit migrate
-```
+## Quick start
 
-Set up your hosting provider -
-(https://tanstack.com/start/latest/docs/framework/react/hosting)
+### Option 1: Use Hosted Version
+Simply visit [https://intern3.chat](https://intern3.chat) and sign up for an account.
 
-- Twitter: [@daveycodez](https://x.com/daveycodez)
+### Option 2: Self-Hosted Deployment
+Follow our [Vercel deployment guide](https://docs.intern3.chat/deployment/vercel) to set up your own instance.
 
-☕️ [Buy me a coffee](https://buymeacoffee.com/daveycodez)
 
-## Features:
 
-[Better Auth](https://better-auth.com)
-
-[Better Auth UI](https://better-auth-ui.com)
-
-[Better Auth TanStack](https://github.com/daveyplate/better-auth-tanstack)
-
-[TanStack Query](https://tanstack.com/query)
-
-[shadcn/ui](https://ui.shadcn.com)
-
-[TailwindCSS](https://tailwindcss.com)
-
-[Drizzle ORM](https://orm.drizzle.team)
-
-[PostgreSQL](https://postgresql.org)
-
-[Biome](https://biomejs.dev)
-
-[TanStack Start](https://tanstack.com/start)
-
-[Turborepo](https://turbo.build)
-
-# Welcome to TanStack.com!
-
-This site is built with TanStack Router!
-
-- [TanStack Router Docs](https://tanstack.com/router)
-
-It's deployed automagically with Netlify!
-
-- [Netlify](https://netlify.com/)
-
-## Development
-
-From your terminal:
-
-```sh
-pnpm install
-pnpm dev
-```
-
-This starts your app in development mode, rebuilding assets on file changes.
-
-## Editing and previewing the docs of TanStack projects locally
-
-The documentations for all TanStack projects except for `React Charts` are hosted on [https://tanstack.com](https://tanstack.com), powered by this TanStack Router app.
-In production, the markdown doc pages are fetched from the GitHub repos of the projects, but in development they are read from the local file system.
-
-Follow these steps if you want to edit the doc pages of a project (in these steps we'll assume it's [`TanStack/form`](https://github.com/tanstack/form)) and preview them locally :
-
-1. Create a new directory called `tanstack`.
-
-```sh
-mkdir tanstack
-```
-
-2. Enter the directory and clone this repo and the repo of the project there.
-
-```sh
-cd tanstack
-git clone git@github.com:TanStack/tanstack.com.git
-git clone git@github.com:TanStack/form.git
-```
-
-> [!NOTE]
-> Your `tanstack` directory should look like this:
->
-> ```
-> tanstack/
->    |
->    +-- form/
->    |
->    +-- tanstack.com/
-> ```
-
-> [!WARNING]
-> Make sure the name of the directory in your local file system matches the name of the project's repo. For example, `tanstack/form` must be cloned into `form` (this is the default) instead of `some-other-name`, because that way, the doc pages won't be found.
-
-3. Enter the `tanstack/tanstack.com` directory, install the dependencies and run the app in dev mode:
-
-```sh
-cd tanstack.com
-pnpm i
-# The app will run on https://localhost:3000 by default
-pnpm dev
-```
-
-4. Now you can visit http://localhost:3000/form/latest/docs/overview in the browser and see the changes you make in `tanstack/form/docs`.
-
-> [!NOTE]
-> The updated pages need to be manually reloaded in the browser.
-
-> [!WARNING]
-> You will need to update the `docs/config.json` file (in the project's repo) if you add a new doc page!
+## Footnotes
+- [1]: Some models are available with in-house credits, so API keys aren't always required! But not all, so we don't go broke (looking at you, `o3`, `claude-sonnet-4` and `claude-opus-4`'s of the world...)
+- [2]: You might have to add in the model IDs you would like to use yourself.
