@@ -9,6 +9,7 @@ import { sendOTPEmail } from "./email"
 
 export const auth = betterAuth({
     trustedOrigins: [
+        "*.intern3.chat",
         process.env.VERCEL_URL!,
         "https://intern3.chat",
         "http://localhost:3000",
