@@ -8,6 +8,11 @@ import { jwt } from "better-auth/plugins/jwt"
 import { sendOTPEmail } from "./email"
 
 export const auth = betterAuth({
+    trustedOrigins: [
+        "https://intern3.chat",
+        "http://localhost:3000",
+        "http://100.109.174.103:3000"
+    ],
     baseURL:
         process.env.NODE_ENV === "production" ? "https://intern3.chat" : "http://localhost:3000",
     database: drizzleAdapter(db, {

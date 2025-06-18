@@ -1,6 +1,6 @@
 import { corsRouter } from "convex-helpers/server/cors"
 import { httpRouter } from "convex/server"
-import { uploadFile, getFile } from "./attachments"
+import { getFile, uploadFile } from "./attachments"
 import { chatGET } from "./chat_http/get.route"
 import { chatPOST } from "./chat_http/post.route"
 import { transcribeAudio } from "./speech_to_text"

@@ -15,8 +15,10 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select"
+import { VoiceRecorder } from "@/components/voice-recorder"
 import { type ImageSize, MODELS_SHARED } from "@/convex/lib/models"
 import { useToken } from "@/hooks/auth-hooks"
+import { useVoiceRecorder } from "@/hooks/use-voice-recorder"
 import { browserEnv } from "@/lib/browser-env"
 import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
@@ -49,8 +51,6 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
-import { useVoiceRecorder } from "@/hooks/use-voice-recorder"
-import { VoiceRecorder } from "@/components/voice-recorder"
 
 interface ExtendedUploadedFile extends UploadedFile {
     file?: File
@@ -144,7 +144,11 @@ export function MultimodalInput({
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
 
     // Voice recording state
-    const { state: voiceState, startRecording, stopRecording } = useVoiceRecorder({
+    const {
+        state: voiceState,
+        startRecording,
+        stopRecording
+    } = useVoiceRecorder({
         onTranscript: (text: string) => {
             // Insert transcribed text into the input
             if (promptInputRef.current) {
@@ -576,16 +580,11 @@ export function MultimodalInput({
     // Show voice recorder UI when recording or transcribing
     if (voiceState.isRecording || voiceState.isTranscribing) {
         return (
-            <div
-                className="@container w-full md:px-2"
-            >
+            <div className="@container w-full md:px-2">
                 <VoiceRecorder
                     state={voiceState}
                     onStop={stopRecording}
-                    className={cn(
-                        "mx-auto w-full",
-                        getChatWidthClass(chatWidthState.chatWidth)
-                    )}
+                    className={cn("mx-auto w-full", getChatWidthClass(chatWidthState.chatWidth))}
                 />
             </div>
         )
@@ -711,13 +710,15 @@ export function MultimodalInput({
                             )}
                         </div>
 
-                        <PromptInputAction tooltip={
-                            isInputEmpty && !isLoading 
-                                ? "Voice input" 
-                                : isLoading 
-                                ? "Stop generation" 
-                                : "Send message"
-                        }>
+                        <PromptInputAction
+                            tooltip={
+                                isInputEmpty && !isLoading
+                                    ? "Voice input"
+                                    : isLoading
+                                      ? "Stop generation"
+                                      : "Send message"
+                            }
+                        >
                             <Button
                                 variant="default"
                                 size="icon"

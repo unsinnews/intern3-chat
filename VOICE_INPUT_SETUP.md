@@ -60,13 +60,21 @@ The voice input uses Groq's Whisper API for speech-to-text transcription. You ne
 - **Microphone permissions**: Users will be prompted to allow microphone access
 - **HTTPS required**: Voice input only works on HTTPS (or localhost for development)
 - **Modern browser**: Supports MediaRecorder API and Web Audio API
+- **iOS Support**: Compatible with iOS Safari 14.3+ (iPad/iPhone)
 
 ## Supported Audio Formats
 
 The implementation automatically detects and uses the best supported format:
+
+**iOS Safari (preferred formats):**
+1. `audio/mp4`
+2. `audio/aac`
+3. `audio/m4a`
+
+**Other browsers:**
 1. `audio/webm;codecs=opus` (preferred)
 2. `audio/webm`
-3. `audio/mp4`
+3. `audio/ogg;codecs=opus`
 4. Browser default (fallback)
 
 ## File Size Limits
@@ -96,6 +104,12 @@ The implementation automatically detects and uses the best supported format:
 4. **"Unauthorized" error**
    - User must be logged in to use voice input
    - Check authentication status
+
+5. **iOS-specific issues**
+   - Try refreshing the page and trying again
+   - Ensure you're using Safari (not Chrome/Firefox on iOS)
+   - Check that iOS is version 14.3 or higher
+   - Try closing other apps to free up memory
 
 ### Debug Steps:
 
