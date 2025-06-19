@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
-import { Box, Check, Plus, SquarePen, Trash2, X } from "lucide-react"
+import { Box, Check, Image, Plus, SquarePen, Trash2, X } from "lucide-react"
 import { memo, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -136,19 +136,27 @@ const ModelCard = memo(({ model, currentProviders, onEdit, onDelete }: ModelCard
                         )}
                     </div>
                     <div className="mt-1 flex flex-wrap gap-0.75">
-                        {model.abilities.map((ability) => {
-                            const Icon = getAbilityIcon(ability)
-                            return (
-                                <Badge
-                                    key={ability}
-                                    variant="secondary"
-                                    className="gap-1.5 px-1.5 text-xs"
-                                >
-                                    <Icon className="size-3" />
-                                    {getAbilityLabel(ability)}
-                                </Badge>
-                            )
-                        })}
+                        {model.mode === "image" && (
+                            <Badge variant="secondary" className="gap-1.5 px-1.5 text-xs">
+                                <Image className="size-3" />
+                                Image generation
+                            </Badge>
+                        )}
+                        {model.abilities
+                            .filter((ability) => ability !== "effort_control")
+                            .map((ability) => {
+                                const Icon = getAbilityIcon(ability)
+                                return (
+                                    <Badge
+                                        key={ability}
+                                        variant="secondary"
+                                        className="gap-1.5 px-1.5 text-xs"
+                                    >
+                                        <Icon className="size-3" />
+                                        {getAbilityLabel(ability)}
+                                    </Badge>
+                                )
+                            })}
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
