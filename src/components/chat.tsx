@@ -72,7 +72,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
         scrollToBottom({ animation: "smooth" })
     }
 
-    const isEmpty = !threadId && messages.length === 0
+    const isEmpty = messages.length === 0
 
     const userName =
         session?.user?.name ?? (isPending ? localStorage.getItem("DISK_CACHE:user-name") : null)
@@ -91,7 +91,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     }
 
     return (
-        <div className="relative mb-80 flex h-[calc(100dvh-64px)] flex-col">
+        <div className="relative flex h-[calc(100dvh-64px)] flex-col">
             <Messages
                 messages={messages}
                 onRetry={handleRetry}

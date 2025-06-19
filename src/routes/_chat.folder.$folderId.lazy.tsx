@@ -211,7 +211,7 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
     return (
         <div
             className={cn(
-                "relative mb-80 flex flex-col",
+                "relative flex flex-col",
                 isEmpty ? "h-[calc(100dvh-8px)]" : "h-[calc(100dvh-64px)]"
             )}
         >

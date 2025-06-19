@@ -44,7 +44,7 @@ export const ChatErrorBoundary = ({ error, info, reset }: ErrorComponentProps) =
     const isNotFound = error.message.includes("ArgumentValidationError")
 
     return (
-        <div className="relative mb-80 flex h-[calc(100dvh-64px)] flex-col items-center justify-center">
+        <div className="relative flex h-[calc(100dvh-64px)] flex-col items-center justify-center">
             <div className="text-center">
                 {isNotFound ? (
                     <>

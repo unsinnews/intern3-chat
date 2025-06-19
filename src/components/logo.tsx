@@ -74,7 +74,7 @@ export function LogoMark({ className }: { className?: string }) {
             xmlns="http://www.w3.org/2000/svg"
             className={className}
         >
-            <g filter="url(#filter0_n_1540_14)">
+            <g>
                 <path
                     d="M25.2583 21.5538H0V1.68389H25.2583V21.5538ZM25.2583 114.504H0V30.1416H25.2583V114.504Z"
                     fill="currentColor"

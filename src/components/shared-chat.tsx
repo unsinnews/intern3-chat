@@ -60,7 +60,7 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
     }
 
     return (
-        <div className="relative mb-80 flex h-screen flex-col">
+        <div className="relative flex h-screen flex-col">
             <Messages
                 messages={messages}
                 status="ready"

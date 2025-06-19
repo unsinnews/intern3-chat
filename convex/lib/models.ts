@@ -267,7 +267,7 @@ export const MODELS_SHARED: SharedModel[] = [
     },
     {
         id: "llama-4-scout-17b-16e-instruct",
-        name: "Llama 4 Scout 17B 16E Instruct",
+        name: "Llama 4 Scout 17B 16E",
         shortName: "Llama 4 Scout 17B",
         adapters: [
             "i3-groq:meta-llama/llama-4-scout-17b-16e-instruct",

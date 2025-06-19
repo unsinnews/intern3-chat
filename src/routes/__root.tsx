@@ -41,7 +41,7 @@ export const Route = createRootRouteWithContext<{
             },
             {
                 name: "viewport",
-                content: "initial-scale=1, viewport-fit=cover, width=device-width"
+                content: "initial-scale=1, viewport-fit=contain, width=device-width"
             },
             {
                 title: SITE_TITLE
@@ -146,7 +146,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
                 <HeadContent />
             </head>
 
-            <body className="h-screen overflow-hidden">
+            <body className="h-dvh overflow-hidden">
                 <Providers>{children}</Providers>
 
                 <Scripts />
