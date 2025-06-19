@@ -211,7 +211,7 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
             {/* Charts */}
             <div className="grid gap-4">
                 {/* Stacked Model Usage Chart */}
-                <Card className="gap-3 p-4">
+                <Card className="gap-3 overflow-hidden p-4">
                     <CardHeader className="gap-0 px-0 pb-3">
                         <CardTitle className="text-base sm:text-lg">Token Usage by Model</CardTitle>
                         <CardDescription className="text-xs sm:text-sm">
@@ -221,9 +221,14 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                     <CardContent className="p-3 px-0">
                         <ChartContainer
                             config={modelChartConfig}
-                            className="h-[250px] w-full sm:h-[300px]"
+                            className="aspect-auto h-[250px] w-full overflow-hidden sm:h-[300px]"
                         >
-                            <BarChart data={modelUsageData}>
+                            <BarChart
+                                data={modelUsageData}
+                                width={undefined}
+                                height={undefined}
+                                margin={{ left: 0, right: 10, top: 5, bottom: 0 }}
+                            >
                                 <XAxis
                                     dataKey="date"
                                     tickFormatter={(value) => {
@@ -283,7 +288,7 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                 </Card>
 
                 {/* Token Type Distribution Chart */}
-                <Card className="gap-3 p-4">
+                <Card className="gap-3 overflow-hidden p-4">
                     <CardHeader className="gap-0 px-0 pb-3">
                         <CardTitle className="text-base sm:text-lg">
                             Token Type Distribution
@@ -295,9 +300,14 @@ export function UsageDashboard({ className }: UsageDashboardProps) {
                     <CardContent className="p-3 px-0">
                         <ChartContainer
                             config={tokenChartConfig}
-                            className="h-[250px] w-full sm:h-[300px]"
+                            className="aspect-auto h-[250px] w-full overflow-hidden sm:h-[300px]"
                         >
-                            <BarChart data={tokenTypeData} margin={{ left: 0 }}>
+                            <BarChart
+                                data={tokenTypeData}
+                                margin={{ left: 0, right: 10, top: 5, bottom: 0 }}
+                                width={undefined}
+                                height={undefined}
+                            >
                                 <XAxis
                                     dataKey="date"
                                     tickFormatter={(value) => {

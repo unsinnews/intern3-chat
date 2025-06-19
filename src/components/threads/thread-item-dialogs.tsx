@@ -21,11 +21,11 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { DEFAULT_PROJECT_ICON, getProjectColorClasses } from "@/lib/project-constants"
+import { getProjectColorClasses } from "@/lib/project-constants"
 import { cn } from "@/lib/utils"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
-import { Loader2 } from "lucide-react"
+import { FolderOpen, Loader2 } from "lucide-react"
 import { memo, useEffect, useState } from "react"
 import { toast } from "sonner"
 import type { Thread } from "./types"
@@ -245,7 +245,7 @@ export const ThreadItemDialogs = memo(
                             >
                                 {isRenaming ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" />
                                         Renaming...
                                     </>
                                 ) : (
@@ -282,10 +282,7 @@ export const ThreadItemDialogs = memo(
                                         htmlFor="no-folder"
                                         className="flex cursor-pointer items-center gap-2"
                                     >
-                                        <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-gray-100 text-gray-600 text-xs">
-                                            📁
-                                        </div>
-                                        <span>General (No folder)</span>
+                                        <span>No Folder</span>
                                     </Label>
                                 </div>
 
@@ -302,15 +299,21 @@ export const ThreadItemDialogs = memo(
                                             <RadioGroupItem value={project._id} id={project._id} />
                                             <Label
                                                 htmlFor={project._id}
-                                                className="flex cursor-pointer items-center gap-2"
+                                                className="flex cursor-pointer items-center gap-1"
                                             >
                                                 <div
                                                     className={cn(
-                                                        "flex h-5 w-5 items-center justify-center rounded-sm text-xs",
-                                                        colorClasses.split(" ").slice(1).join(" ")
+                                                        "mt-1 flex size-5 self-baseline",
+                                                        colorClasses,
+                                                        "bg-transparent dark:bg-transparent"
                                                     )}
                                                 >
-                                                    {project.icon || DEFAULT_PROJECT_ICON}
+                                                    <FolderOpen
+                                                        className="size-4"
+                                                        fill="currentColor"
+                                                        strokeWidth={1}
+                                                        stroke="var(--foreground)"
+                                                    />
                                                 </div>
                                                 <span>{project.name}</span>
                                             </Label>
@@ -336,7 +339,7 @@ export const ThreadItemDialogs = memo(
                             >
                                 {isMoving ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" />
                                         Moving...
                                     </>
                                 ) : (

@@ -1,4 +1,4 @@
-import MCPIcon from "@/assets/mcp.svg"
+import { MCPIcon } from "@/components/brand-icons"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"

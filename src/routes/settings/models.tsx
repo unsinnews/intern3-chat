@@ -125,7 +125,7 @@ const ModelCard = memo(({ model, currentProviders, onEdit, onDelete }: ModelCard
                 !activeProvider.available && "bg-muted/20 opacity-50"
             )}
         >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col items-start justify-between max-sm:gap-1 sm:flex-row sm:items-center">
                 <div className="flex-1">
                     <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-sm">{model.name}</h4>
@@ -159,7 +159,7 @@ const ModelCard = memo(({ model, currentProviders, onEdit, onDelete }: ModelCard
                             })}
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3 sm:items-center">
                     <div className="text-right">
                         <p
                             className={cn(

@@ -22,6 +22,7 @@ import { Route as SettingsCustomizationRouteImport } from './routes/settings/cus
 import { Route as SettingsAttachmentsRouteImport } from './routes/settings/attachments'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
 import { Route as SettingsAiOptionsRouteImport } from './routes/settings/ai-options'
+import { Route as ChatLibraryRouteImport } from './routes/_chat.library'
 import { Route as ChatThreadThreadIdRouteImport } from './routes/_chat.thread.$threadId'
 import { ServerRoute as ApiPhrSplatServerRouteImport } from './routes/api/phr/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
@@ -107,6 +108,11 @@ const SettingsAiOptionsRoute = SettingsAiOptionsRouteImport.update({
   path: '/ai-options',
   getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
+const ChatLibraryRoute = ChatLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => ChatRoute,
+} as any)
 const ChatSSharedThreadIdLazyRoute = ChatSSharedThreadIdLazyRouteImport.update({
   id: '/s/$sharedThreadId',
   path: '/s/$sharedThreadId',
@@ -140,6 +146,7 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteLazyRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
+  '/library': typeof ChatLibraryRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteLazyRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
+  '/library': typeof ChatLibraryRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/_chat': typeof ChatRouteWithChildren
   '/settings': typeof SettingsRouteLazyRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
+  '/_chat/library': typeof ChatLibraryRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/settings'
     | '/privacy-policy'
+    | '/library'
     | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/attachments'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
   to:
     | '/settings'
     | '/privacy-policy'
+    | '/library'
     | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/attachments'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/_chat'
     | '/settings'
     | '/privacy-policy'
+    | '/_chat/library'
     | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/attachments'
@@ -370,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAiOptionsRouteImport
       parentRoute: typeof SettingsRouteLazyRoute
     }
+    '/_chat/library': {
+      id: '/_chat/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof ChatLibraryRouteImport
+      parentRoute: typeof ChatRoute
+    }
     '/_chat/s/$sharedThreadId': {
       id: '/_chat/s/$sharedThreadId'
       path: '/s/$sharedThreadId'
@@ -413,6 +432,7 @@ declare module '@tanstack/react-start/server' {
 }
 
 interface ChatRouteChildren {
+  ChatLibraryRoute: typeof ChatLibraryRoute
   ChatIndexRoute: typeof ChatIndexRoute
   ChatThreadThreadIdRoute: typeof ChatThreadThreadIdRoute
   ChatFolderFolderIdLazyRoute: typeof ChatFolderFolderIdLazyRoute
@@ -420,6 +440,7 @@ interface ChatRouteChildren {
 }
 
 const ChatRouteChildren: ChatRouteChildren = {
+  ChatLibraryRoute: ChatLibraryRoute,
   ChatIndexRoute: ChatIndexRoute,
   ChatThreadThreadIdRoute: ChatThreadThreadIdRoute,
   ChatFolderFolderIdLazyRoute: ChatFolderFolderIdLazyRoute,

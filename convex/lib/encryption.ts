@@ -1,13 +1,13 @@
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
-if (!ENCRYPTION_KEY) {
+if (!ENCRYPTION_KEY && typeof window === "undefined") {
     throw new Error("ENCRYPTION_KEY is required")
 }
 const ALGORITHM = "AES-GCM"
-if (ENCRYPTION_KEY.length < 8) {
+if (ENCRYPTION_KEY && ENCRYPTION_KEY.length < 8) {
     throw new Error("ENCRYPTION_KEY must be at least 8 characters long")
 }
 
-const baseKeyBuffer = Uint8Array.from(atob(ENCRYPTION_KEY), (c) => c.charCodeAt(0))
+const baseKeyBuffer = Uint8Array.from(atob(ENCRYPTION_KEY ?? ""), (c) => c.charCodeAt(0))
 
 // Repeat the key until we have 32 bytes
 const keyBuffer = new Uint8Array(32)

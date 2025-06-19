@@ -1,11 +1,13 @@
-import BraveIcon from "@/assets/brave.svg"
-import Claude from "@/assets/claude.svg"
-import FalIcon from "@/assets/fal.svg"
-import Google from "@/assets/gemini.svg"
-import OpenAI from "@/assets/openai.svg"
-import OpenRouter from "@/assets/openrouter.svg"
-import SerperIcon from "@/assets/serper.svg"
-import TavilyIcon from "@/assets/tavily.svg"
+import {
+    BraveIcon,
+    ClaudeIcon,
+    FalAIIcon,
+    GeminiIcon,
+    OpenAIIcon,
+    OpenRouterIcon,
+    SerperDevIcon,
+    TavilyIcon
+} from "@/components/brand-icons"
 import { type CoreProvider, MODELS_SHARED, type SharedModel } from "@/convex/lib/models"
 import type { ModelAbility, UserSettings } from "@/convex/schema/settings"
 import type { Infer } from "convex/values"
@@ -36,35 +38,35 @@ export const CORE_PROVIDERS: CoreProviderInfo[] = [
         name: "OpenRouter",
         description: "Access a wide variety of models through OpenRouter",
         placeholder: "sk-or-...",
-        icon: OpenRouter
+        icon: OpenRouterIcon
     },
     {
         id: "openai",
         name: "OpenAI",
         description: "Access GPT-4, GPT-4o, o3, and other OpenAI models",
         placeholder: "sk-...",
-        icon: OpenAI
+        icon: OpenAIIcon
     },
     {
         id: "anthropic",
         name: "Anthropic",
         description: "Access Claude Sonnet, Opus, and other Anthropic models",
         placeholder: "sk-ant-...",
-        icon: Claude
+        icon: ClaudeIcon
     },
     {
         id: "google",
         name: "Google",
         description: "Access Gemini 2.5, 2.0 Flash and other Google AI models",
         placeholder: "AIza...",
-        icon: Google
+        icon: GeminiIcon
     },
     {
         id: "fal",
         name: "Fal AI",
         description: "Access open-souce image generation models",
         placeholder: "key_secret:key_id",
-        icon: FalIcon
+        icon: FalAIIcon
     }
 ]
 
@@ -103,7 +105,7 @@ export const SEARCH_PROVIDERS: SearchProviderInfo[] = [
         name: "Serper",
         description: "Google-powered search with smart content scraping and context management",
         placeholder: "...",
-        icon: SerperIcon
+        icon: SerperDevIcon
     }
 ]
 

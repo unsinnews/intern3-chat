@@ -15,7 +15,8 @@ import {
 } from "@/hooks/auth-hooks"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
-import { createFileRoute } from "@tanstack/react-router"
+import { queryClient } from "@/providers"
+import { createFileRoute, useRouter } from "@tanstack/react-router"
 import {
     Edit,
     Globe,
@@ -42,7 +43,7 @@ function UserAccountSettings() {
     const updateUser = useUpdateUser()
     const revokeSession = useRevokeSession()
     const revokeOtherSessions = useRevokeOtherSessions()
-
+    const router = useRouter()
     const [isEditingName, setIsEditingName] = useState(false)
     const [nameValue, setNameValue] = useState("")
 
@@ -96,7 +97,16 @@ function UserAccountSettings() {
     const handleSignOut = useCallback(async () => {
         try {
             await authClient.signOut()
+            await queryClient.resetQueries({ queryKey: ["session"] })
+            await queryClient.resetQueries({ queryKey: ["token"] })
+            const keys = Object.keys(localStorage)
+            for (const key of keys) {
+                if (key.includes("_CACHE")) {
+                    localStorage.removeItem(key)
+                }
+            }
             toast.success("Signed out successfully")
+            router.navigate({ to: "/" })
         } catch (error) {
             toast.error("Failed to sign out")
             console.error("Error signing out:", error)
@@ -213,7 +223,7 @@ function UserAccountSettings() {
                                                 size="sm"
                                                 className="flex-1 sm:flex-none"
                                             >
-                                                <Save className="mr-2 h-4 w-4" />
+                                                <Save className="h-4 w-4" />
                                                 {updateUser.isPending ? "Saving..." : "Save"}
                                             </Button>
                                             <Button
@@ -222,7 +232,7 @@ function UserAccountSettings() {
                                                 size="sm"
                                                 className="flex-1 sm:flex-none"
                                             >
-                                                <X className="mr-2 h-4 w-4" />
+                                                <X className="h-4 w-4" />
                                                 Cancel
                                             </Button>
                                         </div>
@@ -238,7 +248,7 @@ function UserAccountSettings() {
                                             {displayName || "No name"}
                                         </div>
                                         <Button onClick={handleEditName} variant="ghost" size="sm">
-                                            <Edit className="mr-2 h-4 w-4" />
+                                            <Edit className="h-4 w-4" />
                                             Edit
                                         </Button>
                                     </div>
@@ -333,7 +343,7 @@ function UserAccountSettings() {
                                                             size="sm"
                                                             className="w-full sm:w-auto"
                                                         >
-                                                            <LogOut className="mr-2 h-4 w-4" />
+                                                            <LogOut className="h-4 w-4" />
                                                             Sign Out
                                                         </Button>
                                                     ) : (
@@ -346,7 +356,7 @@ function UserAccountSettings() {
                                                             disabled={revokeSession.isPending}
                                                             className="w-full sm:w-auto"
                                                         >
-                                                            <UserX className="mr-2 h-4 w-4" />
+                                                            <UserX className="h-4 w-4" />
                                                             Revoke
                                                         </Button>
                                                     )}
@@ -375,7 +385,7 @@ function UserAccountSettings() {
                                                 disabled={revokeOtherSessions.isPending}
                                                 className="w-full sm:w-auto"
                                             >
-                                                <UserX className="mr-2 h-4 w-4" />
+                                                <UserX className="h-4 w-4" />
                                                 {revokeOtherSessions.isPending
                                                     ? "Revoking..."
                                                     : "Revoke All Other Sessions"}

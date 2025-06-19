@@ -1,4 +1,4 @@
-import MCPIcon from "@/assets/mcp.svg"
+import { MCPIcon } from "@/components/brand-icons"
 import {
     AlertDialog,
     AlertDialogAction,

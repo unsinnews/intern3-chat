@@ -15,6 +15,13 @@
       "when": 1749388930203,
       "tag": "0001_exotic_cerebro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1750337336525,
+      "tag": "0002_chemical_stephen_strange",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { authClient } from "@/lib/auth-client"
+import { queryClient } from "@/providers"
 import { GitHubIcon } from "@daveyplate/better-auth-ui"
 import { useRouter } from "@tanstack/react-router"
 import { Loader2, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react"
@@ -42,7 +43,15 @@ export function UserButton() {
 
     const handleSignOut = async () => {
         await authClient.signOut()
+        await queryClient.resetQueries({ queryKey: ["session"] })
+        await queryClient.resetQueries({ queryKey: ["token"] })
         router.navigate({ to: "/" })
+        const keys = Object.keys(localStorage)
+        for (const key of keys) {
+            if (key.includes("_CACHE")) {
+                localStorage.removeItem(key)
+            }
+        }
     }
 
     const getInitials = (name: string) => {
@@ -86,7 +95,7 @@ export function UserButton() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.navigate({ to: "/settings" })}>
-                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    <SettingsIcon className="h-4 w-4" />
                     <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -96,13 +105,13 @@ export function UserButton() {
                         rel="noopener noreferrer"
                         className="flex items-center"
                     >
-                        <GitHubIcon className="mr-2 h-4 w-4" />
+                        <GitHubIcon className="h-4 w-4" />
                         <span>GitHub</span>
                     </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOutIcon className="mr-2 h-4 w-4" />
+                    <LogOutIcon className="h-4 w-4" />
                     <span>Sign Out</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>

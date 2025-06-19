@@ -8,7 +8,7 @@ import { MODELS_SHARED, type RegistryKey, type SharedModel } from "./lib/models"
 import type { UserSettings } from "./schema"
 import { NonSensitiveUserSettings } from "./schema/settings"
 
-const DefaultSettings = (userId: string) =>
+export const DefaultSettings = (userId: string) =>
     ({
         userId,
         searchProvider: "firecrawl",
@@ -26,7 +26,8 @@ const DefaultSettings = (userId: string) =>
             brave: undefined,
             serper: undefined
         },
-        customization: undefined
+        customization: undefined,
+        onboardingCompleted: false
     }) satisfies Infer<typeof UserSettings>
 
 const getSettings = async (
@@ -54,9 +55,9 @@ export const getUserSettingsInternal = internalQuery({
 
 export const getUserSettings = query({
     args: {},
-    handler: async (ctx): Promise<Infer<typeof UserSettings>> => {
+    handler: async (ctx): Promise<Infer<typeof UserSettings> | { error: string }> => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
-        if ("error" in user) return DefaultSettings("id" in user ? (user.id ?? "") : "")
+        if ("error" in user) return { error: "unauthorized:api" }
         return await getSettings(ctx, user.id)
     }
 })
@@ -674,6 +675,40 @@ export const updateUserSettingsPartial = mutation({
         }
 
         // Save settings
+        if (settings._id) {
+            await ctx.db.patch(settings._id, newSettings)
+        } else {
+            await ctx.db.insert("settings", newSettings)
+        }
+    }
+})
+
+export const getOnboardingStatus = query({
+    args: {},
+    handler: async (ctx): Promise<{ shouldShowOnboarding: boolean } | { error: string }> => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) return { error: "unauthorized:api" }
+
+        const settings = await getSettings(ctx, user.id)
+
+        // Show onboarding if onboardingCompleted is false or undefined
+        return { shouldShowOnboarding: !settings.onboardingCompleted }
+    }
+})
+
+export const completeOnboarding = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) throw new ChatError("unauthorized:api")
+
+        const settings = await getSettings(ctx, user.id)
+
+        const newSettings: Infer<typeof UserSettings> = {
+            ...settings,
+            onboardingCompleted: true
+        }
+
         if (settings._id) {
             await ctx.db.patch(settings._id, newSettings)
         } else {

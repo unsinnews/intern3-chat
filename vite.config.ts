@@ -22,6 +22,9 @@ export default defineConfig({
         (process.env.ANALYZE && analyzer()) || null,
         tanstackStart({
             target: "vercel",
+            spa: {
+                enabled: true
+            },
             react: {
                 babel: {
                     plugins: [
