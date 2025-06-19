@@ -172,25 +172,36 @@ export function ModelSelector({
     const { availableModels } = useAvailableModels(userSettings)
 
     const [open, setOpen] = React.useState(false)
-    const selectedModelData = availableModels.find((model) => model.id === selectedModel)
 
-    // Group models by type
-    const sharedModels = availableModels.filter((model) => !("isCustom" in model))
-    const customModels = availableModels.filter((model) => "isCustom" in model && model.isCustom)
+    // Memoize expensive computations to avoid repeating them on every render
+    const { selectedModelData, customModels, groupedSharedModels } = React.useMemo(() => {
+        // Find the model currently selected by the user
+        const selectedModelData = availableModels.find((model) => model.id === selectedModel)
 
-    const groupedSharedModels = Object.entries(
-        sharedModels.reduce<Record<string, DisplayModel[]>>((acc, model) => {
-            const sharedModel = model as SharedModel
-            const provider = sharedModel.adapters?.[0]?.split(":")[0] || "unknown"
-            const providerKey = provider.startsWith("i3-") ? "Built-in" : provider
+        // Separate shared and custom models
+        const sharedModels = availableModels.filter((model) => !("isCustom" in model))
+        const customModels = availableModels.filter(
+            (model) => "isCustom" in model && model.isCustom
+        )
 
-            if (!acc[providerKey]) {
-                acc[providerKey] = []
-            }
-            acc[providerKey].push(model)
-            return acc
-        }, {})
-    )
+        // Group shared models by provider
+        const groupedSharedModels = Object.entries(
+            sharedModels.reduce<Record<string, DisplayModel[]>>((acc, model) => {
+                const sharedModel = model as SharedModel
+                const provider = sharedModel.adapters?.[0]?.split(":")[0] || "unknown"
+                const providerKey = provider.startsWith("i3-") ? "Built-in" : provider
+
+                if (!acc[providerKey]) {
+                    acc[providerKey] = []
+                }
+                acc[providerKey].push(model)
+                return acc
+            }, {})
+        )
+
+        return { selectedModelData, customModels, groupedSharedModels }
+    }, [availableModels, selectedModel])
+
     const isMobile = useIsMobile()
 
     // React.useEffect(() => {
