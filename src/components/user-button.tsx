@@ -12,9 +12,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { authClient } from "@/lib/auth-client"
 import { queryClient } from "@/providers"
-import { GitHubIcon } from "@daveyplate/better-auth-ui"
+import { GitHubIcon, XIcon } from "@daveyplate/better-auth-ui"
 import { useRouter } from "@tanstack/react-router"
-import { Loader2, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react"
+import {
+    BookText,
+    Loader2,
+    LogOutIcon,
+    SettingsIcon,
+    UserIcon,
+    UserLock,
+    Users
+} from "lucide-react"
 
 export function UserButton() {
     const { data: session, isPending } = authClient.useSession()
@@ -99,17 +107,39 @@ export function UserButton() {
                     <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                    <a href="https://docs.intern3.chat" target="_blank" rel="noopener noreferrer">
+                        <BookText className="mr-2 h-4 w-4" />
+                        <span>Docs</span>
+                    </a>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.navigate({ to: "/about" })}>
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>About Us</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                     <a
                         href="https://github.com/intern3-chat/intern3-chat"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center"
                     >
                         <GitHubIcon className="h-4 w-4" />
                         <span>GitHub</span>
                     </a>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <a href="https://x.com/intern3chat" target="_blank" rel="noopener noreferrer">
+                        <XIcon className="mr-2 h-4 w-4" />
+                        <span>Twitter</span>
+                    </a>
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.navigate({ to: "/privacy-policy" })}>
+                    <UserLock className="mr-2 h-4 w-4" />
+                    <span>Privacy Policy</span>
+                </DropdownMenuItem>
+
                 <DropdownMenuItem onClick={handleSignOut}>
                     <LogOutIcon className="h-4 w-4" />
                     <span>Sign Out</span>

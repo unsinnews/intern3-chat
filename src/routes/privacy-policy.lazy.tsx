@@ -24,7 +24,7 @@ function PrivacyPolicyPage() {
                     </Link>
                 </div>
 
-                <h1 className="mb-6 font-bold text-3xl">Intern3 Chat Privacy Policy</h1>
+                <h1 className="mb-6 font-bold text-3xl">intern3.chat Privacy Policy</h1>
                 <p className="mb-8 text-muted-foreground text-sm">Last Updated: 18 Jun 2025</p>
 
                 <section className="mb-8 space-y-4">

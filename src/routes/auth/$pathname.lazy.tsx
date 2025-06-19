@@ -15,7 +15,7 @@ function RouteComponent() {
     return (
         <main className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
             {/* Left side - Background Image */}
-            <div className="hidden bg-[url('/bg-light.png')] bg-center bg-cover bg-no-repeat lg:block dark:bg-[url('/bg-night.png')]" />
+            <div className="hidden bg-[url('/bg-light.jpg')] bg-center bg-cover bg-no-repeat lg:block dark:bg-[url('/bg-night.jpg')]" />
 
             {/* Right side - Auth Content */}
             <div className="relative flex flex-col items-center justify-center gap-4 p-4 sm:p-6 md:p-8">

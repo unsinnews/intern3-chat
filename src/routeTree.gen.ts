@@ -28,6 +28,7 @@ import { ServerRoute as ApiPhrSplatServerRouteImport } from './routes/api/phr/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
 const PrivacyPolicyLazyRouteImport = createFileRoute('/privacy-policy')()
+const AboutLazyRouteImport = createFileRoute('/about')()
 const SettingsRouteLazyRouteImport = createFileRoute('/settings')()
 const AuthPathnameLazyRouteImport = createFileRoute('/auth/$pathname')()
 const ChatSSharedThreadIdLazyRouteImport = createFileRoute(
@@ -45,6 +46,11 @@ const PrivacyPolicyLazyRoute = PrivacyPolicyLazyRouteImport.update({
 } as any).lazy(() =>
   import('./routes/privacy-policy.lazy').then((d) => d.Route),
 )
+const AboutLazyRoute = AboutLazyRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
 const SettingsRouteLazyRoute = SettingsRouteLazyRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -145,6 +151,7 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteLazyRouteWithChildren
+  '/about': typeof AboutLazyRoute
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/library': typeof ChatLibraryRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteLazyRouteWithChildren
+  '/about': typeof AboutLazyRoute
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/library': typeof ChatLibraryRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_chat': typeof ChatRouteWithChildren
   '/settings': typeof SettingsRouteLazyRouteWithChildren
+  '/about': typeof AboutLazyRoute
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/_chat/library': typeof ChatLibraryRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/settings'
+    | '/about'
     | '/privacy-policy'
     | '/library'
     | '/settings/ai-options'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings'
+    | '/about'
     | '/privacy-policy'
     | '/library'
     | '/settings/ai-options'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_chat'
     | '/settings'
+    | '/about'
     | '/privacy-policy'
     | '/_chat/library'
     | '/settings/ai-options'
@@ -260,6 +272,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   ChatRoute: typeof ChatRouteWithChildren
   SettingsRouteLazyRoute: typeof SettingsRouteLazyRouteWithChildren
+  AboutLazyRoute: typeof AboutLazyRoute
   PrivacyPolicyLazyRoute: typeof PrivacyPolicyLazyRoute
   AuthPathnameLazyRoute: typeof AuthPathnameLazyRoute
 }
@@ -296,6 +309,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -477,6 +497,7 @@ const SettingsRouteLazyRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRouteWithChildren,
   SettingsRouteLazyRoute: SettingsRouteLazyRouteWithChildren,
+  AboutLazyRoute: AboutLazyRoute,
   PrivacyPolicyLazyRoute: PrivacyPolicyLazyRoute,
   AuthPathnameLazyRoute: AuthPathnameLazyRoute,
 }
