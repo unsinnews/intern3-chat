@@ -25,10 +25,9 @@ import { DefaultSettings } from "@/convex/settings"
 import { useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { type DisplayModel, useAvailableModels } from "@/lib/models-providers-shared"
 import { useConvexAuth } from "@convex-dev/react-query"
-import { Brain, Check, ChevronDown, ExternalLink, Eye, Globe, Image } from "lucide-react"
+import { Brain, Check, ChevronDown, Eye, Globe, Image } from "lucide-react"
 import * as React from "react"
 import { BlackForestLabsIcon, StabilityIcon } from "./brand-icons"
-import { Separator } from "./ui/separator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
 export const getProviderIcon = (model: DisplayModel, isCustom: boolean) => {
@@ -64,154 +63,12 @@ export const getProviderIcon = (model: DisplayModel, isCustom: boolean) => {
     return <Badge className="text-xs">Built-in</Badge>
 }
 
-interface ModelInfoPanelProps {
-    model: DisplayModel | null
-    isCustom?: boolean
-}
-
-const ModelInfoPanel = React.memo(function ModelInfoPanel({
-    model,
-    isCustom = false
-}: ModelInfoPanelProps) {
-    if (!model) return null
-
-    const sharedModel = model as SharedModel
-    const providerName = React.useMemo(() => {
-        if (isCustom) return "Custom"
-
-        const firstAdapter = sharedModel.adapters?.[0]
-        const provider = firstAdapter?.split(":")[0]
-
-        switch (provider) {
-            case "i3-openai":
-            case "openai":
-                return "OpenAI"
-            case "i3-anthropic":
-            case "anthropic":
-                return "Anthropic"
-            case "i3-google":
-            case "google":
-                return "Google"
-            case "bflabs":
-                return "Black Forest Labs"
-            case "stability-ai":
-                return "Stability AI"
-            default:
-                return "Built-in"
-        }
-    }, [sharedModel.adapters, isCustom])
-
-    const abilityRenderer = (ability: string) => {
-        switch (ability) {
-            case "reasoning":
-                return (
-                    <Badge variant="secondary" className="text-xs">
-                        <Brain className="mr-1 h-3 w-3" />
-                        Reasoning
-                    </Badge>
-                )
-            case "vision":
-                return (
-                    <Badge variant="secondary" className="text-xs">
-                        <Eye className="mr-1 h-3 w-3" />
-                        Vision
-                    </Badge>
-                )
-            case "web_search":
-                return (
-                    <Badge variant="secondary" className="text-xs">
-                        <Globe className="mr-1 h-3 w-3" />
-                        Web Search
-                    </Badge>
-                )
-            case "image_generation":
-                return (
-                    <Badge variant="secondary" className="text-xs">
-                        <Image className="mr-1 h-3 w-3" />
-                        Image Generation
-                    </Badge>
-                )
-            case "supermemory":
-                return (
-                    <Badge variant="secondary" className="text-xs">
-                        <Brain className="mr-1 h-3 w-3" />
-                        Memory
-                    </Badge>
-                )
-            default:
-                return null
-        }
-    }
-
-    return (
-        <div className="-translate-y-px flex w-68 flex-col space-y-4 rounded-md border bg-popover p-4">
-            <div className="flex items-center gap-3">
-                {getProviderIcon(model, isCustom)}
-                <div>
-                    <h3 className="font-semibold">{model.name}</h3>
-                </div>
-            </div>
-
-            {(model.abilities.length > 0 || model.mode === "image") && (
-                <div className="space-y-2">
-                    <div className="flex flex-wrap gap-2">
-                        {model.mode === "image" && abilityRenderer("image_generation")}
-                        {model.abilities.sort().map((ability) => (
-                            <div key={ability}>{abilityRenderer(ability)}</div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            <Separator />
-
-            <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Provider</span>
-                    <span className="font-medium">{providerName}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Id</span>
-                    <span className="font-mono text-xs">{model.id}</span>
-                </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="text-xs" asChild>
-                    <a
-                        href={`https://platform.openai.com/docs/models/${model.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1"
-                    >
-                        API Docs
-                        <ExternalLink className="h-3 w-3" />
-                    </a>
-                </Button>
-                <Button variant="outline" size="sm" className="text-xs" asChild>
-                    <a
-                        href={`https://openai.com/api/models/${model.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1"
-                    >
-                        Model Page
-                        <ExternalLink className="h-3 w-3" />
-                    </a>
-                </Button>
-            </div>
-        </div>
-    )
-})
-
 interface ModelItemProps {
     model: DisplayModel
     selectedModel: string
     onModelChange: (modelId: string) => void
     onClose: () => void
     isCustom?: boolean
-    onHover?: (model: DisplayModel | null) => void
 }
 
 const ModelItem = React.memo(function ModelItem({
@@ -219,8 +76,7 @@ const ModelItem = React.memo(function ModelItem({
     selectedModel,
     onModelChange,
     onClose,
-    isCustom = false,
-    onHover
+    isCustom = false
 }: ModelItemProps) {
     const abilityRenderer = (ability: string, className: string) => {
         switch (ability) {
@@ -270,8 +126,6 @@ const ModelItem = React.memo(function ModelItem({
                 onModelChange(model.id)
                 onClose()
             }}
-            onMouseEnter={() => onHover?.(model)}
-            onMouseLeave={() => onHover?.(null)}
             className={cn(
                 "flex items-center gap-2",
                 model.id === selectedModel && "bg-accent/50 text-accent-foreground"
@@ -328,7 +182,6 @@ export function ModelSelector({
     )
 
     const [open, setOpen] = React.useState(false)
-    const [hoveredModel, setHoveredModel] = React.useState<DisplayModel | null>(null)
 
     // Memoize expensive computations to avoid repeating them on every render
     const { selectedModelData, customModels, groupedSharedModels } = React.useMemo(() => {
@@ -411,81 +264,57 @@ export function ModelSelector({
                 title="Select Model"
                 description="Choose a model for your conversation"
             >
-                <div className={cn("relative flex")}>
-                    <div className={cn("w-80")}>
-                        <Command>
-                            {!isMobile && (
-                                <CommandInput placeholder="Search models..." className="h-8" />
-                            )}
-                            <CommandList>
-                                <CommandEmpty>No model found.</CommandEmpty>
-                                <ScrollArea className="h-[300px]">
-                                    {groupedSharedModels.map(([providerKey, providerModels]) => (
-                                        <CommandGroup
-                                            key={providerKey}
-                                            heading={
-                                                providerKey === "Built-in"
-                                                    ? "Built-in Models"
-                                                    : providerKey === "openai"
-                                                      ? "OpenAI"
-                                                      : providerKey === "anthropic"
-                                                        ? "Anthropic"
-                                                        : providerKey === "google"
-                                                          ? "Google"
-                                                          : providerKey === "fal"
-                                                            ? "Fal.AI"
-                                                            : providerKey
-                                            }
-                                        >
-                                            {providerModels.map((model) => (
-                                                <ModelItem
-                                                    key={model.id}
-                                                    model={model}
-                                                    selectedModel={selectedModel}
-                                                    onModelChange={onModelChange}
-                                                    onClose={() => setOpen(false)}
-                                                    onHover={setHoveredModel}
-                                                    isCustom={false}
-                                                />
-                                            ))}
-                                        </CommandGroup>
+                <Command>
+                    {!isMobile && <CommandInput placeholder="Search models..." className="h-8" />}
+                    <CommandList>
+                        <CommandEmpty>No model found.</CommandEmpty>
+                        <ScrollArea className="h-[300px]">
+                            {groupedSharedModels.map(([providerKey, providerModels]) => (
+                                <CommandGroup
+                                    key={providerKey}
+                                    heading={
+                                        providerKey === "Built-in"
+                                            ? "Built-in Models"
+                                            : providerKey === "openai"
+                                              ? "OpenAI"
+                                              : providerKey === "anthropic"
+                                                ? "Anthropic"
+                                                : providerKey === "google"
+                                                  ? "Google"
+                                                  : providerKey === "fal"
+                                                    ? "Fal.AI"
+                                                    : providerKey
+                                    }
+                                >
+                                    {providerModels.map((model) => (
+                                        <ModelItem
+                                            key={model.id}
+                                            model={model}
+                                            selectedModel={selectedModel}
+                                            onModelChange={onModelChange}
+                                            onClose={() => setOpen(false)}
+                                            isCustom={false}
+                                        />
                                     ))}
-                                    {customModels.length > 0 && (
-                                        <CommandGroup heading="Custom Models">
-                                            {customModels.map((model) => (
-                                                <ModelItem
-                                                    key={model.id}
-                                                    model={model}
-                                                    selectedModel={selectedModel}
-                                                    onModelChange={onModelChange}
-                                                    onClose={() => setOpen(false)}
-                                                    onHover={setHoveredModel}
-                                                    isCustom={true}
-                                                />
-                                            ))}
-                                        </CommandGroup>
-                                    )}
-                                </ScrollArea>
-                            </CommandList>
-                        </Command>
-                    </div>
-                    {!isMobile && (
-                        <div className="absolute top-0 left-[100%] ml-0.5">
-                            <ModelInfoPanel
-                                model={hoveredModel || selectedModelData || null}
-                                isCustom={
-                                    hoveredModel
-                                        ? !MODELS_SHARED.some((m) => m.id === hoveredModel.id)
-                                        : selectedModelData
-                                          ? !MODELS_SHARED.some(
-                                                (m) => m.id === selectedModelData.id
-                                            )
-                                          : false
-                                }
-                            />
-                        </div>
-                    )}
-                </div>
+                                </CommandGroup>
+                            ))}
+                            {customModels.length > 0 && (
+                                <CommandGroup heading="Custom Models">
+                                    {customModels.map((model) => (
+                                        <ModelItem
+                                            key={model.id}
+                                            model={model}
+                                            selectedModel={selectedModel}
+                                            onModelChange={onModelChange}
+                                            onClose={() => setOpen(false)}
+                                            isCustom={true}
+                                        />
+                                    ))}
+                                </CommandGroup>
+                            )}
+                        </ScrollArea>
+                    </CommandList>
+                </Command>
             </ResponsivePopoverContent>
         </ResponsivePopover>
     )
