@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
-import { Link, createFileRoute } from "@tanstack/react-router"
+import { Link, createLazyFileRoute } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
 
-export const Route = createFileRoute("/privacy-policy")({
+export const Route = createLazyFileRoute("/privacy-policy")({
     component: PrivacyPolicyPage
 })
 

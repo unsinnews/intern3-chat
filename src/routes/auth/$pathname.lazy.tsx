@@ -2,10 +2,10 @@ import { AuthCard } from "@/components/auth/auth-card"
 import { ShaderBackground } from "@/components/auth/shader-background"
 import { ThemeSwitcher } from "@/components/themes/theme-switcher"
 import { Button } from "@/components/ui/button"
-import { Link, createFileRoute } from "@tanstack/react-router"
+import { Link, createLazyFileRoute } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
 
-export const Route = createFileRoute("/auth/$pathname")({
+export const Route = createLazyFileRoute("/auth/$pathname")({
     component: RouteComponent
 })
 

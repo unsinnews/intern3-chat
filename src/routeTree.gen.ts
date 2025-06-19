@@ -8,12 +8,11 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
 import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ChatRouteImport } from './routes/_chat'
-import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as ChatIndexRouteImport } from './routes/_chat.index'
 import { Route as SettingsUsageRouteImport } from './routes/settings/usage'
 import { Route as SettingsProvidersRouteImport } from './routes/settings/providers'
@@ -23,27 +22,37 @@ import { Route as SettingsCustomizationRouteImport } from './routes/settings/cus
 import { Route as SettingsAttachmentsRouteImport } from './routes/settings/attachments'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
 import { Route as SettingsAiOptionsRouteImport } from './routes/settings/ai-options'
-import { Route as AuthPathnameRouteImport } from './routes/auth/$pathname'
 import { Route as ChatThreadThreadIdRouteImport } from './routes/_chat.thread.$threadId'
-import { Route as ChatSSharedThreadIdRouteImport } from './routes/_chat.s.$sharedThreadId'
-import { Route as ChatFolderFolderIdRouteImport } from './routes/_chat.folder.$folderId'
 import { ServerRoute as ApiPhrSplatServerRouteImport } from './routes/api/phr/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
+const PrivacyPolicyLazyRouteImport = createFileRoute('/privacy-policy')()
+const SettingsRouteLazyRouteImport = createFileRoute('/settings')()
+const AuthPathnameLazyRouteImport = createFileRoute('/auth/$pathname')()
+const ChatSSharedThreadIdLazyRouteImport = createFileRoute(
+  '/_chat/s/$sharedThreadId',
+)()
+const ChatFolderFolderIdLazyRouteImport = createFileRoute(
+  '/_chat/folder/$folderId',
+)()
 const rootServerRouteImport = createServerRootRoute()
 
-const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+const PrivacyPolicyLazyRoute = PrivacyPolicyLazyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ChatRoute = ChatRouteImport.update({
-  id: '/_chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRouteRoute = SettingsRouteRouteImport.update({
+} as any).lazy(() =>
+  import('./routes/privacy-policy.lazy').then((d) => d.Route),
+)
+const SettingsRouteLazyRoute = SettingsRouteLazyRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/settings/route.lazy').then((d) => d.Route),
+)
+const ChatRoute = ChatRouteImport.update({
+  id: '/_chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatIndexRoute = ChatIndexRouteImport.update({
@@ -51,64 +60,70 @@ const ChatIndexRoute = ChatIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ChatRoute,
 } as any)
+const AuthPathnameLazyRoute = AuthPathnameLazyRouteImport.update({
+  id: '/auth/$pathname',
+  path: '/auth/$pathname',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/auth/$pathname.lazy').then((d) => d.Route),
+)
 const SettingsUsageRoute = SettingsUsageRouteImport.update({
   id: '/usage',
   path: '/usage',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
 const SettingsProvidersRoute = SettingsProvidersRouteImport.update({
   id: '/providers',
   path: '/providers',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
 const SettingsModelsRoute = SettingsModelsRouteImport.update({
   id: '/models',
   path: '/models',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
 const SettingsCustomizationRoute = SettingsCustomizationRouteImport.update({
   id: '/customization',
   path: '/customization',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
 const SettingsAttachmentsRoute = SettingsAttachmentsRouteImport.update({
   id: '/attachments',
   path: '/attachments',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   id: '/appearance',
   path: '/appearance',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
 const SettingsAiOptionsRoute = SettingsAiOptionsRouteImport.update({
   id: '/ai-options',
   path: '/ai-options',
-  getParentRoute: () => SettingsRouteRoute,
+  getParentRoute: () => SettingsRouteLazyRoute,
 } as any)
-const AuthPathnameRoute = AuthPathnameRouteImport.update({
-  id: '/auth/$pathname',
-  path: '/auth/$pathname',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChatThreadThreadIdRoute = ChatThreadThreadIdRouteImport.update({
-  id: '/thread/$threadId',
-  path: '/thread/$threadId',
-  getParentRoute: () => ChatRoute,
-} as any)
-const ChatSSharedThreadIdRoute = ChatSSharedThreadIdRouteImport.update({
+const ChatSSharedThreadIdLazyRoute = ChatSSharedThreadIdLazyRouteImport.update({
   id: '/s/$sharedThreadId',
   path: '/s/$sharedThreadId',
   getParentRoute: () => ChatRoute,
-} as any)
-const ChatFolderFolderIdRoute = ChatFolderFolderIdRouteImport.update({
+} as any).lazy(() =>
+  import('./routes/_chat.s.$sharedThreadId.lazy').then((d) => d.Route),
+)
+const ChatFolderFolderIdLazyRoute = ChatFolderFolderIdLazyRouteImport.update({
   id: '/folder/$folderId',
   path: '/folder/$folderId',
+  getParentRoute: () => ChatRoute,
+} as any).lazy(() =>
+  import('./routes/_chat.folder.$folderId.lazy').then((d) => d.Route),
+)
+const ChatThreadThreadIdRoute = ChatThreadThreadIdRouteImport.update({
+  id: '/thread/$threadId',
+  path: '/thread/$threadId',
   getParentRoute: () => ChatRoute,
 } as any)
 const ApiPhrSplatServerRoute = ApiPhrSplatServerRouteImport.update({
@@ -123,9 +138,8 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/settings': typeof SettingsRouteRouteWithChildren
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings': typeof SettingsRouteLazyRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
@@ -134,15 +148,15 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/usage': typeof SettingsUsageRoute
+  '/auth/$pathname': typeof AuthPathnameLazyRoute
   '/': typeof ChatIndexRoute
-  '/folder/$folderId': typeof ChatFolderFolderIdRoute
-  '/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
+  '/folder/$folderId': typeof ChatFolderFolderIdLazyRoute
+  '/s/$sharedThreadId': typeof ChatSSharedThreadIdLazyRoute
 }
 export interface FileRoutesByTo {
-  '/settings': typeof SettingsRouteRouteWithChildren
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings': typeof SettingsRouteLazyRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
@@ -151,17 +165,17 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/usage': typeof SettingsUsageRoute
+  '/auth/$pathname': typeof AuthPathnameLazyRoute
   '/': typeof ChatIndexRoute
-  '/folder/$folderId': typeof ChatFolderFolderIdRoute
-  '/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/thread/$threadId': typeof ChatThreadThreadIdRoute
+  '/folder/$folderId': typeof ChatFolderFolderIdLazyRoute
+  '/s/$sharedThreadId': typeof ChatSSharedThreadIdLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/settings': typeof SettingsRouteRouteWithChildren
   '/_chat': typeof ChatRouteWithChildren
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/auth/$pathname': typeof AuthPathnameRoute
+  '/settings': typeof SettingsRouteLazyRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings/ai-options': typeof SettingsAiOptionsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
@@ -170,17 +184,17 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/usage': typeof SettingsUsageRoute
+  '/auth/$pathname': typeof AuthPathnameLazyRoute
   '/_chat/': typeof ChatIndexRoute
-  '/_chat/folder/$folderId': typeof ChatFolderFolderIdRoute
-  '/_chat/s/$sharedThreadId': typeof ChatSSharedThreadIdRoute
   '/_chat/thread/$threadId': typeof ChatThreadThreadIdRoute
+  '/_chat/folder/$folderId': typeof ChatFolderFolderIdLazyRoute
+  '/_chat/s/$sharedThreadId': typeof ChatSSharedThreadIdLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/settings'
     | '/privacy-policy'
-    | '/auth/$pathname'
     | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/attachments'
@@ -189,15 +203,15 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/providers'
     | '/settings/usage'
+    | '/auth/$pathname'
     | '/'
+    | '/thread/$threadId'
     | '/folder/$folderId'
     | '/s/$sharedThreadId'
-    | '/thread/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings'
     | '/privacy-policy'
-    | '/auth/$pathname'
     | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/attachments'
@@ -206,16 +220,16 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/providers'
     | '/settings/usage'
+    | '/auth/$pathname'
     | '/'
+    | '/thread/$threadId'
     | '/folder/$folderId'
     | '/s/$sharedThreadId'
-    | '/thread/$threadId'
   id:
     | '__root__'
-    | '/settings'
     | '/_chat'
+    | '/settings'
     | '/privacy-policy'
-    | '/auth/$pathname'
     | '/settings/ai-options'
     | '/settings/appearance'
     | '/settings/attachments'
@@ -224,17 +238,18 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/providers'
     | '/settings/usage'
+    | '/auth/$pathname'
     | '/_chat/'
+    | '/_chat/thread/$threadId'
     | '/_chat/folder/$folderId'
     | '/_chat/s/$sharedThreadId'
-    | '/_chat/thread/$threadId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
   ChatRoute: typeof ChatRouteWithChildren
-  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  AuthPathnameRoute: typeof AuthPathnameRoute
+  SettingsRouteLazyRoute: typeof SettingsRouteLazyRouteWithChildren
+  PrivacyPolicyLazyRoute: typeof PrivacyPolicyLazyRoute
+  AuthPathnameLazyRoute: typeof AuthPathnameLazyRoute
 }
 export interface FileServerRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatServerRoute
@@ -268,7 +283,14 @@ declare module '@tanstack/react-router' {
       id: '/privacy-policy'
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
-      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      preLoaderRoute: typeof PrivacyPolicyLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_chat': {
@@ -278,13 +300,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_chat/': {
       id: '/_chat/'
       path: '/'
@@ -292,88 +307,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatIndexRouteImport
       parentRoute: typeof ChatRoute
     }
+    '/auth/$pathname': {
+      id: '/auth/$pathname'
+      path: '/auth/$pathname'
+      fullPath: '/auth/$pathname'
+      preLoaderRoute: typeof AuthPathnameLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/usage': {
       id: '/settings/usage'
       path: '/usage'
       fullPath: '/settings/usage'
       preLoaderRoute: typeof SettingsUsageRouteImport
-      parentRoute: typeof SettingsRouteRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/settings/providers': {
       id: '/settings/providers'
       path: '/providers'
       fullPath: '/settings/providers'
       preLoaderRoute: typeof SettingsProvidersRouteImport
-      parentRoute: typeof SettingsRouteRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/settings/profile': {
       id: '/settings/profile'
       path: '/profile'
       fullPath: '/settings/profile'
       preLoaderRoute: typeof SettingsProfileRouteImport
-      parentRoute: typeof SettingsRouteRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/settings/models': {
       id: '/settings/models'
       path: '/models'
       fullPath: '/settings/models'
       preLoaderRoute: typeof SettingsModelsRouteImport
-      parentRoute: typeof SettingsRouteRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/settings/customization': {
       id: '/settings/customization'
       path: '/customization'
       fullPath: '/settings/customization'
       preLoaderRoute: typeof SettingsCustomizationRouteImport
-      parentRoute: typeof SettingsRouteRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/settings/attachments': {
       id: '/settings/attachments'
       path: '/attachments'
       fullPath: '/settings/attachments'
       preLoaderRoute: typeof SettingsAttachmentsRouteImport
-      parentRoute: typeof SettingsRouteRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/settings/appearance': {
       id: '/settings/appearance'
       path: '/appearance'
       fullPath: '/settings/appearance'
       preLoaderRoute: typeof SettingsAppearanceRouteImport
-      parentRoute: typeof SettingsRouteRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/settings/ai-options': {
       id: '/settings/ai-options'
       path: '/ai-options'
       fullPath: '/settings/ai-options'
       preLoaderRoute: typeof SettingsAiOptionsRouteImport
-      parentRoute: typeof SettingsRouteRoute
-    }
-    '/auth/$pathname': {
-      id: '/auth/$pathname'
-      path: '/auth/$pathname'
-      fullPath: '/auth/$pathname'
-      preLoaderRoute: typeof AuthPathnameRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_chat/thread/$threadId': {
-      id: '/_chat/thread/$threadId'
-      path: '/thread/$threadId'
-      fullPath: '/thread/$threadId'
-      preLoaderRoute: typeof ChatThreadThreadIdRouteImport
-      parentRoute: typeof ChatRoute
+      parentRoute: typeof SettingsRouteLazyRoute
     }
     '/_chat/s/$sharedThreadId': {
       id: '/_chat/s/$sharedThreadId'
       path: '/s/$sharedThreadId'
       fullPath: '/s/$sharedThreadId'
-      preLoaderRoute: typeof ChatSSharedThreadIdRouteImport
+      preLoaderRoute: typeof ChatSSharedThreadIdLazyRouteImport
       parentRoute: typeof ChatRoute
     }
     '/_chat/folder/$folderId': {
       id: '/_chat/folder/$folderId'
       path: '/folder/$folderId'
       fullPath: '/folder/$folderId'
-      preLoaderRoute: typeof ChatFolderFolderIdRouteImport
+      preLoaderRoute: typeof ChatFolderFolderIdLazyRouteImport
+      parentRoute: typeof ChatRoute
+    }
+    '/_chat/thread/$threadId': {
+      id: '/_chat/thread/$threadId'
+      path: '/thread/$threadId'
+      fullPath: '/thread/$threadId'
+      preLoaderRoute: typeof ChatThreadThreadIdRouteImport
       parentRoute: typeof ChatRoute
     }
   }
@@ -397,7 +412,23 @@ declare module '@tanstack/react-start/server' {
   }
 }
 
-interface SettingsRouteRouteChildren {
+interface ChatRouteChildren {
+  ChatIndexRoute: typeof ChatIndexRoute
+  ChatThreadThreadIdRoute: typeof ChatThreadThreadIdRoute
+  ChatFolderFolderIdLazyRoute: typeof ChatFolderFolderIdLazyRoute
+  ChatSSharedThreadIdLazyRoute: typeof ChatSSharedThreadIdLazyRoute
+}
+
+const ChatRouteChildren: ChatRouteChildren = {
+  ChatIndexRoute: ChatIndexRoute,
+  ChatThreadThreadIdRoute: ChatThreadThreadIdRoute,
+  ChatFolderFolderIdLazyRoute: ChatFolderFolderIdLazyRoute,
+  ChatSSharedThreadIdLazyRoute: ChatSSharedThreadIdLazyRoute,
+}
+
+const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
+
+interface SettingsRouteLazyRouteChildren {
   SettingsAiOptionsRoute: typeof SettingsAiOptionsRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsAttachmentsRoute: typeof SettingsAttachmentsRoute
@@ -408,7 +439,7 @@ interface SettingsRouteRouteChildren {
   SettingsUsageRoute: typeof SettingsUsageRoute
 }
 
-const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
+const SettingsRouteLazyRouteChildren: SettingsRouteLazyRouteChildren = {
   SettingsAiOptionsRoute: SettingsAiOptionsRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsAttachmentsRoute: SettingsAttachmentsRoute,
@@ -419,31 +450,14 @@ const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsUsageRoute: SettingsUsageRoute,
 }
 
-const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
-  SettingsRouteRouteChildren,
-)
-
-interface ChatRouteChildren {
-  ChatIndexRoute: typeof ChatIndexRoute
-  ChatFolderFolderIdRoute: typeof ChatFolderFolderIdRoute
-  ChatSSharedThreadIdRoute: typeof ChatSSharedThreadIdRoute
-  ChatThreadThreadIdRoute: typeof ChatThreadThreadIdRoute
-}
-
-const ChatRouteChildren: ChatRouteChildren = {
-  ChatIndexRoute: ChatIndexRoute,
-  ChatFolderFolderIdRoute: ChatFolderFolderIdRoute,
-  ChatSSharedThreadIdRoute: ChatSSharedThreadIdRoute,
-  ChatThreadThreadIdRoute: ChatThreadThreadIdRoute,
-}
-
-const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
+const SettingsRouteLazyRouteWithChildren =
+  SettingsRouteLazyRoute._addFileChildren(SettingsRouteLazyRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  SettingsRouteRoute: SettingsRouteRouteWithChildren,
   ChatRoute: ChatRouteWithChildren,
-  PrivacyPolicyRoute: PrivacyPolicyRoute,
-  AuthPathnameRoute: AuthPathnameRoute,
+  SettingsRouteLazyRoute: SettingsRouteLazyRouteWithChildren,
+  PrivacyPolicyLazyRoute: PrivacyPolicyLazyRoute,
+  AuthPathnameLazyRoute: AuthPathnameLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
