@@ -260,7 +260,7 @@ export function ModelSelector({
                 </Button>
             </ResponsivePopoverTrigger>
             <ResponsivePopoverContent
-                className={cn("w-80 p-0")}
+                className={cn("p-0 md:w-80")}
                 align="start"
                 title="Select Model"
                 description="Choose a model for your conversation"
