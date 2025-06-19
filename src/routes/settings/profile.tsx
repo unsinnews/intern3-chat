@@ -223,7 +223,7 @@ function UserAccountSettings() {
                                                 size="sm"
                                                 className="flex-1 sm:flex-none"
                                             >
-                                                <Save className="mr-2 h-4 w-4" />
+                                                <Save className="h-4 w-4" />
                                                 {updateUser.isPending ? "Saving..." : "Save"}
                                             </Button>
                                             <Button
@@ -232,7 +232,7 @@ function UserAccountSettings() {
                                                 size="sm"
                                                 className="flex-1 sm:flex-none"
                                             >
-                                                <X className="mr-2 h-4 w-4" />
+                                                <X className="h-4 w-4" />
                                                 Cancel
                                             </Button>
                                         </div>
@@ -248,7 +248,7 @@ function UserAccountSettings() {
                                             {displayName || "No name"}
                                         </div>
                                         <Button onClick={handleEditName} variant="ghost" size="sm">
-                                            <Edit className="mr-2 h-4 w-4" />
+                                            <Edit className="h-4 w-4" />
                                             Edit
                                         </Button>
                                     </div>
@@ -343,7 +343,7 @@ function UserAccountSettings() {
                                                             size="sm"
                                                             className="w-full sm:w-auto"
                                                         >
-                                                            <LogOut className="mr-2 h-4 w-4" />
+                                                            <LogOut className="h-4 w-4" />
                                                             Sign Out
                                                         </Button>
                                                     ) : (
@@ -356,7 +356,7 @@ function UserAccountSettings() {
                                                             disabled={revokeSession.isPending}
                                                             className="w-full sm:w-auto"
                                                         >
-                                                            <UserX className="mr-2 h-4 w-4" />
+                                                            <UserX className="h-4 w-4" />
                                                             Revoke
                                                         </Button>
                                                     )}
@@ -385,7 +385,7 @@ function UserAccountSettings() {
                                                 disabled={revokeOtherSessions.isPending}
                                                 className="w-full sm:w-auto"
                                             >
-                                                <UserX className="mr-2 h-4 w-4" />
+                                                <UserX className="h-4 w-4" />
                                                 {revokeOtherSessions.isPending
                                                     ? "Revoking..."
                                                     : "Revoke All Other Sessions"}
