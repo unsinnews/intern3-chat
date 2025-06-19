@@ -1,6 +1,7 @@
 import { type ProjectColorId, getProjectColorClasses } from "@/lib/project-constants"
 import { cn } from "@/lib/utils"
 import { useLocation } from "@tanstack/react-router"
+import { FolderOpen } from "lucide-react"
 import { motion } from "motion/react"
 import { Skeleton } from "./ui/skeleton"
 
@@ -29,10 +30,18 @@ export const FolderHero = ({ project }: FolderHeroProps) => {
         <motion.div {...animProps} className="mb-8 flex max-w-4xl gap-2">
             <div
                 className={cn(
-                    "mt-1 flex size-5 self-baseline rounded-full",
-                    colorClasses.split(" ").slice(1).join(" ")
+                    "mt-1 flex size-5 self-baseline",
+                    colorClasses,
+                    "bg-transparent dark:bg-transparent"
                 )}
-            />
+            >
+                <FolderOpen
+                    className="size-5"
+                    fill="currentColor"
+                    strokeWidth={1}
+                    stroke="var(--foreground)"
+                />
+            </div>
             <div>
                 {/* Folder name and description */}
                 {project ? (
