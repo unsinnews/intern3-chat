@@ -226,63 +226,65 @@ function LibraryPage() {
     }
 
     return (
-        <div className="container mx-auto max-w-6xl px-4 pt-12 pb-8">
-            <div className="mb-8">
-                <h1 className="mb-2 font-bold text-3xl">AI Library</h1>
-                <p className="text-muted-foreground">Your collection of AI-generated images</p>
-                {generatedAssets && (
-                    <div className="mt-4 flex gap-6 text-muted-foreground text-sm">
-                        <span>{stats.count} images</span>
-                        <span>{formatFileSize(stats.totalSize)} total</span>
-                    </div>
-                )}
-
-                {/* Search and Sort Controls */}
-                {generatedAssets && generatedAssets.length > 0 && (
-                    <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="relative max-w-sm flex-1">
-                            <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search by date or size..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10"
-                            />
+        <div className="max-h-dvh overflow-y-auto p-4 pt-0">
+            <div className="container mx-auto max-w-6xl pt-12 pb-16">
+                <div className="mb-8">
+                    <h1 className="mb-2 font-bold text-3xl">AI Library</h1>
+                    <p className="text-muted-foreground">Your collection of AI-generated images</p>
+                    {generatedAssets && (
+                        <div className="mt-4 flex gap-6 text-muted-foreground text-sm">
+                            <span>{stats.count} images</span>
+                            <span>{formatFileSize(stats.totalSize)} total</span>
                         </div>
-                        <Select
-                            value={sortBy}
-                            onValueChange={(value: "newest" | "oldest" | "size") =>
-                                setSortBy(value)
-                            }
-                        >
-                            <SelectTrigger className="w-full sm:w-48">
-                                <SelectValue placeholder="Sort by" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="newest">Newest first</SelectItem>
-                                <SelectItem value="oldest">Oldest first</SelectItem>
-                                <SelectItem value="size">Largest first</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    )}
+
+                    {/* Search and Sort Controls */}
+                    {generatedAssets && generatedAssets.length > 0 && (
+                        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="relative max-w-sm flex-1">
+                                <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search by date or size..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10"
+                                />
+                            </div>
+                            <Select
+                                value={sortBy}
+                                onValueChange={(value: "newest" | "oldest" | "size") =>
+                                    setSortBy(value)
+                                }
+                            >
+                                <SelectTrigger className="w-full sm:w-48">
+                                    <SelectValue placeholder="Sort by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Newest first</SelectItem>
+                                    <SelectItem value="oldest">Oldest first</SelectItem>
+                                    <SelectItem value="size">Largest first</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </div>
+
+                {!generatedAssets ? (
+                    <div className="columns-1 gap-4 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="mb-4 break-inside-avoid"
+                                style={{ height: `${Math.random() * 150 + 250}px` }}
+                            >
+                                <Skeleton className="h-full w-full rounded-xl" />
+                            </div>
+                        ))}
                     </div>
+                ) : (
+                    <MasonryGrid assets={generatedAssets} isFiltered={!!searchQuery.trim()} />
                 )}
             </div>
-
-            {!generatedAssets ? (
-                <div className="columns-1 gap-4 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
-                    {Array.from({ length: 12 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className="mb-4 break-inside-avoid"
-                            style={{ height: `${Math.random() * 150 + 250}px` }}
-                        >
-                            <Skeleton className="h-full w-full rounded-xl" />
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <MasonryGrid assets={generatedAssets} isFiltered={!!searchQuery.trim()} />
-            )}
         </div>
     )
 }
