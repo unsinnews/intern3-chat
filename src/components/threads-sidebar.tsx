@@ -381,7 +381,9 @@ export function ThreadsSidebar() {
         <Sidebar variant="inset">
             <SidebarHeader>
                 <div className="flex w-full items-center justify-center gap-2">
-                    <LogoMark className="h-fit w-full px-4 pt-1.5" />
+                    <Link to="/">
+                        <LogoMark className="h-fit w-full px-4 pt-1.5" />
+                    </Link>
                 </div>
                 <div className="my-2 h-px w-full bg-border" />
 
