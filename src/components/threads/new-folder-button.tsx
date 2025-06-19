@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle
@@ -9,10 +10,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { api } from "@/convex/_generated/api"
-import { DEFAULT_PROJECT_ICON, PROJECT_COLORS, PROJECT_ICONS } from "@/lib/project-constants"
+import { DEFAULT_PROJECT_ICON, PROJECT_COLORS } from "@/lib/project-constants"
 import { cn } from "@/lib/utils"
 import { useMutation } from "convex/react"
-import { Plus } from "lucide-react"
+import { Check, Plus } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -21,7 +22,6 @@ export function NewFolderButton({ onClick }: { onClick?: () => void }) {
     const [folderName, setFolderName] = useState("")
     const [folderDescription, setFolderDescription] = useState("")
     const [folderColor, setFolderColor] = useState<string>("blue")
-    const [folderIcon, setFolderIcon] = useState("")
     const [isCreating, setIsCreating] = useState(false)
     const createProjectMutation = useMutation(api.folders.createProject)
 
@@ -37,7 +37,7 @@ export function NewFolderButton({ onClick }: { onClick?: () => void }) {
             const result = await createProjectMutation({
                 name: trimmedName,
                 description: folderDescription.trim() || undefined,
-                icon: folderIcon || DEFAULT_PROJECT_ICON,
+                icon: DEFAULT_PROJECT_ICON,
                 color: folderColor
             })
 
@@ -46,7 +46,6 @@ export function NewFolderButton({ onClick }: { onClick?: () => void }) {
                 setFolderName("")
                 setFolderDescription("")
                 setFolderColor("blue")
-                setFolderIcon("")
                 setShowDialog(false)
             } else {
                 toast.error("Failed to create folder")
@@ -78,15 +77,19 @@ export function NewFolderButton({ onClick }: { onClick?: () => void }) {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Create New Folder</DialogTitle>
+                        <DialogDescription>
+                            Folders are a great way to organize your threads
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="folder-name">Folder Name</Label>
+                            <Label htmlFor="folder-name">Name</Label>
                             <Input
                                 id="folder-name"
                                 value={folderName}
                                 onChange={(e) => setFolderName(e.target.value)}
                                 placeholder="Enter folder name"
+                                className="max-w-[50%]"
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !isCreating) {
                                         handleCreate()
@@ -98,7 +101,7 @@ export function NewFolderButton({ onClick }: { onClick?: () => void }) {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="folder-description">Description (optional)</Label>
+                            <Label htmlFor="folder-description">Description (Optional)</Label>
                             <Input
                                 id="folder-description"
                                 value={folderDescription}
@@ -110,7 +113,7 @@ export function NewFolderButton({ onClick }: { onClick?: () => void }) {
 
                         <div className="space-y-2">
                             <Label>Color</Label>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="flex gap-2">
                                 {PROJECT_COLORS.map((color) => (
                                     <button
                                         key={color.id}
@@ -118,49 +121,18 @@ export function NewFolderButton({ onClick }: { onClick?: () => void }) {
                                         onClick={() => setFolderColor(color.id)}
                                         disabled={isCreating}
                                         className={cn(
-                                            "flex h-8 w-full items-center justify-center rounded-md border-2 transition-all",
+                                            "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all",
                                             color.class.split(" ").slice(1).join(" "),
                                             folderColor === color.id
                                                 ? "scale-110 border-foreground"
                                                 : "border-transparent hover:scale-105"
                                         )}
                                     >
-                                        {/* Remove the letter display */}
+                                        {folderColor === color.id && (
+                                            <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                                        )}
                                     </button>
                                 ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="folder-icon">Icon (emoji)</Label>
-                            <div className="space-y-3">
-                                <Input
-                                    id="folder-icon"
-                                    value={folderIcon}
-                                    onChange={(e) => {
-                                        const value = e.target.value
-                                        // Limit to 3 characters to accommodate multi-character emojis
-                                        if (value.length <= 3) {
-                                            setFolderIcon(value)
-                                        }
-                                    }}
-                                    placeholder="Enter an emoji or leave empty for default"
-                                    disabled={isCreating}
-                                    maxLength={3}
-                                />
-                                <div className="grid grid-cols-8 gap-1">
-                                    {PROJECT_ICONS.map((icon) => (
-                                        <button
-                                            key={icon}
-                                            type="button"
-                                            onClick={() => setFolderIcon(icon)}
-                                            disabled={isCreating}
-                                            className="flex h-8 w-8 items-center justify-center rounded border hover:bg-accent"
-                                        >
-                                            {icon}
-                                        </button>
-                                    ))}
-                                </div>
                             </div>
                         </div>
                     </div>
