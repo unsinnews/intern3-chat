@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router"
 
 import { Header } from "@/components/header"
+import { OnboardingProvider } from "@/components/onboarding/onboarding-provider"
 import { ThreadsSidebar } from "@/components/threads-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
@@ -18,22 +19,24 @@ function ChatLayout() {
     const threadId = params.threadId
 
     return (
-        <SidebarProvider>
-            <ThreadsSidebar />
-            <SidebarInset>
-                <div
-                    className="flex min-h-svh flex-col"
-                    style={{
-                        backgroundImage: "url(https://t3.chat/images/noise.png)",
-                        backgroundRepeat: "repeat",
-                        backgroundSize: "auto"
-                    }}
-                >
-                    <Header threadId={threadId} />
-                    <Outlet />
-                </div>
-            </SidebarInset>
-        </SidebarProvider>
+        <OnboardingProvider>
+            <SidebarProvider>
+                <ThreadsSidebar />
+                <SidebarInset>
+                    <div
+                        className="flex min-h-svh flex-col"
+                        style={{
+                            backgroundImage: "url(https://t3.chat/images/noise.png)",
+                            backgroundRepeat: "repeat",
+                            backgroundSize: "auto"
+                        }}
+                    >
+                        <Header threadId={threadId} />
+                        <Outlet />
+                    </div>
+                </SidebarInset>
+            </SidebarProvider>
+        </OnboardingProvider>
     )
 }
 
