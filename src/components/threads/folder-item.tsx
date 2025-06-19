@@ -280,7 +280,7 @@ export function FolderItem({
                         <Button onClick={handleEdit} disabled={isEditing || !editName.trim()}>
                             {isEditing ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="h-4 w-4 animate-spin" />
                                     Saving...
                                 </>
                             ) : (
@@ -319,7 +319,7 @@ export function FolderItem({
                         >
                             {isDeleting ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="h-4 w-4 animate-spin" />
                                     {numThreads > 0 ? "Archiving..." : "Deleting..."}
                                 </>
                             ) : numThreads > 0 ? (

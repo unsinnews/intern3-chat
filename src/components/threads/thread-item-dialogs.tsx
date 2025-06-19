@@ -245,7 +245,7 @@ export const ThreadItemDialogs = memo(
                             >
                                 {isRenaming ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" />
                                         Renaming...
                                     </>
                                 ) : (
@@ -339,7 +339,7 @@ export const ThreadItemDialogs = memo(
                             >
                                 {isMoving ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" />
                                         Moving...
                                     </>
                                 ) : (

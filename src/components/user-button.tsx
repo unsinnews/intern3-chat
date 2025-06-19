@@ -95,7 +95,7 @@ export function UserButton() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.navigate({ to: "/settings" })}>
-                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    <SettingsIcon className="h-4 w-4" />
                     <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -105,13 +105,13 @@ export function UserButton() {
                         rel="noopener noreferrer"
                         className="flex items-center"
                     >
-                        <GitHubIcon className="mr-2 h-4 w-4" />
+                        <GitHubIcon className="h-4 w-4" />
                         <span>GitHub</span>
                     </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOutIcon className="mr-2 h-4 w-4" />
+                    <LogOutIcon className="h-4 w-4" />
                     <span>Sign Out</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>

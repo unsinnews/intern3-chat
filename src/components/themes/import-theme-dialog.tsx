@@ -124,7 +124,7 @@ export function ImportThemeDialog({ open, onOpenChange, onThemeImported }: Impor
                             <Button type="submit" disabled={fetchAndApplyThemeMutation.isPending}>
                                 {fetchAndApplyThemeMutation.isPending ? (
                                     <>
-                                        <LoaderIcon className="mr-2 size-4 animate-spin" />
+                                        <LoaderIcon className="size-4 animate-spin" />
                                         Importing...
                                     </>
                                 ) : (

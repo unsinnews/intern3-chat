@@ -89,7 +89,7 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
                                 </p>
                             </div>
                             <Button onClick={handleFork} className="ml-4">
-                                <GitFork className="mr-2 h-4 w-4" />
+                                <GitFork className="h-4 w-4" />
                                 Fork Thread
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
