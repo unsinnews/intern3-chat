@@ -42,7 +42,7 @@ export const MODELS_SHARED: SharedModel[] = [
         id: "gpt-4o",
         name: "GPT 4o",
         shortName: "4o",
-        adapters: ["i3-openai:gpt-4o", "openai:gpt-4o", "openrouter:openai/gpt-4o"],
+        adapters: ["openai:gpt-4o", "openrouter:openai/gpt-4o"],
         abilities: ["vision", "function_calling", "pdf"]
     },
     {
@@ -55,13 +55,13 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "o3-mini",
         name: "o3 mini",
-        adapters: ["i3-openai:o3-mini", "openai:o3-mini", "openrouter:openai/o3-mini"],
+        adapters: ["openai:o3-mini", "openrouter:openai/o3-mini"],
         abilities: ["reasoning", "function_calling", "effort_control"]
     },
     {
         id: "o4-mini",
         name: "o4 mini",
-        adapters: ["i3-openai:o4-mini", "openai:o4-mini", "openrouter:openai/o4-mini"],
+        adapters: ["openai:o4-mini", "openrouter:openai/o4-mini"],
         abilities: ["reasoning", "vision", "function_calling", "pdf", "effort_control"]
     },
     {
@@ -79,7 +79,7 @@ export const MODELS_SHARED: SharedModel[] = [
     {
         id: "gpt-4.1",
         name: "GPT 4.1",
-        adapters: ["i3-openai:gpt-4.1", "openai:gpt-4.1", "openrouter:openai/gpt-4.1"],
+        adapters: ["openai:gpt-4.1", "openrouter:openai/gpt-4.1"],
         abilities: ["vision", "function_calling", "pdf"]
     },
     {
