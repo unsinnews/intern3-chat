@@ -8,7 +8,7 @@ import { useChatDataProcessor } from "@/hooks/use-chat-data-processor"
 import { useChatIntegration } from "@/hooks/use-chat-integration"
 import { useDynamicTitle } from "@/hooks/use-dynamic-title"
 import { useThreadSync } from "@/hooks/use-thread-sync"
-import type { UploadedFile } from "@/lib/chat-store"
+import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { useModelStore } from "@/lib/model-store"
 import { useThemeStore } from "@/lib/theme-store"
@@ -55,7 +55,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     const project =
         "error" in projects ? null : projects?.find((project) => project._id === folderId)
 
-    const { status, data, messages } = useChatIntegration({
+    const { status, data, messages, ...chatHelpers } = useChatIntegration({
         threadId,
         folderId
     })
@@ -81,6 +81,22 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
         if (!session?.user?.name || isPending) return
         localStorage.setItem("DISK_CACHE:user-name", session.user.name)
     }, [session?.user?.name, isPending])
+
+    const { resetChat } = useChatStore()
+
+    const resetAll = () => {
+        console.log("[chat] resetAll")
+        chatHelpers.setData([])
+        chatHelpers.setMessages([])
+        resetChat()
+    }
+
+    useEffect(() => {
+        document.addEventListener("new_chat", resetAll)
+        return () => {
+            document.removeEventListener("new_chat", resetAll)
+        }
+    }, [threadId])
 
     if (!session?.user && !isPending) {
         return (

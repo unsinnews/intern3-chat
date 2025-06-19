@@ -37,6 +37,7 @@ interface ChatActions {
     setTargetFromMessageId: (messageId: string | undefined) => void
     setTargetMode: (mode: "normal" | "edit" | "retry") => void
     setUploading: (uploading: boolean) => void
+    setRerenderTrigger: (rerenderTrigger: string) => void
 }
 
 const initialState: ChatState = {
@@ -70,14 +71,17 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
     setShouldUpdateQuery: (shouldUpdateQuery) => set({ shouldUpdateQuery }),
     setSkipNextDataCheck: (skipNextDataCheck) => set({ skipNextDataCheck }),
     setUploading: (uploading) => set({ uploading }),
-
+    setRerenderTrigger: (rerenderTrigger) => set({ rerenderTrigger }),
     resetChat: () => {
         set({
             ...initialState,
             rerenderTrigger: nanoid(),
             attachedStreamIds: {},
             targetFromMessageId: undefined,
-            targetMode: "normal"
+            lastProcessedDataIndex: -1,
+            skipNextDataCheck: true,
+            targetMode: "normal",
+            threadId: undefined
         })
     },
 

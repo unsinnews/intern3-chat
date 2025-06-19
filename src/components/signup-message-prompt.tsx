@@ -11,7 +11,7 @@ export const SignupMessagePrompt = () => {
     const { themeState } = useThemeStore()
 
     const handleNavigation = () => {
-        navigate({ to: "/auth/$pathname", params: { pathname: "/auth/signup" }, replace: true })
+        navigate({ to: "/auth/$pathname", params: { pathname: "signup" }, replace: true })
     }
     const mode = themeState.currentMode
 

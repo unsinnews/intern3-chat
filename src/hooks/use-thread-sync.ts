@@ -18,5 +18,5 @@ export function useThreadSync({ routeThreadId }: UseThreadSyncProps) {
         }
     }, [routeThreadId, setThreadId, resetChat, triggerRerender])
 
-    return { threadId }
+    return { threadId, setThreadId }
 }

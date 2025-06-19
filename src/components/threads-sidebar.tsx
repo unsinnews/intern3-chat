@@ -407,6 +407,10 @@ export function ThreadsSidebar() {
                     {/* <TooltipTrigger> */}
                     <Link
                         to="/"
+                        onClick={() => {
+                            document.dispatchEvent(new CustomEvent("new_chat"))
+                            setOpenMobile(false)
+                        }}
                         className={cn(
                             buttonVariants({ variant: "default" }),
                             "w-full justify-center"
