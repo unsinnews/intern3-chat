@@ -20,7 +20,7 @@ export const SignupMessagePrompt = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="isolate mx-auto flex max-w-md flex-col items-center justify-center p-8"
+            className="isolate mx-auto flex max-w-md flex-col items-center justify-center md:p-8"
         >
             <div className="z-2 mb-8 space-y-12 text-center">
                 <motion.div
@@ -49,7 +49,7 @@ export const SignupMessagePrompt = () => {
                 <MagneticButton>
                     <Button
                         onClick={handleNavigation}
-                        className="min-w-sm flex-1 font-medium transition-all hover:scale-102"
+                        className="min-w-64 font-medium transition-all hover:scale-102 active:scale-98"
                         size="lg"
                     >
                         Get Started
@@ -61,14 +61,15 @@ export const SignupMessagePrompt = () => {
                 initial={{ opacity: 0, y: 0 }}
                 animate={{ opacity: mode === "dark" ? 0.2 : 0.4, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.4, ease: "easeOut" }}
-                className="-top-10 pointer-events-none absolute right-0 left-0 z-1 mx-auto size-200 opacity-40 dark:opacity-20"
+                className="md:-top-10 pointer-events-none fixed inset-x-0 top-0 z-1 mx-auto w-full max-w-none opacity-40 md:absolute md:h-[50rem] md:w-[50rem] md:max-w-[90vw] dark:opacity-20"
                 style={{
                     mask: "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 80%)",
                     WebkitMask:
                         "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 80%)"
                 }}
             >
-                <Forest className="h-full w-full" />
+                {/* @ts-expect-error - TODO: fix this */}
+                <Forest className="h-auto w-full md:h-full" />
             </motion.div>
         </motion.div>
     )

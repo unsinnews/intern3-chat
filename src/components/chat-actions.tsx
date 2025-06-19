@@ -91,7 +91,7 @@ export const ChatActions = memo(
         return (
             <div
                 className={cn(
-                    "absolute flex items-center gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:visible group-hover:z-10 group-hover:opacity-100 group-focus:visible group-focus:z-10 group-focus:opacity-100",
+                    "absolute flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-focus:visible md:group-focus:z-10 md:group-focus:opacity-100 md:group-hover:visible md:group-hover:z-10 md:group-hover:opacity-100 md:group-focus-within:opacity-100",
                     role === "user" ? "right-0 mt-4" : "left-0 mt-3"
                 )}
             >

@@ -1,10 +1,16 @@
 import { ChatError } from "@/lib/errors"
-import { paginationOptsValidator } from "convex/server"
+import {
+    type FieldPaths,
+    type FilterBuilder,
+    type GenericTableInfo,
+    paginationOptsValidator
+} from "convex/server"
 import { type Infer, v } from "convex/values"
 import { nanoid } from "nanoid"
 import { api, internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server"
+import { aggregrateThreadsByFolder } from "./aggregates"
 import { getUserIdentity } from "./lib/identity"
 import type { Thread } from "./schema"
 import { HTTPAIMessage, type Message } from "./schema/message"
@@ -25,11 +31,20 @@ export const createThreadOrInsertMessages = internalMutation({
         userMessage: v.optional(HTTPAIMessage),
         proposedNewAssistantId: v.string(),
         targetFromMessageId: v.optional(v.string()),
-        targetMode: v.optional(v.union(v.literal("normal"), v.literal("edit"), v.literal("retry")))
+        targetMode: v.optional(v.union(v.literal("normal"), v.literal("edit"), v.literal("retry"))),
+        folderId: v.optional(v.id("projects"))
     },
     handler: async (
-        { db },
-        { threadId, authorId, userMessage, proposedNewAssistantId, targetFromMessageId, targetMode }
+        ctx,
+        {
+            threadId,
+            authorId,
+            userMessage,
+            proposedNewAssistantId,
+            targetFromMessageId,
+            targetMode,
+            folderId
+        }
     ) => {
         if (!userMessage) return new ChatError("bad_request:chat")
 
@@ -52,18 +67,23 @@ export const createThreadOrInsertMessages = internalMutation({
                 role: "assistant" as const
             }
 
-            const newId = await db.insert("threads", {
+            const newId = await ctx.db.insert("threads", {
                 authorId,
                 title: "New Chat",
                 createdAt: Date.now(),
-                updatedAt: Date.now()
+                updatedAt: Date.now(),
+                projectId: folderId // Set the project ID if creating from a folder
             })
+            const doc = await ctx.db.get(newId)
+            await aggregrateThreadsByFolder.insert(ctx, doc!)
 
-            await db.insert("messages", {
+            // Thread count will be automatically updated by aggregate triggers
+
+            await ctx.db.insert("messages", {
                 threadId: newId,
                 ...newUserMessage_new
             })
-            const assistantMessageConvexId = await db.insert("messages", {
+            const assistantMessageConvexId = await ctx.db.insert("messages", {
                 threadId: newId,
                 ...newAssistantMessage_new
             })
@@ -77,7 +97,7 @@ export const createThreadOrInsertMessages = internalMutation({
         }
 
         // new thread flow
-        const thread = await db.get(threadId as Id<"threads">)
+        const thread = await ctx.db.get(threadId as Id<"threads">)
         if (!thread) {
             console.error("[cvx][createThreadOrInsertMessages] Thread not found", threadId)
             return undefined
@@ -86,7 +106,7 @@ export const createThreadOrInsertMessages = internalMutation({
         // Handle edit mode - delete messages after the edited message
         let originalAssistantMessageId = proposedNewAssistantId
         if (targetFromMessageId) {
-            const allMessages = await db
+            const allMessages = await ctx.db
                 .query("messages")
                 .withIndex("byThreadId", (q) => q.eq("threadId", threadId as Id<"threads">))
                 .order("asc")
@@ -109,14 +129,14 @@ export const createThreadOrInsertMessages = internalMutation({
 
                 // Delete all messages after the edited message
                 for (const msg of messagesAfterTarget) {
-                    await db.delete(msg._id)
+                    await ctx.db.delete(msg._id)
                 }
 
                 if (targetMode === "edit") {
                     // Update the edited message with new content
                     const editMessage = allMessages[targetMessageIndex]
                     if (editMessage) {
-                        await db.patch(editMessage._id, {
+                        await ctx.db.patch(editMessage._id, {
                             parts: userMessage.parts,
                             updatedAt: Date.now()
                         })
@@ -133,7 +153,7 @@ export const createThreadOrInsertMessages = internalMutation({
                 role: "assistant" as const
             }
 
-            const assistantMessageConvexId = await db.insert("messages", {
+            const assistantMessageConvexId = await ctx.db.insert("messages", {
                 threadId: threadId as Id<"threads">,
                 ...newAssistantMessage_edit_or_retry
             })
@@ -164,11 +184,11 @@ export const createThreadOrInsertMessages = internalMutation({
             role: "assistant" as const
         }
 
-        await db.insert("messages", {
+        await ctx.db.insert("messages", {
             threadId: threadId as Id<"threads">,
             ...newUserMessage_existing
         })
-        const assistantMessageConvexId = await db.insert("messages", {
+        const assistantMessageConvexId = await ctx.db.insert("messages", {
             threadId: threadId as Id<"threads">,
             ...newAssistantMessage_existing
         })
@@ -242,9 +262,22 @@ export const searchUserThreads = query({
     }
 })
 
+const isEmpty = <A extends GenericTableInfo, B extends FieldPaths<A>>(
+    q: FilterBuilder<A>,
+    field: B
+) =>
+    q.or(
+        q.eq(q.field(field), undefined),
+        q.eq(q.field(field), null)
+        // etc
+    )
+
 export const getUserThreadsPaginated = query({
-    args: { paginationOpts: paginationOptsValidator },
-    handler: async ({ db, auth }, { paginationOpts }) => {
+    args: {
+        paginationOpts: paginationOptsValidator,
+        includeInFolder: v.optional(v.boolean())
+    },
+    handler: async ({ db, auth }, { paginationOpts, includeInFolder }) => {
         const user = await getUserIdentity(auth, {
             allowAnons: true
         })
@@ -262,27 +295,30 @@ export const getUserThreadsPaginated = query({
         const isFirstPage = !paginationOpts.cursor
 
         if (isFirstPage) {
-            // Get pinned threads first
-            const pinnedThreads = await db
+            const pinnedQuery = db
                 .query("threads")
                 .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
                 .filter((q) => q.eq(q.field("pinned"), true))
                 .order("desc")
-                .collect()
 
-            // Get regular threads (non-pinned) with pagination
-            const regularThreadsResult = await db
+            const regularQuery = db
                 .query("threads")
                 .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
                 .filter((q) => q.neq(q.field("pinned"), true))
                 .order("desc")
-                .paginate(paginationOpts)
 
-            // Combine pinned threads with regular threads
+            const [pinnedThreads, regularThreadsResult] = await Promise.all([
+                !includeInFolder
+                    ? pinnedQuery.filter((q) => isEmpty(q, "projectId")).collect()
+                    : pinnedQuery.collect(),
+                !includeInFolder
+                    ? regularQuery.filter((q) => isEmpty(q, "projectId")).paginate(paginationOpts)
+                    : regularQuery.paginate(paginationOpts)
+            ])
+
             const combinedPage = [...pinnedThreads, ...regularThreadsResult.page]
-
-            // If we have too many threads, trim to the requested page size
             const maxItems = paginationOpts.numItems
+
             if (combinedPage.length > maxItems) {
                 return {
                     page: combinedPage.slice(0, maxItems),
@@ -298,13 +334,18 @@ export const getUserThreadsPaginated = query({
             }
         }
 
-        // For subsequent pages, only get regular threads (no pinned)
-        return await db
+        const baseQuery = db
             .query("threads")
             .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
             .filter((q) => q.neq(q.field("pinned"), true))
-            .order("desc")
-            .paginate(paginationOpts)
+
+        if (!includeInFolder) {
+            return await baseQuery
+                .filter((q) => isEmpty(q, "projectId"))
+                .order("desc")
+                .paginate(paginationOpts)
+        }
+        return await baseQuery.order("desc").paginate(paginationOpts)
     }
 })
 
@@ -470,6 +511,8 @@ export const forkSharedThread = mutation({
             createdAt: Date.now(),
             updatedAt: Date.now()
         })
+        const doc = await ctx.db.get(newThreadId)
+        await aggregrateThreadsByFolder.insert(ctx, doc!)
 
         // Copy messages to new thread
         for (const message of sharedThread.messages) {
@@ -520,7 +563,10 @@ export const deleteThread = mutation({
         const thread = await ctx.db.get(threadId)
         if (!thread || thread.authorId !== user.id) return { error: "Unauthorized" }
 
+        // Thread count will be automatically updated by aggregate triggers
+
         await ctx.db.delete(threadId)
+        await aggregrateThreadsByFolder.delete(ctx, thread)
     }
 })
 
@@ -550,5 +596,152 @@ export const renameThread = mutation({
         })
 
         return { success: true }
+    }
+})
+
+// Get threads by project (or general threads if projectId is null)
+export const getThreadsByProject = query({
+    args: {
+        projectId: v.optional(v.id("projects")),
+        paginationOpts: paginationOptsValidator
+    },
+    handler: async ({ db, auth }, { projectId, paginationOpts }) => {
+        const user = await getUserIdentity(auth, { allowAnons: true })
+
+        if ("error" in user) {
+            return {
+                page: [],
+                isDone: true,
+                continueCursor: ""
+            }
+        }
+
+        if (projectId) {
+            // Get threads for specific project
+            return await db
+                .query("threads")
+                .withIndex("byAuthorAndProject", (q) =>
+                    q.eq("authorId", user.id).eq("projectId", projectId)
+                )
+                .order("desc")
+                .paginate(paginationOpts)
+        }
+
+        // Get threads without project (General)
+        return await db
+            .query("threads")
+            .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+            .filter((q) => q.eq(q.field("projectId"), undefined))
+            .order("desc")
+            .paginate(paginationOpts)
+    }
+})
+
+// Enhanced getUserThreadsPaginated with project filtering
+export const getUserThreadsPaginatedByProject = query({
+    args: {
+        paginationOpts: paginationOptsValidator,
+        projectId: v.optional(v.id("projects"))
+    },
+    handler: async ({ db, auth }, { paginationOpts, projectId }) => {
+        const user = await getUserIdentity(auth, { allowAnons: true })
+
+        if ("error" in user) {
+            return {
+                page: [],
+                isDone: true,
+                continueCursor: ""
+            }
+        }
+
+        // For the first page, include pinned threads at the top
+        const isFirstPage = !paginationOpts.cursor
+
+        if (isFirstPage) {
+            let pinnedThreads: any[] = []
+            let regularThreadsResult: any
+
+            if (projectId) {
+                // Get pinned threads for specific project
+                pinnedThreads = await db
+                    .query("threads")
+                    .withIndex("byAuthorAndProject", (q) =>
+                        q.eq("authorId", user.id).eq("projectId", projectId)
+                    )
+                    .filter((q) => q.eq(q.field("pinned"), true))
+                    .order("desc")
+                    .collect()
+
+                // Get regular threads (non-pinned) for specific project
+                regularThreadsResult = await db
+                    .query("threads")
+                    .withIndex("byAuthorAndProject", (q) =>
+                        q.eq("authorId", user.id).eq("projectId", projectId)
+                    )
+                    .filter((q) => q.neq(q.field("pinned"), true))
+                    .order("desc")
+                    .paginate(paginationOpts)
+            } else {
+                // Get pinned threads without project (General)
+                pinnedThreads = await db
+                    .query("threads")
+                    .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+                    .filter((q) =>
+                        q.and(q.eq(q.field("projectId"), undefined), q.eq(q.field("pinned"), true))
+                    )
+                    .order("desc")
+                    .collect()
+
+                // Get regular threads (non-pinned) without project
+                regularThreadsResult = await db
+                    .query("threads")
+                    .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+                    .filter((q) =>
+                        q.and(q.eq(q.field("projectId"), undefined), q.neq(q.field("pinned"), true))
+                    )
+                    .order("desc")
+                    .paginate(paginationOpts)
+            }
+
+            // Combine pinned threads with regular threads
+            const combinedPage = [...pinnedThreads, ...regularThreadsResult.page]
+
+            // If we have too many threads, trim to the requested page size
+            const maxItems = paginationOpts.numItems
+            if (combinedPage.length > maxItems) {
+                return {
+                    page: combinedPage.slice(0, maxItems),
+                    isDone: false,
+                    continueCursor: regularThreadsResult.continueCursor
+                }
+            }
+
+            return {
+                page: combinedPage,
+                isDone: regularThreadsResult.isDone,
+                continueCursor: regularThreadsResult.continueCursor
+            }
+        }
+
+        // For subsequent pages, only get regular threads (no pinned)
+        if (projectId) {
+            return await db
+                .query("threads")
+                .withIndex("byAuthorAndProject", (q) =>
+                    q.eq("authorId", user.id).eq("projectId", projectId)
+                )
+                .filter((q) => q.neq(q.field("pinned"), true))
+                .order("desc")
+                .paginate(paginationOpts)
+        }
+
+        return await db
+            .query("threads")
+            .withIndex("byAuthor", (q) => q.eq("authorId", user.id))
+            .filter((q) =>
+                q.and(q.eq(q.field("projectId"), undefined), q.neq(q.field("pinned"), true))
+            )
+            .order("desc")
+            .paginate(paginationOpts)
     }
 })

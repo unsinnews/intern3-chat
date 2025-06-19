@@ -1,27 +1,37 @@
 import MCPIcon from "@/assets/mcp.svg"
 import SupermemoryIcon from "@/assets/supermemory.svg"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList
+} from "@/components/ui/command"
 import {
     ResponsivePopover,
     ResponsivePopoverContent,
     ResponsivePopoverTrigger
 } from "@/components/ui/responsive-popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
 import type { AbilityId } from "@/convex/lib/toolkit"
 import { useSession } from "@/hooks/auth-hooks"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
-import { Brain, Globe, Settings2 } from "lucide-react"
-import { memo } from "react"
+import { Globe, Settings2 } from "lucide-react"
+import { memo, useMemo, useState } from "react"
 
 type ToolSelectorPopoverProps = {
     threadId?: string
     enabledTools: AbilityId[]
     onEnabledToolsChange: (tools: AbilityId[]) => void
     modelSupportsFunctionCalling: boolean
-    modelSupportsReasoning: boolean
     className?: string
 }
 
@@ -31,10 +41,11 @@ export const ToolSelectorPopover = memo(
         enabledTools,
         onEnabledToolsChange,
         modelSupportsFunctionCalling,
-        modelSupportsReasoning,
         className
     }: ToolSelectorPopoverProps) => {
         const session = useSession()
+        const isMobile = useIsMobile()
+        const [open, setOpen] = useState(false)
         const { setMcpOverride, setDefaultMcpOverride, mcpOverrides, defaultMcpOverrides } =
             useModelStore()
 
@@ -43,16 +54,7 @@ export const ToolSelectorPopover = memo(
             session.user?.id ? {} : "skip"
         )
 
-        if (!userSettings) return null
-
-        const hasSupermemory = Boolean(userSettings.supermemory?.enabled)
-        const mcpServers = (userSettings.mcpServers || []).filter(
-            (server) => server.enabled !== false
-        )
-        const hasMcpServers = mcpServers.length > 0
-
-        // If no supermemory or MCP servers, show simple web search button
-        if (!hasSupermemory && !hasMcpServers) {
+        const webSearchButton = useMemo(() => {
             return (
                 <Button
                     type="button"
@@ -78,6 +80,20 @@ export const ToolSelectorPopover = memo(
                     <Globe className="size-4" />
                 </Button>
             )
+        }, [enabledTools, modelSupportsFunctionCalling, onEnabledToolsChange, className])
+
+        // If userSettings is not loaded, show the web search button as fallback to avoid flickering
+        if (!userSettings) return webSearchButton
+
+        const hasSupermemory = Boolean(userSettings.generalProviders?.supermemory?.enabled)
+        const mcpServers = (userSettings.mcpServers || []).filter(
+            (server) => server.enabled !== false
+        )
+        const hasMcpServers = mcpServers.length > 0
+
+        // If no supermemory or MCP servers, show simple web search button
+        if (!hasSupermemory && !hasMcpServers) {
+            return webSearchButton
         }
 
         // Calculate effective MCP overrides directly to ensure re-renders
@@ -92,15 +108,6 @@ export const ToolSelectorPopover = memo(
                 enabledTools.includes("web_search")
                     ? enabledTools.filter((tool) => tool !== "web_search")
                     : [...enabledTools, "web_search"]
-            )
-        }
-
-        const handleReasoningToggle = () => {
-            if (!modelSupportsReasoning) return
-            onEnabledToolsChange(
-                enabledTools.includes("reasoning")
-                    ? enabledTools.filter((tool) => tool !== "reasoning")
-                    : [...enabledTools, "reasoning"]
             )
         }
 
@@ -126,7 +133,6 @@ export const ToolSelectorPopover = memo(
             let count = 0
             if (enabledTools.includes("web_search")) count++
             if (enabledTools.includes("supermemory")) count++
-            if (modelSupportsReasoning && enabledTools.includes("reasoning")) count++
             if (hasMcpServers) {
                 // Count enabled MCP servers for this thread
                 const enabledMcpCount = mcpServers.filter(
@@ -140,7 +146,7 @@ export const ToolSelectorPopover = memo(
         const activeCount = getActiveToolsCount()
 
         return (
-            <ResponsivePopover>
+            <ResponsivePopover open={open} onOpenChange={setOpen}>
                 <ResponsivePopoverTrigger asChild>
                     <Button
                         type="button"
@@ -162,141 +168,97 @@ export const ToolSelectorPopover = memo(
                         )}
                     </Button>
                 </ResponsivePopoverTrigger>
-                <ResponsivePopoverContent className="w-54 p-2" align="start">
-                    <div className="space-y-3">
-                        <div className="mb-0 px-2 py-1.5 font-medium text-muted-foreground text-sm">
-                            Tools
-                        </div>
-
-                        <div className="space-y-1">
-                            <div
-                                className="flex cursor-pointer items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
-                                onClick={
-                                    modelSupportsFunctionCalling ? handleWebSearchToggle : undefined
-                                }
-                                onKeyDown={(e) => {
-                                    if (
-                                        modelSupportsFunctionCalling &&
-                                        (e.key === "Enter" || e.key === " ")
-                                    ) {
-                                        e.preventDefault()
-                                        handleWebSearchToggle()
-                                    }
-                                }}
-                                role="switch"
-                                aria-checked={enabledTools.includes("web_search")}
-                                tabIndex={modelSupportsFunctionCalling ? 0 : -1}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Globe className="h-4 w-4" />
-                                    <span className="text-sm">Web Search</span>
-                                </div>
-                                <Switch
-                                    checked={enabledTools.includes("web_search")}
-                                    onCheckedChange={handleWebSearchToggle}
-                                    disabled={!modelSupportsFunctionCalling}
-                                />
-                            </div>
-
-                            {/* Supermemory */}
-                            {hasSupermemory && (
-                                <div
-                                    className="flex cursor-pointer items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
-                                    onClick={handleSupermemoryToggle}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" || e.key === " ") {
-                                            e.preventDefault()
-                                            handleSupermemoryToggle()
-                                        }
-                                    }}
-                                    role="switch"
-                                    aria-checked={enabledTools.includes("supermemory")}
-                                    tabIndex={0}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-4 items-center justify-center">
-                                            <SupermemoryIcon />
+                <ResponsivePopoverContent
+                    className="p-0 md:w-80"
+                    align="start"
+                    title="Tool Settings"
+                    description="Configure available tools for your conversation"
+                >
+                    <Command className="rounded-none md:rounded-md">
+                        {!isMobile && (
+                            <CommandInput placeholder="Search tools..." className="h-8" />
+                        )}
+                        <CommandList>
+                            <CommandEmpty>No tools found.</CommandEmpty>
+                            <ScrollArea className="h-fit">
+                                <CommandGroup heading="Tools">
+                                    <CommandItem className="flex items-center justify-between p-3">
+                                        <div className="flex items-center gap-3">
+                                            <Globe className="h-4 w-4" />
+                                            <span className="text-sm">Web Search</span>
                                         </div>
-                                        <span className="text-sm">Supermemory</span>
-                                    </div>
-                                    <Switch
-                                        checked={enabledTools.includes("supermemory")}
-                                        onCheckedChange={handleSupermemoryToggle}
-                                    />
-                                </div>
-                            )}
+                                        <Switch
+                                            checked={enabledTools.includes("web_search")}
+                                            onCheckedChange={handleWebSearchToggle}
+                                            disabled={!modelSupportsFunctionCalling}
+                                        />
+                                    </CommandItem>
 
-                            {modelSupportsReasoning && (
-                                <div className="flex items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-4 items-center justify-center">
-                                            <Brain className="size-4" />
-                                        </div>
-                                        <span className="text-sm">Think for longer</span>
-                                    </div>
-                                    <Switch
-                                        checked={enabledTools.includes("reasoning")}
-                                        onCheckedChange={handleReasoningToggle}
-                                        disabled={!modelSupportsReasoning}
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {hasMcpServers && (
-                            <div className="space-y-1 border-t pt-3">
-                                <div className="px-2 py-1 font-medium text-muted-foreground text-xs uppercase tracking-wider">
-                                    MCP Servers
-                                </div>
-
-                                {mcpServers.map((server) => {
-                                    const isEnabled = currentMcpOverrides[server.name] !== false
-                                    return (
-                                        <div
-                                            key={server.name}
-                                            className="flex cursor-pointer items-center justify-between rounded-sm px-2 py-2 transition-colors hover:bg-accent/50"
-                                            onClick={() =>
-                                                handleMcpServerToggle(server.name, !isEnabled)
-                                            }
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter" || e.key === " ") {
-                                                    e.preventDefault()
-                                                    handleMcpServerToggle(server.name, !isEnabled)
-                                                }
-                                            }}
-                                            role="switch"
-                                            aria-checked={isEnabled}
-                                            tabIndex={0}
-                                        >
+                                    {hasSupermemory && (
+                                        <CommandItem className="flex items-center justify-between p-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="flex size-4 items-center justify-center">
-                                                    <MCPIcon />
+                                                    <SupermemoryIcon />
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm">{server.name}</span>
-                                                    <span className="text-muted-foreground text-xs">
-                                                        {server.type.toUpperCase()}
-                                                    </span>
-                                                </div>
+                                                <span className="text-sm">Supermemory</span>
                                             </div>
                                             <Switch
-                                                checked={isEnabled}
-                                                onCheckedChange={(enabled) =>
-                                                    handleMcpServerToggle(server.name, enabled)
-                                                }
+                                                checked={enabledTools.includes("supermemory")}
+                                                onCheckedChange={handleSupermemoryToggle}
                                             />
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
+                                        </CommandItem>
+                                    )}
+                                </CommandGroup>
 
-                        {!modelSupportsFunctionCalling && (
-                            <div className="mt-2 border-t px-2 py-2 pt-2 text-muted-foreground text-xs">
-                                Current model doesn't support function calling
-                            </div>
-                        )}
-                    </div>
+                                {hasMcpServers && (
+                                    <CommandGroup heading="MCP Servers">
+                                        {mcpServers.map((server) => {
+                                            const isEnabled =
+                                                currentMcpOverrides[server.name] !== false
+                                            return (
+                                                <CommandItem
+                                                    key={server.name}
+                                                    className="flex items-center justify-between p-3"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex size-4 items-center justify-center">
+                                                            <MCPIcon />
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm">
+                                                                {server.name}
+                                                            </span>
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="text-xs"
+                                                            >
+                                                                {server.type.toUpperCase()}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    <Switch
+                                                        checked={isEnabled}
+                                                        onCheckedChange={(enabled) =>
+                                                            handleMcpServerToggle(
+                                                                server.name,
+                                                                enabled
+                                                            )
+                                                        }
+                                                    />
+                                                </CommandItem>
+                                            )
+                                        })}
+                                    </CommandGroup>
+                                )}
+
+                                {!modelSupportsFunctionCalling && (
+                                    <div className="px-4 py-3 text-center text-muted-foreground text-sm">
+                                        Current model doesn't support function calling
+                                    </div>
+                                )}
+                            </ScrollArea>
+                        </CommandList>
+                    </Command>
                 </ResponsivePopoverContent>
             </ResponsivePopover>
         )

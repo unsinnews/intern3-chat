@@ -1,5 +1,5 @@
 import { ChatError } from "@/lib/errors"
-import { createOpenAI } from "@ai-sdk/openai"
+import { type OpenAIProvider, createOpenAI } from "@ai-sdk/openai"
 import type { ImageModelV1, LanguageModelV1 } from "@ai-sdk/provider"
 import { internal } from "../_generated/api"
 import type { ActionCtx } from "../_generated/server"
@@ -62,7 +62,11 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
                 }
                 finalModel = sdk_provider.imageModel(providerSpecificModelId)
             } else {
-                finalModel = sdk_provider.languageModel(providerSpecificModelId)
+                if (providerId === "openai") {
+                    finalModel = (sdk_provider as OpenAIProvider).responses(providerSpecificModelId)
+                } else {
+                    finalModel = sdk_provider.languageModel(providerSpecificModelId)
+                }
             }
             break
         }
@@ -82,7 +86,11 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
                 }
                 finalModel = sdk_provider.imageModel(providerSpecificModelId)
             } else {
-                finalModel = sdk_provider.languageModel(providerSpecificModelId)
+                if (providerIdRaw === "openai") {
+                    finalModel = (sdk_provider as OpenAIProvider).responses(providerSpecificModelId)
+                } else {
+                    finalModel = sdk_provider.languageModel(providerSpecificModelId)
+                }
             }
             break
         }

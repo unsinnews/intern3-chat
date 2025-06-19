@@ -8,7 +8,7 @@ import { browserEnv } from "@/lib/browser-env"
 import { useChatStore } from "@/lib/chat-store"
 import { useModelStore } from "@/lib/model-store"
 import { type Message, useChat } from "@ai-sdk/react"
-import { useQuery as useConvexQuery } from "convex/react"
+import { useQuery as useConvexQuery } from "convex-helpers/react/cache"
 import type { Infer } from "convex/values"
 import { nanoid } from "nanoid"
 import { useCallback, useMemo, useRef } from "react"
@@ -16,15 +16,22 @@ import { useCallback, useMemo, useRef } from "react"
 export function useChatIntegration<IsShared extends boolean>({
     threadId,
     sharedThreadId,
-    isShared
+    isShared,
+    folderId
 }: {
     threadId: string | undefined
     sharedThreadId?: string | undefined
     isShared?: IsShared
+    folderId?: Id<"projects">
 }) {
     const tokenData = useToken()
-    const { selectedModel, enabledTools, selectedImageSize, getEffectiveMcpOverrides } =
-        useModelStore()
+    const {
+        selectedModel,
+        enabledTools,
+        selectedImageSize,
+        reasoningEffort,
+        getEffectiveMcpOverrides
+    } = useModelStore()
     const { rerenderTrigger, shouldUpdateQuery, setShouldUpdateQuery, triggerRerender } =
         useChatStore()
     const seededNextId = useRef<string | null>(null)
@@ -104,6 +111,8 @@ export function useChatIntegration<IsShared extends boolean>({
                 },
                 enabledTools,
                 imageSize: selectedImageSize,
+                folderId,
+                reasoningEffort,
                 mcpOverrides
             }
         },

@@ -103,7 +103,7 @@ export function ResponsivePopoverContent({
         return (
             <SheetContent 
                 side={side} 
-                className={cn("max-h-[85vh] overflow-y-auto bg-popover", className)}
+                className={cn("max-h-[85dvh] overflow-y-auto bg-popover", className)}
             >
                 {(title || description) && (
                     <SheetHeader className="pb-0">

@@ -10,6 +10,11 @@ import { createServerFn } from "@tanstack/react-start"
 import { getHeaders } from "@tanstack/react-start/server"
 import { Providers } from "../providers"
 
+// Configurable site metadata
+const SITE_TITLE = "intern3.chat"
+const SITE_DESCRIPTION = "Powerful AI chatbot. By interns, for interns."
+const SITE_URL = "https://intern3.chat" // Update this to your actual domain
+
 const getAccessToken = createServerFn().handler(async (ctx) => {
     const headers = await getHeaders()
     if (!headers) return null
@@ -36,16 +41,78 @@ export const Route = createRootRouteWithContext<{
             },
             {
                 name: "viewport",
-                content: "width=device-width, initial-scale=1"
+                content: "initial-scale=1, viewport-fit=cover, width=device-width"
             },
             {
-                title: "intern3.chat" as string
+                title: SITE_TITLE
+            },
+            {
+                name: "description",
+                content: SITE_DESCRIPTION
+            },
+            // Theme color meta tags
+            {
+                name: "theme-color",
+                content: "oklch(1 0 0)",
+                media: "(prefers-color-scheme: light)"
+            },
+            {
+                name: "theme-color",
+                content: "oklch(0.145 0 0)",
+                media: "(prefers-color-scheme: dark)"
+            },
+            // Apple mobile web app
+            {
+                name: "apple-mobile-web-app-capable",
+                content: "yes"
+            },
+            // Open Graph meta tags
+            {
+                property: "og:title",
+                content: SITE_TITLE
+            },
+            {
+                property: "og:description",
+                content: SITE_DESCRIPTION
+            },
+            {
+                property: "og:image",
+                content: `${SITE_URL}/opengraph.jpg`
+            },
+            {
+                property: "og:url",
+                content: SITE_URL
+            },
+            {
+                property: "og:type",
+                content: "website"
+            },
+            {
+                property: "og:site_name",
+                content: SITE_TITLE
+            },
+            // Twitter Card meta tags
+            {
+                name: "twitter:card",
+                content: "summary_large_image"
+            },
+            {
+                name: "twitter:title",
+                content: SITE_TITLE
+            },
+            {
+                name: "twitter:description",
+                content: SITE_DESCRIPTION
+            },
+            {
+                name: "twitter:image",
+                content: `${SITE_URL}/opengraph.jpg`
             }
         ],
         links: [
             { rel: "stylesheet", href: globals_css },
             { rel: "icon", href: "/favicon.ico" },
-            { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+            { rel: "apple-touch-icon", href: "/apple-icon-180.png" },
             { rel: "manifest", href: "/manifest.webmanifest" },
             { rel: "preconnect", href: "https://fonts.googleapis.com" },
             {
@@ -59,14 +126,7 @@ export const Route = createRootRouteWithContext<{
             }
         ]
     }),
-    beforeLoad: async () => {
-        console.time("getAccessToken")
-        const token = await getAccessToken().catch(() => null)
-        console.timeEnd("getAccessToken")
-        return {
-            token
-        }
-    },
+
     component: RootComponent
 })
 
@@ -79,36 +139,16 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-    const { token } = Route.useRouteContext()
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
                 <ThemeScript />
-                <meta
-                    name="viewport"
-                    content="initial-scale=1, viewport-fit=cover, width=device-width"
-                />
-                <meta
-                    name="theme-color"
-                    media="(prefers-color-scheme: light)"
-                    content="oklch(1 0 0)"
-                />
-                <meta
-                    name="theme-color"
-                    media="(prefers-color-scheme: dark)"
-                    content="oklch(0.145 0 0)"
-                />
-
-                <link rel="apple-touch-icon" href="apple-icon-180.png" />
-
-                <meta name="apple-mobile-web-app-capable" content="yes" />
-                {/* <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" /> */}
-
+                <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
                 <HeadContent />
             </head>
 
             <body className="h-screen overflow-hidden">
-                <Providers initialToken={token}>{children}</Providers>
+                <Providers>{children}</Providers>
 
                 <Scripts />
             </body>

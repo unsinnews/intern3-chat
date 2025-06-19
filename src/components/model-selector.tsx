@@ -18,16 +18,50 @@ import {
 } from "@/components/ui/responsive-popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { api } from "@/convex/_generated/api"
-import type { SharedModel } from "@/convex/lib/models"
+import { MODELS_SHARED, type SharedModel } from "@/convex/lib/models"
 import { useSession } from "@/hooks/auth-hooks"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
-import { type DisplayModel, useAvailableModels } from "@/routes/settings/models-providers"
+
+import { type DisplayModel, useAvailableModels } from "@/lib/models-providers-shared"
 import { useConvexQuery } from "@convex-dev/react-query"
 import { Brain, Check, ChevronDown, Eye, Globe, Image } from "lucide-react"
 import * as React from "react"
 import { BlackForestLabsIcon, StabilityIcon } from "./brand-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
+
+export const getProviderIcon = (model: DisplayModel, isCustom: boolean) => {
+    if (isCustom) {
+        return <Badge className="text-xs">Custom</Badge>
+    }
+
+    // For shared models, try to determine provider from adapters
+    const sharedModel = model as SharedModel
+    if (sharedModel.adapters) {
+        const firstAdapter = sharedModel.adapters[0]
+        const icon = sharedModel.customIcon ?? firstAdapter?.split(":")[0]
+
+        switch (icon) {
+            case "i3-openai":
+            case "openai":
+                return <OpenAI />
+            case "i3-anthropic":
+            case "anthropic":
+                return <Claude />
+            case "i3-google":
+            case "google":
+                return <Gemini />
+            case "bflabs":
+                return <BlackForestLabsIcon />
+            case "stability-ai":
+                return <StabilityIcon />
+            default:
+                return <Badge className="text-xs">Built-in</Badge>
+        }
+    }
+
+    return <Badge className="text-xs">Built-in</Badge>
+}
 
 interface ModelItemProps {
     model: DisplayModel
@@ -44,39 +78,6 @@ const ModelItem = React.memo(function ModelItem({
     onClose,
     isCustom = false
 }: ModelItemProps) {
-    const getProviderIcon = () => {
-        if (isCustom) {
-            return <Badge className="text-xs">Custom</Badge>
-        }
-
-        // For shared models, try to determine provider from adapters
-        const sharedModel = model as SharedModel
-        if (sharedModel.adapters) {
-            const firstAdapter = sharedModel.adapters[0]
-            const icon = sharedModel.customIcon ?? firstAdapter?.split(":")[0]
-
-            switch (icon) {
-                case "i3-openai":
-                case "openai":
-                    return <OpenAI />
-                case "i3-anthropic":
-                case "anthropic":
-                    return <Claude />
-                case "i3-google":
-                case "google":
-                    return <Gemini />
-                case "bflabs":
-                    return <BlackForestLabsIcon />
-                case "stability-ai":
-                    return <StabilityIcon />
-                default:
-                    return <Badge className="text-xs">Built-in</Badge>
-            }
-        }
-
-        return <Badge className="text-xs">Built-in</Badge>
-    }
-
     const abilityRenderer = (ability: string, className: string) => {
         switch (ability) {
             case "reasoning":
@@ -130,7 +131,7 @@ const ModelItem = React.memo(function ModelItem({
                 model.id === selectedModel && "bg-accent/50 text-accent-foreground"
             )}
         >
-            {getProviderIcon()}
+            {getProviderIcon(model, isCustom)}
             <span className="flex items-center gap-2">
                 {model.name}
                 {model.id === selectedModel && <Check className="size-4" />}
@@ -171,25 +172,36 @@ export function ModelSelector({
     const { availableModels } = useAvailableModels(userSettings)
 
     const [open, setOpen] = React.useState(false)
-    const selectedModelData = availableModels.find((model) => model.id === selectedModel)
 
-    // Group models by type
-    const sharedModels = availableModels.filter((model) => !("isCustom" in model))
-    const customModels = availableModels.filter((model) => "isCustom" in model && model.isCustom)
+    // Memoize expensive computations to avoid repeating them on every render
+    const { selectedModelData, customModels, groupedSharedModels } = React.useMemo(() => {
+        // Find the model currently selected by the user
+        const selectedModelData = availableModels.find((model) => model.id === selectedModel)
 
-    const groupedSharedModels = Object.entries(
-        sharedModels.reduce<Record<string, DisplayModel[]>>((acc, model) => {
-            const sharedModel = model as SharedModel
-            const provider = sharedModel.adapters?.[0]?.split(":")[0] || "unknown"
-            const providerKey = provider.startsWith("i3-") ? "Built-in" : provider
+        // Separate shared and custom models
+        const sharedModels = availableModels.filter((model) => !("isCustom" in model))
+        const customModels = availableModels.filter(
+            (model) => "isCustom" in model && model.isCustom
+        )
 
-            if (!acc[providerKey]) {
-                acc[providerKey] = []
-            }
-            acc[providerKey].push(model)
-            return acc
-        }, {})
-    )
+        // Group shared models by provider
+        const groupedSharedModels = Object.entries(
+            sharedModels.reduce<Record<string, DisplayModel[]>>((acc, model) => {
+                const sharedModel = model as SharedModel
+                const provider = sharedModel.adapters?.[0]?.split(":")[0] || "unknown"
+                const providerKey = provider.startsWith("i3-") ? "Built-in" : provider
+
+                if (!acc[providerKey]) {
+                    acc[providerKey] = []
+                }
+                acc[providerKey].push(model)
+                return acc
+            }, {})
+        )
+
+        return { selectedModelData, customModels, groupedSharedModels }
+    }, [availableModels, selectedModel])
+
     const isMobile = useIsMobile()
 
     // React.useEffect(() => {
@@ -204,6 +216,13 @@ export function ModelSelector({
     //     return () => document.removeEventListener("keydown", down)
     // }, [])
 
+    const icon = React.useMemo(() => {
+        if (!selectedModelData) return null
+
+        const isCustom = !MODELS_SHARED.some((m) => m.id === selectedModelData.id)
+        return getProviderIcon(selectedModelData, isCustom)
+    }, [selectedModelData])
+
     return (
         <ResponsivePopover open={open} onOpenChange={setOpen}>
             <ResponsivePopoverTrigger asChild>
@@ -211,11 +230,21 @@ export function ModelSelector({
                     variant="ghost"
                     aria-expanded={open}
                     className={cn(
-                        "h-8 gap-2 border bg-secondary/70 font-normal text-xs backdrop-blur-lg sm:text-sm md:rounded-md",
-                        className
+                        "h-8 bg-secondary/70 font-normal text-xs backdrop-blur-lg sm:text-sm md:rounded-md",
+                        className,
+                        "!px-1.5 min-[390px]:!px-2 gap-0.5 min-[390px]:gap-2"
                     )}
                 >
-                    <span>{selectedModelData?.name}</span>
+                    {selectedModelData && (
+                        <div className="flex items-center gap-2">
+                            <div className="block min-[390px]:hidden">{icon}</div>
+                            <span className="hidden md:hidden min-[390px]:block">
+                                {(selectedModelData as SharedModel)?.shortName ||
+                                    selectedModelData?.name}
+                            </span>
+                            <span className="hidden md:block">{selectedModelData?.name}</span>
+                        </div>
+                    )}
                     <ChevronDown className="ml-auto h-4 w-4" />
                 </Button>
             </ResponsivePopoverTrigger>

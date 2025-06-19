@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
 import { ArrowRight, GitFork } from "lucide-react"
+import { useStickToBottom } from "use-stick-to-bottom"
 import { Skeleton } from "./ui/skeleton"
 
 interface SharedChatProps {
@@ -20,6 +21,10 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
     const router = useRouter()
     const { data: session } = authClient.useSession()
     const forkThread = useMutation(api.threads.forkSharedThread)
+    const { contentRef, scrollRef } = useStickToBottom({
+        initial: "instant",
+        resize: "instant"
+    })
 
     const { messages, thread } = useChatIntegration({
         sharedThreadId,
@@ -56,7 +61,12 @@ export function SharedChat({ sharedThreadId }: SharedChatProps) {
 
     return (
         <div className="relative mb-80 flex h-screen flex-col">
-            <Messages messages={messages} status="ready" />
+            <Messages
+                messages={messages}
+                status="ready"
+                contentRef={contentRef}
+                scrollRef={scrollRef}
+            />
             <div className="absolute right-0 bottom-2 left-0">
                 {/* Fork prompt instead of input */}
                 <div className="border-t bg-background p-4">

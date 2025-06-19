@@ -4,6 +4,8 @@ import { type AIConfig, loadAIConfig, saveAIConfig } from "@/lib/persistence"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+export type ReasoningEffort = "off" | "low" | "medium" | "high"
+
 export type ModelStore = {
     selectedModel: string | null
     setSelectedModel: (model: string | null) => void
@@ -13,6 +15,9 @@ export type ModelStore = {
 
     selectedImageSize: ImageSize
     setSelectedImageSize: (imageSize: ImageSize) => void
+
+    reasoningEffort: ReasoningEffort
+    setReasoningEffort: (effort: ReasoningEffort) => void
 
     mcpOverrides: Record<string, Record<string, boolean>>
     setMcpOverride: (threadId: string, serverName: string, enabled: boolean) => void
@@ -29,9 +34,10 @@ const initialConfig = loadAIConfig()
 const persistConfig = (
     selectedModel: string | null,
     enabledTools: AbilityId[],
-    selectedImageSize: ImageSize
+    selectedImageSize: ImageSize,
+    reasoningEffort: ReasoningEffort
 ) => {
-    const config: AIConfig = { selectedModel, enabledTools, selectedImageSize }
+    const config: AIConfig = { selectedModel, enabledTools, selectedImageSize, reasoningEffort }
     saveAIConfig(config)
 }
 
@@ -41,13 +47,19 @@ export const useModelStore = create<ModelStore>()(
             selectedModel: initialConfig.selectedModel,
             enabledTools: initialConfig.enabledTools as AbilityId[],
             selectedImageSize: initialConfig.selectedImageSize as ImageSize,
+            reasoningEffort: initialConfig.reasoningEffort as ReasoningEffort,
             mcpOverrides: {},
             defaultMcpOverrides: {},
             setSelectedModel: (model) => {
                 const currentState = get()
                 if (currentState.selectedModel !== model) {
                     set({ selectedModel: model })
-                    persistConfig(model, currentState.enabledTools, currentState.selectedImageSize)
+                    persistConfig(
+                        model,
+                        currentState.enabledTools,
+                        currentState.selectedImageSize,
+                        currentState.reasoningEffort
+                    )
                 }
             },
             setEnabledTools: (tools) => {
@@ -58,14 +70,36 @@ export const useModelStore = create<ModelStore>()(
 
                 if (hasChanged) {
                     set({ enabledTools: tools })
-                    persistConfig(currentState.selectedModel, tools, currentState.selectedImageSize)
+                    persistConfig(
+                        currentState.selectedModel,
+                        tools,
+                        currentState.selectedImageSize,
+                        currentState.reasoningEffort
+                    )
                 }
             },
             setSelectedImageSize: (imageSize) => {
                 const currentState = get()
                 if (currentState.selectedImageSize !== imageSize) {
                     set({ selectedImageSize: imageSize })
-                    persistConfig(currentState.selectedModel, currentState.enabledTools, imageSize)
+                    persistConfig(
+                        currentState.selectedModel,
+                        currentState.enabledTools,
+                        imageSize,
+                        currentState.reasoningEffort
+                    )
+                }
+            },
+            setReasoningEffort: (effort) => {
+                const currentState = get()
+                if (currentState.reasoningEffort !== effort) {
+                    set({ reasoningEffort: effort })
+                    persistConfig(
+                        currentState.selectedModel,
+                        currentState.enabledTools,
+                        currentState.selectedImageSize,
+                        effort
+                    )
                 }
             },
             setMcpOverride: (threadId, serverName, enabled) => {

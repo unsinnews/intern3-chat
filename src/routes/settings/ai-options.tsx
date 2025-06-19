@@ -8,10 +8,10 @@ import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
 import type { MCPServerConfig } from "@/convex/schema/settings"
 import { useSession } from "@/hooks/auth-hooks"
+import { SEARCH_PROVIDERS } from "@/lib/models-providers-shared"
 import { useConvexMutation, useConvexQuery } from "@convex-dev/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import type { Infer } from "convex/values"
-import { Globe } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -19,7 +19,35 @@ export const Route = createFileRoute("/settings/ai-options")({
     component: AIOptionsSettings
 })
 
-type SearchProvider = "firecrawl" | "brave"
+type SearchProvider = "firecrawl" | "brave" | "tavily" | "serper"
+
+// Helper to get available search providers (BYOK > Server priority)
+const getAvailableSearchProviders = (userSettings: any): SearchProvider[] => {
+    const available: SearchProvider[] = []
+    const generalProviders = userSettings?.generalProviders || {}
+
+    // Check each search provider
+    for (const provider of SEARCH_PROVIDERS) {
+        const byokConfig = generalProviders[provider.id]
+        const hasBYOK = byokConfig?.enabled && byokConfig?.encryptedKey
+        const hasServer = true // Server always has search providers available
+
+        if (hasBYOK || hasServer) {
+            available.push(provider.id)
+        }
+    }
+
+    return available
+}
+
+// Helper to get provider display status
+const getProviderStatus = (providerId: SearchProvider, userSettings: any): "BYOK" | "Server" => {
+    const generalProviders = userSettings?.generalProviders || {}
+    const byokConfig = generalProviders[providerId]
+    const hasBYOK = byokConfig?.enabled && byokConfig?.encryptedKey
+
+    return hasBYOK ? "BYOK" : "Server"
+}
 
 function AIOptionsSettings() {
     const session = useSession()
@@ -30,9 +58,11 @@ function AIOptionsSettings() {
         session.user?.id ? {} : "skip"
     )
 
-    const updateSettings = useConvexMutation(api.settings.updateUserSettings)
+    const updateSettings = useConvexMutation(api.settings.updateUserSettingsPartial)
 
     if (!session.user?.id || !userSettings) return null
+
+    const availableSearchProviders = getAvailableSearchProviders(userSettings)
 
     const handleSearchProviderChange = async (provider: SearchProvider) => {
         if (provider === userSettings.searchProvider) return
@@ -40,43 +70,8 @@ function AIOptionsSettings() {
 
         setIsLoading(true)
         try {
-            // Include current state for all core providers
-            const coreProviders: Record<string, { enabled: boolean; newKey?: string }> = {}
-            for (const [id, provider] of Object.entries(userSettings.coreAIProviders)) {
-                coreProviders[id] = {
-                    enabled: provider.enabled
-                }
-            }
-
-            // Include current state for all custom providers
-            const customProviders: Record<
-                string,
-                { name: string; enabled: boolean; endpoint: string; newKey?: string }
-            > = {}
-            for (const [id, provider] of Object.entries(userSettings.customAIProviders)) {
-                customProviders[id] = {
-                    name: provider.name,
-                    enabled: provider.enabled,
-                    endpoint: provider.endpoint
-                }
-            }
-
-            await updateSettings({
-                userId: session.user!.id,
-                baseSettings: {
-                    userId: session.user!.id,
-                    searchProvider: provider,
-                    searchIncludeSourcesByDefault: userSettings.searchIncludeSourcesByDefault,
-                    customModels: userSettings.customModels,
-                    titleGenerationModel: userSettings.titleGenerationModel,
-                    customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory,
-                    mcpServers: userSettings.mcpServers,
-                    customization: userSettings.customization
-                },
-                coreProviders,
-                customProviders
-            })
+            await updateSettings({ searchProvider: provider })
+            toast.success("Search provider updated")
         } catch (error) {
             toast.error("Failed to update search provider")
             console.error(error)
@@ -86,49 +81,13 @@ function AIOptionsSettings() {
     }
 
     const handleIncludeSourcesToggle = async (includeSourcesByDefault: boolean) => {
-        if (includeSourcesByDefault === userSettings.searchIncludeSourcesByDefault) return
         if (!session.user) return
 
         setIsLoading(true)
         try {
-            // Include current state for all core providers
-            const coreProviders: Record<string, { enabled: boolean; newKey?: string }> = {}
-            for (const [id, provider] of Object.entries(userSettings.coreAIProviders)) {
-                coreProviders[id] = {
-                    enabled: provider.enabled
-                }
-            }
-
-            // Include current state for all custom providers
-            const customProviders: Record<
-                string,
-                { name: string; enabled: boolean; endpoint: string; newKey?: string }
-            > = {}
-            for (const [id, provider] of Object.entries(userSettings.customAIProviders)) {
-                customProviders[id] = {
-                    name: provider.name,
-                    enabled: provider.enabled,
-                    endpoint: provider.endpoint
-                }
-            }
-
             await updateSettings({
-                userId: session.user!.id,
-                baseSettings: {
-                    userId: session.user!.id,
-                    searchProvider: userSettings.searchProvider,
-                    searchIncludeSourcesByDefault: includeSourcesByDefault,
-                    customModels: userSettings.customModels,
-                    titleGenerationModel: userSettings.titleGenerationModel,
-                    customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory,
-                    mcpServers: userSettings.mcpServers,
-                    customization: userSettings.customization
-                },
-                coreProviders,
-                customProviders
+                searchIncludeSourcesByDefault: includeSourcesByDefault
             })
-
             toast.success(
                 `Search sources ${includeSourcesByDefault ? "enabled" : "disabled"} by default`
             )
@@ -145,48 +104,11 @@ function AIOptionsSettings() {
 
         setIsLoading(true)
         try {
-            // Include current state for all core providers
-            const coreProviders: Record<string, { enabled: boolean; newKey?: string }> = {}
-            for (const [id, provider] of Object.entries(userSettings.coreAIProviders)) {
-                coreProviders[id] = {
-                    enabled: provider.enabled
-                }
-            }
-
-            // Include current state for all custom providers
-            const customProviders: Record<
-                string,
-                { name: string; enabled: boolean; endpoint: string; newKey?: string }
-            > = {}
-            for (const [id, provider] of Object.entries(userSettings.customAIProviders)) {
-                customProviders[id] = {
-                    name: provider.name,
-                    enabled: provider.enabled,
-                    endpoint: provider.endpoint
-                }
-            }
-
             await updateSettings({
-                userId: session.user!.id,
-                baseSettings: {
-                    userId: session.user!.id,
-                    searchProvider: userSettings.searchProvider,
-                    searchIncludeSourcesByDefault: userSettings.searchIncludeSourcesByDefault,
-                    customModels: userSettings.customModels,
-                    titleGenerationModel: userSettings.titleGenerationModel,
-                    customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory,
-                    mcpServers: userSettings.mcpServers,
-                    customization: userSettings.customization
-                },
-                coreProviders,
-                customProviders,
-                supermemory: {
-                    enabled,
-                    newKey
+                generalProviderUpdates: {
+                    supermemory: { enabled, newKey }
                 }
             })
-
             toast.success(`Supermemory ${enabled ? "enabled" : "disabled"}`)
         } catch (error) {
             toast.error("Failed to update Supermemory settings")
@@ -202,46 +124,8 @@ function AIOptionsSettings() {
 
         setIsLoading(true)
         try {
-            // Include current state for all core providers
-            const coreProviders: Record<string, { enabled: boolean; newKey?: string }> = {}
-            for (const [id, provider] of Object.entries(userSettings.coreAIProviders)) {
-                coreProviders[id] = {
-                    enabled: provider.enabled
-                }
-            }
-
-            // Include current state for all custom providers
-            const customProviders: Record<
-                string,
-                { name: string; enabled: boolean; endpoint: string; newKey?: string }
-            > = {}
-            for (const [id, provider] of Object.entries(userSettings.customAIProviders)) {
-                customProviders[id] = {
-                    name: provider.name,
-                    enabled: provider.enabled,
-                    endpoint: provider.endpoint
-                }
-            }
-
-            await updateSettings({
-                userId: session.user!.id,
-                baseSettings: {
-                    userId: session.user!.id,
-                    searchProvider: userSettings.searchProvider,
-                    searchIncludeSourcesByDefault: userSettings.searchIncludeSourcesByDefault,
-                    customModels: userSettings.customModels,
-                    titleGenerationModel: userSettings.titleGenerationModel,
-                    customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory,
-                    mcpServers: servers,
-                    customization: userSettings.customization
-                },
-                coreProviders,
-                customProviders,
-                mcpServers: servers
-            })
-
-            toast.success("MCP servers updated successfully")
+            await updateSettings({ mcpServers: servers })
+            toast.success("MCP servers updated")
         } catch (error) {
             toast.error("Failed to update MCP servers")
             console.error(error)
@@ -286,25 +170,27 @@ function AIOptionsSettings() {
                     <div>
                         <h3 className="font-semibold text-foreground">Web Search Provider</h3>
                         <p className="mt-1 text-muted-foreground text-sm">
-                            Choose which service to use for web searches
+                            Choose which service to use for web searches. BYOK providers take
+                            priority over server providers.
                         </p>
                     </div>
 
-                    <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
-                        <SearchProviderCard
-                            provider="firecrawl"
-                            isSelected={userSettings.searchProvider === "firecrawl"}
-                            onSelect={handleSearchProviderChange}
-                            title="Firecrawl"
-                            description="Advanced web scraping with content extraction and markdown support"
-                        />
-                        <SearchProviderCard
-                            provider="brave"
-                            isSelected={userSettings.searchProvider === "brave"}
-                            onSelect={handleSearchProviderChange}
-                            title="Brave Search"
-                            description="Fast, privacy-focused search results from Brave's independent index"
-                        />
+                    <div className="grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2">
+                        {availableSearchProviders.map((providerId) => {
+                            const provider = SEARCH_PROVIDERS.find((p) => p.id === providerId)!
+                            const status = getProviderStatus(providerId, userSettings)
+
+                            return (
+                                <SearchProviderCard
+                                    key={providerId}
+                                    provider={providerId}
+                                    isSelected={userSettings.searchProvider === providerId}
+                                    onSelect={handleSearchProviderChange}
+                                    title={`${provider.name} ${status === "BYOK" ? "(BYOK)" : ""}`}
+                                    description={provider.description}
+                                />
+                            )
+                        })}
                     </div>
                 </div>
 
@@ -318,20 +204,13 @@ function AIOptionsSettings() {
                         </p>
                     </div>
 
-                    <Card className="border-0 bg-muted p-4">
+                    <Card className="p-4">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex size-8 items-center justify-center rounded-full bg-background">
-                                    <Globe className="h-4 w-4 text-foreground" />
-                                </div>
-                                <div>
-                                    <Label className="font-medium text-foreground">
-                                        Include sources by default
-                                    </Label>
-                                    <p className="mt-1 text-muted-foreground text-sm">
-                                        When enabled, search results will include source URLs and
-                                        content snippets
-                                    </p>
+                            <div className="space-y-0.5">
+                                <Label className="text-base">Include Sources by Default</Label>
+                                <div className="text-muted-foreground text-sm">
+                                    Automatically include source links and citations in search
+                                    responses
                                 </div>
                             </div>
                             <Switch

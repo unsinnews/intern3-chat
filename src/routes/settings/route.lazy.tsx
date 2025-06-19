@@ -5,19 +5,10 @@ import { api } from "@/convex/_generated/api"
 import { useSession } from "@/hooks/auth-hooks"
 import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
-import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router"
+import { Outlet, createLazyFileRoute, useLocation, useNavigate } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
-import {
-    ArrowLeft,
-    BarChart3,
-    Bot,
-    Key,
-    PaintBucket,
-    Paperclip,
-    Sparkles,
-    User
-} from "lucide-react"
-import type { ReactNode } from "react"
+import { ArrowLeft, BarChart3, Bot, Box, Key, PaintBucket, Paperclip, User } from "lucide-react"
+import { type ReactNode, useEffect } from "react"
 
 interface SettingsLayoutProps {
     children?: ReactNode
@@ -32,9 +23,14 @@ const settingsNavItems = [
         icon: User
     },
     {
-        title: "Models/Providers",
-        href: "/settings/models-providers",
+        title: "Providers",
+        href: "/settings/providers",
         icon: Key
+    },
+    {
+        title: "Models",
+        href: "/settings/models",
+        icon: Box
     },
     {
         title: "AI Options",
@@ -44,7 +40,7 @@ const settingsNavItems = [
     {
         title: "Customization",
         href: "/settings/customization",
-        icon: Sparkles
+        icon: PaintBucket
     },
     {
         title: "Usage Analytics",
@@ -63,15 +59,7 @@ const settingsNavItems = [
     }
 ]
 
-export const Route = createFileRoute("/settings")({
-    beforeLoad: ({ location }) => {
-        // Redirect to profile page if we're at /settings exactly
-        if (location.pathname === "/settings") {
-            throw redirect({
-                to: "/settings/profile"
-            })
-        }
-    },
+export const Route = createLazyFileRoute("/settings")({
     component: SettingsPage
 })
 
@@ -117,6 +105,16 @@ const Inner = () => {
 
 function SettingsPage({ title, description }: SettingsLayoutProps) {
     const location = useLocation()
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        if (location.pathname === "/settings" || location.pathname === "/settings/") {
+            navigate({
+                to: "/settings/profile",
+                replace: true
+            })
+        }
+    }, [location.pathname, navigate])
 
     return (
         <div className="flex h-screen flex-col overflow-y-auto bg-background">

@@ -1,3 +1,4 @@
+import type { Id } from "@/convex/_generated/dataModel"
 import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import type { FileUIPart } from "@ai-sdk/ui-utils"
 import type { UIMessage } from "ai"
@@ -5,11 +6,18 @@ import { nanoid } from "nanoid"
 import { useCallback } from "react"
 import { useChatIntegration } from "./use-chat-integration"
 
-export function useChatActions({ threadId }: { threadId: string | undefined }) {
+export function useChatActions({
+    threadId,
+    folderId
+}: {
+    threadId: string | undefined
+    folderId?: Id<"projects">
+}) {
     const { uploadedFiles, setUploadedFiles, setTargetFromMessageId, setTargetMode } =
         useChatStore()
     const { status, append, stop, messages, setMessages, reload } = useChatIntegration({
-        threadId
+        threadId,
+        folderId
     })
 
     const handleInputSubmit = useCallback(

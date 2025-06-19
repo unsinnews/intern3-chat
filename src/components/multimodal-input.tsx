@@ -33,12 +33,13 @@ import {
     isSupportedFile,
     isTextMimeType
 } from "@/lib/file_constants"
-import { useModelStore } from "@/lib/model-store"
+import { type ReasoningEffort, useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
 import { useLocation } from "@tanstack/react-router"
 import {
     ArrowUp,
+    Brain,
     Code,
     FileType,
     Image as ImageIcon,
@@ -47,7 +48,8 @@ import {
     Paperclip,
     Square,
     Upload,
-    X
+    X,
+    Zap
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -116,6 +118,55 @@ const AspectRatioSelector = ({ selectedModel }: { selectedModel: string | null }
     )
 }
 
+const ReasoningEffortSelector = ({ selectedModel }: { selectedModel: string | null }) => {
+    const { reasoningEffort, setReasoningEffort } = useModelStore()
+
+    const [modelSupportsEffortControl, modelSupportsDisablingReasoning] = useMemo(() => {
+        if (!selectedModel) return [false, false]
+        const model = MODELS_SHARED.find((m) => m.id === selectedModel)
+        return [
+            model?.abilities.includes("effort_control") ?? false,
+            model?.supportsDisablingReasoning ?? false
+        ]
+    }, [selectedModel])
+
+    if (!modelSupportsEffortControl) return null
+
+    const formatEffortForDisplay = (effort: ReasoningEffort) => {
+        return effort.charAt(0).toUpperCase() + effort.slice(1)
+    }
+
+    return (
+        <PromptInputAction tooltip="Select reasoning effort">
+            <Select value={reasoningEffort} onValueChange={setReasoningEffort}>
+                <SelectTrigger className="!h-8 w-auto gap-0.5 border-0 bg-secondary/70 px-1.5 font-normal text-xs backdrop-blur-lg transition-colors hover:bg-accent sm:text-sm">
+                    <div className="hidden items-center gap-1.5 sm:flex">
+                        <Brain className="size-4" />
+                        <SelectValue />
+                    </div>
+                    <Zap className="size-4 sm:hidden" />
+                </SelectTrigger>
+                <SelectContent>
+                    {modelSupportsDisablingReasoning && (
+                        <SelectItem value="off" className="text-xs sm:text-sm">
+                            {formatEffortForDisplay("off")}
+                        </SelectItem>
+                    )}
+                    <SelectItem value="low" className="text-xs sm:text-sm">
+                        {formatEffortForDisplay("low")}
+                    </SelectItem>
+                    <SelectItem value="medium" className="text-xs sm:text-sm">
+                        {formatEffortForDisplay("medium")}
+                    </SelectItem>
+                    <SelectItem value="high" className="text-xs sm:text-sm">
+                        {formatEffortForDisplay("high")}
+                    </SelectItem>
+                </SelectContent>
+            </Select>
+        </PromptInputAction>
+    )
+}
+
 export function MultimodalInput({
     onSubmit,
     status
@@ -174,7 +225,7 @@ export function MultimodalInput({
     const [
         modelSupportsVision,
         modelSupportsFunctionCalling,
-        modelSupportsReasoning,
+        _modelSupportsReasoning,
         isImageModel
     ] = useMemo(() => {
         if (!selectedModel) return [false, false, false, false]
@@ -533,7 +584,7 @@ export function MultimodalInput({
         const isText = fileTypeInfo.isText
 
         return (
-            <div className="max-h-[70vh] w-full overflow-auto">
+            <div className="max-h-[70dvh] w-full overflow-auto">
                 {isImage ? (
                     <img
                         src={dialogFile.content}
@@ -604,7 +655,7 @@ export function MultimodalInput({
     return (
         <>
             <div
-                className="@container w-full md:px-2"
+                className="@container w-full px-1"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -688,9 +739,10 @@ export function MultimodalInput({
                                             modelSupportsFunctionCalling={
                                                 modelSupportsFunctionCalling
                                             }
-                                            modelSupportsReasoning={modelSupportsReasoning}
                                         />
                                     </PromptInputAction>
+
+                                    <ReasoningEffortSelector selectedModel={selectedModel} />
                                 </>
                             )}
                         </div>
@@ -736,7 +788,7 @@ export function MultimodalInput({
                     }
                 }}
             >
-                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90vh] max-w-full">
+                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90dvh] max-w-full">
                     {dialogFile && (
                         <>
                             <DialogHeader>

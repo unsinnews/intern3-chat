@@ -20,6 +20,10 @@ export function applyThemeToElement(themeState: ThemeState, element: HTMLElement
     // Apply mode-specific variables
     const modeVars = themeState.cssVars[themeState.currentMode]
     Object.entries(modeVars).forEach(([key, value]) => {
+        if (key in themeState.cssVars.theme) {
+            return
+        }
+
         element.style.setProperty(`--${key}`, value)
     })
 

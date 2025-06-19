@@ -1,29 +1,5 @@
 import { CommandK } from "@/components/commandk"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle
-} from "@/components/ui/alert-dialog"
 import { Button, buttonVariants } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
-} from "@/components/ui/dialog"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
     Sidebar,
     SidebarContent,
@@ -32,279 +8,27 @@ import {
     SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarRail
+    SidebarRail,
+    useSidebar
 } from "@/components/ui/sidebar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
+import { useFunction } from "@/hooks/use-function"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { authClient } from "@/lib/auth-client"
-import { useDiskCachedPaginatedQuery } from "@/lib/convex-cached-query"
+import { useDiskCachedPaginatedQuery, useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { useNavigate, useParams } from "@tanstack/react-router"
-import { useMutation } from "convex/react"
+import { useNavigate } from "@tanstack/react-router"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import {
-    ArrowBigUp,
-    Edit3,
-    FolderOpen,
-    Loader2,
-    MoreHorizontal,
-    Pin,
-    Search,
-    Trash2
-} from "lucide-react"
+import { Loader2, Pin, Search } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { toast } from "sonner"
-
-interface Thread {
-    _id: Id<"threads">
-    title: string
-    createdAt: number
-    authorId: string
-    pinned?: boolean
-}
-
-function ThreadItem({ thread }: { thread: Thread }) {
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [showRenameDialog, setShowRenameDialog] = useState(false)
-    const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const [renameValue, setRenameValue] = useState("")
-    const [isRenaming, setIsRenaming] = useState(false)
-    const deleteThreadMutation = useMutation(api.threads.deleteThread)
-    const renameThreadMutation = useMutation(api.threads.renameThread)
-    const togglePinMutation = useMutation(api.threads.togglePinThread)
-    const params = useParams({ strict: false }) as { threadId?: string }
-    const isActive = params.threadId === thread._id
-    const navigate = useNavigate()
-
-    const handleDelete = async () => {
-        try {
-            if (isActive) {
-                navigate({ to: "/", replace: true })
-            }
-            await deleteThreadMutation({ threadId: thread._id })
-            setShowDeleteDialog(false)
-        } catch (error) {
-            console.error("Failed to delete thread:", error)
-            toast.error("Failed to delete thread")
-        }
-    }
-
-    const handleTogglePin = async () => {
-        const pinned = thread.pinned
-        try {
-            await togglePinMutation({ threadId: thread._id })
-        } catch (error) {
-            console.error("Failed to toggle pin:", error)
-            toast.error(`Failed to ${pinned ? "unpin" : "pin"} thread`)
-        }
-    }
-
-    const handleRename = async () => {
-        const trimmedValue = renameValue.trim()
-        if (!trimmedValue) {
-            toast.error("Thread name cannot be empty")
-            return
-        }
-
-        if (trimmedValue === thread.title) {
-            setShowRenameDialog(false)
-            setRenameValue("")
-            return
-        }
-
-        setIsRenaming(true)
-        try {
-            const result = await renameThreadMutation({
-                threadId: thread._id,
-                title: trimmedValue
-            })
-
-            if (result && "error" in result) {
-                toast.error(
-                    typeof result.error === "string" ? result.error : "Failed to rename thread"
-                )
-            } else {
-                toast.success("Thread renamed successfully")
-                setShowRenameDialog(false)
-                setRenameValue("")
-            }
-        } catch (error) {
-            console.error("Failed to rename thread:", error)
-            toast.error("Failed to rename thread")
-        } finally {
-            setIsRenaming(false)
-        }
-    }
-
-    const openRenameDialog = () => {
-        setRenameValue(thread.title)
-        setShowRenameDialog(true)
-    }
-
-    return (
-        <>
-            <SidebarMenuItem>
-                <div
-                    className={cn(
-                        "group/item flex w-full items-center rounded-sm hover:bg-accent/50",
-                        isMenuOpen && "bg-accent/50",
-                        isActive && "bg-accent/60"
-                    )}
-                >
-                    <SidebarMenuButton
-                        asChild
-                        className={cn("flex-1 hover:bg-transparent", isActive && "text-foreground")}
-                    >
-                        <Link to="/thread/$threadId" params={{ threadId: thread._id }}>
-                            <span className="truncate">{thread.title}</span>
-                        </Link>
-                    </SidebarMenuButton>
-
-                    <DropdownMenu onOpenChange={setIsMenuOpen}>
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                type="button"
-                                className={cn(
-                                    "rounded p-1 transition-opacity",
-                                    isMenuOpen || "opacity-0 group-hover/item:opacity-100"
-                                )}
-                            >
-                                <MoreHorizontal className="mr-1 h-4 w-4" />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={openRenameDialog}>
-                                <Edit3 className="h-4 w-4" />
-                                Rename
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleTogglePin}>
-                                <Pin className="h-4 w-4" />
-                                {thread.pinned ? "Unpin" : "Pin"}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => setShowDeleteDialog(true)}
-                                variant="destructive"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </SidebarMenuItem>
-
-            {/* Rename Dialog */}
-            <Dialog
-                open={showRenameDialog}
-                onOpenChange={(open) => {
-                    if (!isRenaming) {
-                        setShowRenameDialog(open)
-                        if (!open) {
-                            setRenameValue("")
-                        }
-                    }
-                }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Rename Thread</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <Input
-                            value={renameValue}
-                            onChange={(e) => setRenameValue(e.target.value)}
-                            placeholder="Enter thread name"
-                            autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && !isRenaming) {
-                                    handleRename()
-                                } else if (e.key === "Escape" && !isRenaming) {
-                                    setShowRenameDialog(false)
-                                }
-                            }}
-                            disabled={isRenaming}
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowRenameDialog(false)}
-                            disabled={isRenaming}
-                        >
-                            Cancel
-                        </Button>
-                        <Button onClick={handleRename} disabled={isRenaming || !renameValue.trim()}>
-                            {isRenaming ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Renaming...
-                                </>
-                            ) : (
-                                "Rename"
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Dialog */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Thread</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete{" "}
-                            <span className="font-bold">{thread.title?.trim()}</span>? <br /> This
-                            action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    )
-}
-
-function ThreadsGroup({
-    title,
-    threads,
-    icon
-}: {
-    title: string
-    threads: Thread[]
-    icon?: React.ReactNode
-}) {
-    if (threads.length === 0) return null
-
-    return (
-        <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2">
-                {icon}
-                {title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-                <SidebarMenu>
-                    {threads.map((thread) => (
-                        <ThreadItem key={thread._id} thread={thread} />
-                    ))}
-                </SidebarMenu>
-            </SidebarGroupContent>
-        </SidebarGroup>
-    )
-}
+import { LogoMark } from "./logo"
+import { FolderItem } from "./threads/folder-item"
+import { NewFolderButton } from "./threads/new-folder-button"
+import { ThreadItem } from "./threads/thread-item"
+import { ThreadItemDialogs } from "./threads/thread-item-dialogs"
+import type { Thread } from "./threads/types"
 
 function groupThreadsByTime(threads: Thread[]) {
     const now = new Date()
@@ -344,6 +68,46 @@ function groupThreadsByTime(threads: Thread[]) {
     }
 }
 
+function ThreadsGroup({
+    title,
+    threads,
+    icon,
+    onOpenRenameDialog,
+    onOpenMoveDialog,
+    onOpenDeleteDialog
+}: {
+    title: string
+    threads: Thread[]
+    icon?: React.ReactNode
+    onOpenRenameDialog?: (thread: Thread) => void
+    onOpenMoveDialog?: (thread: Thread) => void
+    onOpenDeleteDialog?: (thread: Thread) => void
+}) {
+    if (threads.length === 0) return null
+
+    return (
+        <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+                {icon}
+                {title}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+                <SidebarMenu>
+                    {threads.map((thread) => (
+                        <ThreadItem
+                            key={thread._id}
+                            thread={thread}
+                            onOpenRenameDialog={onOpenRenameDialog}
+                            onOpenMoveDialog={onOpenMoveDialog}
+                            onOpenDeleteDialog={onOpenDeleteDialog}
+                        />
+                    ))}
+                </SidebarMenu>
+            </SidebarGroupContent>
+        </SidebarGroup>
+    )
+}
+
 function LoadingSkeleton() {
     return <></>
 }
@@ -361,21 +125,48 @@ function EmptyState({ message }: { message: string }) {
 export function ThreadsSidebar() {
     const [showGradient, setShowGradient] = useState(false)
     const [commandKOpen, setCommandKOpen] = useState(false)
+
+    // Dialog state
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [showRenameDialog, setShowRenameDialog] = useState(false)
+    const [showMoveDialog, setShowMoveDialog] = useState(false)
+    const [currentThread, setCurrentThread] = useState<Thread | null>(null)
+
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const { data: session } = authClient.useSession()
     const navigate = useNavigate()
+    const isMobile = useIsMobile()
+    const { setOpen, setOpenMobile } = useSidebar()
 
+    // Get all threads (not filtered by project anymore)
     const {
-        results: threads,
+        results: allThreads,
         status,
         loadMore
     } = useDiskCachedPaginatedQuery(
         api.threads.getUserThreadsPaginated,
-        { key: "threads-sidebar", maxItems: 25 },
-        session?.user?.id ? {} : "skip",
         {
-            initialNumItems: 25
+            key: "threads",
+            maxItems: 50
+        },
+        session?.user?.id
+            ? {
+                  includeInFolder: false
+              }
+            : "skip",
+        {
+            initialNumItems: 50
         }
+    )
+
+    // Get projects
+    const projects = useDiskCachedQuery(
+        api.folders.getUserProjects,
+        {
+            key: "projects",
+            default: []
+        },
+        session?.user?.id ? {} : "skip"
     )
 
     const isLoading = false
@@ -384,17 +175,60 @@ export function ThreadsSidebar() {
         hasMore: status === "CanLoadMore",
         isLoading: false,
         onLoadMore: () => loadMore(25),
-        rootMargin: "200px", // Start loading when sentinel is 200px away from viewport
+        rootMargin: "200px",
         threshold: 0.1
     })
 
     const isAuthenticated = Boolean(session?.user?.id)
-    const hasError = false // Remove error handling since we return empty results instead
-    const threadsData = Array.isArray(threads) ? threads : []
+    const hasError = false
 
-    const groupedThreads = useMemo(() => {
-        return groupThreadsByTime(threadsData)
-    }, [threadsData])
+    const groupedNonProjectThreads = useMemo(() => {
+        return groupThreadsByTime(allThreads)
+    }, [allThreads])
+
+    // Dialog handlers
+    const handleOpenRenameDialog = useFunction((thread: Thread) => {
+        setCurrentThread(thread)
+        setShowRenameDialog(true)
+    })
+
+    const handleOpenMoveDialog = useFunction((thread: Thread) => {
+        setCurrentThread(thread)
+        setShowMoveDialog(true)
+    })
+
+    const handleOpenDeleteDialog = useFunction((thread: Thread) => {
+        setCurrentThread(thread)
+        setShowDeleteDialog(true)
+    })
+
+    const handleCloseRenameDialog = useFunction(() => {
+        setShowRenameDialog(false)
+        // Keep currentThread until animation completes
+        setTimeout(() => {
+            if (!showRenameDialog && !showMoveDialog && !showDeleteDialog) {
+                setCurrentThread(null)
+            }
+        }, 150)
+    })
+
+    const handleCloseMoveDialog = useFunction(() => {
+        setShowMoveDialog(false)
+        setTimeout(() => {
+            if (!showRenameDialog && !showMoveDialog && !showDeleteDialog) {
+                setCurrentThread(null)
+            }
+        }, 150)
+    })
+
+    const handleCloseDeleteDialog = useFunction(() => {
+        setShowDeleteDialog(false)
+        setTimeout(() => {
+            if (!showRenameDialog && !showMoveDialog && !showDeleteDialog) {
+                setCurrentThread(null)
+            }
+        }, 150)
+    })
 
     // Keyboard shortcut for new chat (Cmd+Shift+O)
     useEffect(() => {
@@ -420,14 +254,12 @@ export function ThreadsSidebar() {
             setShowGradient(hasScrollableContent && !isScrolledToBottom)
         }
 
-        handleScroll() // Initial check
+        handleScroll()
         container.addEventListener("scroll", handleScroll)
 
-        // Watch for container size changes
         const resizeObserver = new ResizeObserver(handleScroll)
         resizeObserver.observe(container)
 
-        // Watch for DOM content changes (threads added/removed)
         const mutationObserver = new MutationObserver(handleScroll)
         mutationObserver.observe(container, {
             childList: true,
@@ -450,25 +282,82 @@ export function ThreadsSidebar() {
             return <LoadingSkeleton />
         }
 
-        if (hasError) {
+        if (hasError || "error" in projects) {
             return <></>
         }
 
-        if (threadsData.length === 0) {
+        const hasProjects = projects.length > 0
+        const hasNonProjectThreads = allThreads.length > 0
+
+        if (!hasProjects && !hasNonProjectThreads) {
             return <EmptyState message="No threads found" />
         }
 
         return (
             <>
-                <ThreadsGroup
-                    title="Pinned"
-                    threads={groupedThreads.pinned}
-                    icon={<Pin className="h-4 w-4" />}
-                />
-                <ThreadsGroup title="Today" threads={groupedThreads.today} />
-                <ThreadsGroup title="Yesterday" threads={groupedThreads.yesterday} />
-                <ThreadsGroup title="Last 7 Days" threads={groupedThreads.lastSevenDays} />
-                <ThreadsGroup title="Last 30 Days" threads={groupedThreads.lastThirtyDays} />
+                {/* Folders Section */}
+                <SidebarGroup>
+                    <SidebarGroupLabel className="pr-0">
+                        Folders
+                        <div className="flex-grow" />
+                        <NewFolderButton onClick={() => setOpenMobile(false)} />
+                    </SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {projects.map((project) => {
+                                return (
+                                    <FolderItem
+                                        key={project._id}
+                                        project={project}
+                                        numThreads={project.threadCount}
+                                    />
+                                )
+                            })}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
+                {/* Non-Project Threads */}
+                {hasNonProjectThreads && (
+                    <>
+                        <ThreadsGroup
+                            title="Pinned"
+                            threads={groupedNonProjectThreads.pinned}
+                            icon={<Pin className="h-4 w-4" />}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
+                        />
+                        <ThreadsGroup
+                            title="Today"
+                            threads={groupedNonProjectThreads.today}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
+                        />
+                        <ThreadsGroup
+                            title="Yesterday"
+                            threads={groupedNonProjectThreads.yesterday}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
+                        />
+                        <ThreadsGroup
+                            title="Last 7 Days"
+                            threads={groupedNonProjectThreads.lastSevenDays}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
+                        />
+                        <ThreadsGroup
+                            title="Last 30 Days"
+                            threads={groupedNonProjectThreads.lastThirtyDays}
+                            onOpenRenameDialog={handleOpenRenameDialog}
+                            onOpenMoveDialog={handleOpenMoveDialog}
+                            onOpenDeleteDialog={handleOpenDeleteDialog}
+                        />
+                    </>
+                )}
 
                 {/* Infinite Scroll Sentinel */}
                 {status === "CanLoadMore" && (
@@ -493,26 +382,28 @@ export function ThreadsSidebar() {
     }
 
     return (
-        <Sidebar variant="inset">
-            <SidebarHeader className="mt-1 gap-3">
-                <div className="flex items-center justify-between">
-                    <div className="cursor-default select-none font-semibold text-sidebar-foreground text-xl">
-                        <span>intern3.chat</span>
-                    </div>
-                </div>
-                <div className="h-px w-full bg-border" />
-                <Tooltip>
-                    <TooltipTrigger>
-                        <Link
-                            to="/"
-                            className={cn(
-                                buttonVariants({ variant: "default" }),
-                                "w-full justify-center"
-                            )}
-                        >
-                            New Chat
+        <>
+            <Sidebar variant="inset">
+                <SidebarHeader>
+                    <div className="flex w-full items-center justify-center gap-2">
+                        <Link to="/">
+                            <LogoMark className="h-fit w-full max-w-52 px-4 pt-1.5" />
                         </Link>
-                    </TooltipTrigger>
+                    </div>
+                    <div className="my-2 h-px w-full bg-border" />
+
+                    {/* <Tooltip> */}
+                    {/* <TooltipTrigger> */}
+                    <Link
+                        to="/"
+                        className={cn(
+                            buttonVariants({ variant: "default" }),
+                            "w-full justify-center"
+                        )}
+                    >
+                        New Chat
+                    </Link>
+                    {/* </TooltipTrigger>
                     <TooltipContent side="right">
                         <div className="flex items-center gap-1">
                             <span className="w-3.5 text-sm">
@@ -522,33 +413,53 @@ export function ThreadsSidebar() {
                             <span className="text-sm">O</span>
                         </div>
                     </TooltipContent>
-                </Tooltip>
-                <Link
+                </Tooltip> */}
+                    {/* <Link
                     to="/library"
                     className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
                 >
                     <FolderOpen className="h-4 w-4" />
                     Library
-                </Link>
-                <Button onClick={() => setCommandKOpen(true)} variant="outline">
-                    <Search className="h-4 w-4" />
-                    Search chats
-                    <div className="ml-auto flex items-center gap-1 text-xs">
-                        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-muted-foreground">
-                            <span className="text-sm">⌘</span>
-                            <span className="text-xs">K</span>
-                        </kbd>
-                    </div>
-                </Button>
-            </SidebarHeader>
-            <SidebarContent ref={scrollContainerRef} className="scrollbar-hide">
-                {renderContent()}
-            </SidebarContent>
-            {showGradient && (
-                <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
-            )}
+                </Link> */}
+                    <Button
+                        onClick={() => {
+                            setOpenMobile(false)
+                            setCommandKOpen(true)
+                        }}
+                        variant="outline"
+                    >
+                        <Search className="h-4 w-4" />
+                        Search chats
+                        <div className="ml-auto flex items-center gap-1 text-xs">
+                            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-muted-foreground">
+                                <span className="text-sm">⌘</span>
+                                <span className="text-xs">K</span>
+                            </kbd>
+                        </div>
+                    </Button>
+                </SidebarHeader>
+                <SidebarContent ref={scrollContainerRef} className="scrollbar-hide">
+                    {renderContent()}
+                </SidebarContent>
+                {showGradient && (
+                    <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
+                )}
+
+                {/* Centralized Thread Dialogs */}
+                <ThreadItemDialogs
+                    showDeleteDialog={showDeleteDialog}
+                    showRenameDialog={showRenameDialog}
+                    showMoveDialog={showMoveDialog}
+                    onCloseDeleteDialog={handleCloseDeleteDialog}
+                    onCloseRenameDialog={handleCloseRenameDialog}
+                    onCloseMoveDialog={handleCloseMoveDialog}
+                    currentThread={currentThread}
+                    projects={"error" in projects ? [] : projects}
+                />
+
+                <SidebarRail />
+            </Sidebar>
             <CommandK open={commandKOpen} onOpenChange={setCommandKOpen} />
-            <SidebarRail />
-        </Sidebar>
+        </>
     )
 }
