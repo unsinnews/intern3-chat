@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useNavigate } from "@tanstack/react-router"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { Loader2, Pin, Search } from "lucide-react"
+import { FolderOpen, Loader2, Pin, Search } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { LogoMark } from "./logo"
 import { FolderItem } from "./threads/folder-item"
@@ -414,13 +414,16 @@ export function ThreadsSidebar() {
                         </div>
                     </TooltipContent>
                 </Tooltip> */}
-                    {/* <Link
-                    to="/library"
-                    className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
-                >
-                    <FolderOpen className="h-4 w-4" />
-                    Library
-                </Link> */}
+                    <Link
+                        to="/library"
+                        className={cn(
+                            buttonVariants({ variant: "outline" }),
+                            "w-full justify-center"
+                        )}
+                    >
+                        <FolderOpen className="h-4 w-4" />
+                        Library
+                    </Link>
                     <Button
                         onClick={() => {
                             setOpenMobile(false)
