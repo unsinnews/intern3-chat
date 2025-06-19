@@ -1,5 +1,6 @@
 import BraveIcon from "@/assets/brave.svg"
 import Claude from "@/assets/claude.svg"
+import FalIcon from "@/assets/fal.svg"
 import Google from "@/assets/gemini.svg"
 import OpenAI from "@/assets/openai.svg"
 import OpenRouter from "@/assets/openrouter.svg"
@@ -57,6 +58,13 @@ export const CORE_PROVIDERS: CoreProviderInfo[] = [
         description: "Access Gemini 2.5, 2.0 Flash and other Google AI models",
         placeholder: "AIza...",
         icon: Google
+    },
+    {
+        id: "fal",
+        name: "Fal AI",
+        description: "Access open-souce image generation models",
+        placeholder: "key_secret:key_id",
+        icon: FalIcon
     }
 ]
 

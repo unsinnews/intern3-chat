@@ -494,7 +494,9 @@ function ProvidersSettings() {
         config: { enabled: boolean; newKey?: string } & Record<string, any>
     ) => {
         if (!session.user?.id) return
-
+        if (providerId === "fal") {
+            return handleSaveProvider(providerId, config.enabled, config.newKey)
+        }
         setLoading(true)
         try {
             await updateSettings({
