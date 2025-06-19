@@ -144,7 +144,7 @@ function SettingsPage({ title, description }: SettingsLayoutProps) {
 
                 <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-4">
                     {/* Navigation */}
-                    <div className="w-full flex-shrink-0 lg:w-64">
+                    <div className="w-full flex-shrink-0 lg:w-64 lg:pr-2">
                         <nav className="w-full space-y-1">
                             {settingsNavItems.map((item) => {
                                 const isActive = location.pathname === item.href
