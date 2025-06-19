@@ -22,7 +22,7 @@ import { Link } from "@tanstack/react-router"
 import { useNavigate } from "@tanstack/react-router"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { Loader2, Pin, Search } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { LogoMark } from "./logo"
 import { FolderItem } from "./threads/folder-item"
 import { NewFolderButton } from "./threads/new-folder-button"
@@ -386,7 +386,9 @@ export function ThreadsSidebar() {
             <Sidebar variant="inset">
                 <SidebarHeader>
                     <div className="flex w-full items-center justify-center gap-2">
-                        <LogoMark className="h-fit w-full px-4 pt-1.5" />
+                        <Link to="/">
+                            <LogoMark className="h-fit w-full px-4 pt-1.5" />
+                        </Link>
                     </div>
                     <div className="my-2 h-px w-full bg-border" />
 

@@ -22,6 +22,7 @@ import { mergeButtonRefs } from "@/lib/merge-button-refs";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
+const SIDEBAR_WIDTH_COOKIE_NAME = "sidebar:width";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
@@ -83,15 +84,37 @@ const SidebarProvider = React.forwardRef<
 		ref,
 	) => {
 		const isMobile = useIsMobile();
-		//* new state for sidebar width
-		const [width, setWidth] = React.useState(defaultWidth);
+		
+		// Helper function to get cookie value
+		const getCookie = React.useCallback((name: string): string | null => {
+			if (typeof document === "undefined") return null;
+			const value = `; ${document.cookie}`;
+			const parts = value.split(`; ${name}=`);
+			if (parts.length === 2) {
+				return parts.pop()?.split(';').shift() || null;
+			}
+			return null;
+		}, []);
+
+		// Initialize width from cookie or default
+		const [width, setWidth] = React.useState(() => {
+			const savedWidth = getCookie(SIDEBAR_WIDTH_COOKIE_NAME);
+			return savedWidth || defaultWidth;
+		});
+		
 		const [openMobile, setOpenMobile] = React.useState(false);
 		//* new state for tracking is dragging rail
 		const [isDraggingRail, setIsDraggingRail] = React.useState(false);
 
 		// This is the internal state of the sidebar.
 		// We use openProp and setOpenProp for control from outside the component.
-		const [_open, _setOpen] = React.useState(defaultOpen);
+		const [_open, _setOpen] = React.useState(() => {
+			const savedState = getCookie(SIDEBAR_COOKIE_NAME);
+			if (savedState !== null) {
+				return savedState === "true";
+			}
+			return defaultOpen;
+		});
 		const open = openProp ?? _open;
 		const setOpen = React.useCallback(
 			(value: boolean | ((value: boolean) => boolean)) => {
@@ -106,6 +129,16 @@ const SidebarProvider = React.forwardRef<
 				document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 			},
 			[setOpenProp, open],
+		);
+
+		// Enhanced setWidth function to persist to cookies
+		const setWidthWithPersistence = React.useCallback(
+			(newWidth: string) => {
+				setWidth(newWidth);
+				// Save width to cookie
+				document.cookie = `${SIDEBAR_WIDTH_COOKIE_NAME}=${newWidth}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+			},
+			[],
 		);
 
 		// Helper to toggle the sidebar.
@@ -151,7 +184,7 @@ const SidebarProvider = React.forwardRef<
 				toggleSidebar,
 				//* new context for sidebar resizing
 				width,
-				setWidth,
+				setWidth: setWidthWithPersistence,
 				//* new context for tracking is dragging rail
 				isDraggingRail,
 				setIsDraggingRail,
@@ -169,6 +202,7 @@ const SidebarProvider = React.forwardRef<
 				width,
 				//* add isDraggingRail to dependencies
 				isDraggingRail,
+				setWidthWithPersistence,
 			],
 		);
 
@@ -362,8 +396,8 @@ const SidebarRail = React.forwardRef<
 		minResizeWidth: MIN_SIDEBAR_WIDTH,
 		maxResizeWidth: MAX_SIDEBAR_WIDTH,
 		setIsDraggingRail,
-		widthCookieName: "sidebar:width",
-		widthCookieMaxAge: 60 * 60 * 24 * 7, // 1 week
+		widthCookieName: SIDEBAR_WIDTH_COOKIE_NAME,
+		widthCookieMaxAge: SIDEBAR_COOKIE_MAX_AGE,
 	});
 
 	//* Merge external ref with our dragRef
