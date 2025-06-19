@@ -17,12 +17,15 @@ import {
     SelectValue
 } from "@/components/ui/select"
 import { VoiceRecorder } from "@/components/voice-recorder"
+import { api } from "@/convex/_generated/api"
 import { type ImageSize, MODELS_SHARED } from "@/convex/lib/models"
-import { useToken } from "@/hooks/auth-hooks"
+import { DefaultSettings } from "@/convex/settings"
+import { useSession, useToken } from "@/hooks/auth-hooks"
 import { useVoiceRecorder } from "@/hooks/use-voice-recorder"
 import { browserEnv } from "@/lib/browser-env"
 import { type UploadedFile, useChatStore } from "@/lib/chat-store"
 import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
+import { useDiskCachedQuery } from "@/lib/convex-cached-query"
 import {
     MAX_FILE_SIZE,
     MAX_TOKENS_PER_FILE,
@@ -37,6 +40,7 @@ import { type ReasoningEffort, useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import type { useChat } from "@ai-sdk/react"
 import { useLocation } from "@tanstack/react-router"
+import { useConvexAuth } from "convex/react"
 import {
     ArrowUp,
     Brain,
@@ -175,9 +179,9 @@ export function MultimodalInput({
     status: ReturnType<typeof useChat>["status"]
 }) {
     const { token } = useToken()
-    console.log("token", token)
     const location = useLocation()
-
+    const session = useSession()
+    const auth = useConvexAuth()
     // Extract threadId from URL
     const threadId = location.pathname.includes("/thread/")
         ? location.pathname.split("/thread/")[1]?.split("/")[0]
@@ -200,6 +204,15 @@ export function MultimodalInput({
     } | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [extendedFiles, setExtendedFiles] = useState<ExtendedUploadedFile[]>([])
+    const userSettings = useDiskCachedQuery(
+        api.settings.getUserSettings,
+        {
+            key: "user-settings",
+            default: DefaultSettings(session.user?.id ?? "CACHE"),
+            forceCache: true
+        },
+        session.user?.id && !auth.isLoading ? {} : "skip"
+    )
 
     // Voice recording state
     const {
@@ -209,6 +222,7 @@ export function MultimodalInput({
     } = useVoiceRecorder({
         onTranscript: (text: string) => {
             // Insert transcribed text into the input
+            console.log("🎤", promptInputRef.current)
             if (promptInputRef.current) {
                 const currentValue = promptInputRef.current.getValue()
                 const newValue = currentValue ? `${currentValue} ${text}` : text
@@ -640,23 +654,26 @@ export function MultimodalInput({
 
     if (!isClient) return null
 
-    // Show voice recorder UI when recording or transcribing
-    if (voiceState.isRecording || voiceState.isTranscribing) {
-        return (
-            <div className="@container w-full md:px-2">
-                <VoiceRecorder
-                    state={voiceState}
-                    onStop={stopRecording}
-                    className={cn("mx-auto w-full", getChatWidthClass(chatWidthState.chatWidth))}
-                />
-            </div>
-        )
-    }
-
     return (
         <>
+            {(voiceState.isRecording || voiceState.isTranscribing) && (
+                <div className="@container w-full md:px-2">
+                    <VoiceRecorder
+                        state={voiceState}
+                        onStop={stopRecording}
+                        className={cn(
+                            "mx-auto w-full",
+                            getChatWidthClass(chatWidthState.chatWidth)
+                        )}
+                    />
+                </div>
+            )}
+
             <div
-                className="@container w-full px-1"
+                className={cn(
+                    "@container w-full px-1",
+                    (voiceState.isRecording || voiceState.isTranscribing) && "hidden"
+                )}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}

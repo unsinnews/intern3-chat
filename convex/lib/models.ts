@@ -1,13 +1,14 @@
 import { createAnthropic } from "@ai-sdk/anthropic"
 import { createFal } from "@ai-sdk/fal"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { createGroq } from "@ai-sdk/groq"
 import { createOpenAI } from "@ai-sdk/openai"
 import type { ProviderV1 } from "@ai-sdk/provider"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 
 import type { ModelAbility } from "../schema/settings"
 
-export const CoreProviders = ["openai", "anthropic", "google", "fal"] as const
+export const CoreProviders = ["openai", "anthropic", "google", "groq", "fal"] as const
 export type CoreProvider = (typeof CoreProviders)[number]
 export type ModelDefinitionProviders =
     | CoreProvider // user BYOK key
@@ -28,11 +29,11 @@ export type SharedModel<Abilities extends ModelAbility[] = ModelAbility[]> = {
     shortName?: string
     adapters: RegistryKey[]
     abilities: Abilities
-    mode?: "text" | "image"
+    mode?: "text" | "image" | "speech-to-text"
     contextLength?: number
     maxTokens?: number
     supportedImageSizes?: ImageSize[]
-    customIcon?: "stability-ai" | "openai" | "bflabs" | "google"
+    customIcon?: "stability-ai" | "openai" | "bflabs" | "google" | "meta"
     supportsDisablingReasoning?: boolean
 }
 
@@ -263,6 +264,40 @@ export const MODELS_SHARED: SharedModel[] = [
         mode: "image",
         customIcon: "google",
         supportedImageSizes: ["1:1-hd", "16:9-hd", "9:16-hd", "3:4-hd", "4:3-hd"]
+    },
+    {
+        id: "llama-4-scout-17b-16e-instruct",
+        name: "Llama 4 Scout 17B 16E Instruct",
+        shortName: "Llama 4 Scout 17B",
+        adapters: [
+            "i3-groq:meta-llama/llama-4-scout-17b-16e-instruct",
+            "groq:meta-llama/llama-4-scout-17b-16e-instruct"
+        ],
+        abilities: ["vision"],
+        customIcon: "meta"
+    },
+    {
+        id: "llama-4-maverick-17b-128e-instruct",
+        name: "Llama 4 Maverick 17B 128E Instruct",
+        shortName: "Llama 4 Maverick 17B",
+        adapters: ["groq:meta-llama/llama-4-maverick-17b-128e-instruct"],
+        abilities: ["vision"],
+        customIcon: "meta"
+    },
+    {
+        id: "llama-3-1-8b-instant",
+        name: "Llama 3.1 8B Instant",
+        shortName: "Llama 3.1 8B",
+        adapters: ["i3-groq:llama-3.1-8b-instant", "groq:llama-3.1-8b-instant"],
+        abilities: [],
+        customIcon: "meta"
+    },
+    {
+        id: "whisper-large-v3-turbo",
+        name: "Whisper Large v3 Turbo",
+        adapters: ["groq:whisper-large-v3-turbo"],
+        abilities: [],
+        mode: "speech-to-text"
     }
 ] as const
 
@@ -287,6 +322,10 @@ export const createProvider = (
         case "google":
             return createGoogleGenerativeAI({
                 apiKey: apiKey === "internal" ? process.env.GOOGLE_API_KEY : apiKey
+            })
+        case "groq":
+            return createGroq({
+                apiKey: apiKey === "internal" ? process.env.GROQ_API_KEY : apiKey
             })
         case "openrouter":
             return createOpenRouter({

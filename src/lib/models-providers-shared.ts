@@ -3,6 +3,7 @@ import {
     ClaudeIcon,
     FalAIIcon,
     GeminiIcon,
+    GroqIcon,
     OpenAIIcon,
     OpenRouterIcon,
     SerperDevIcon,
@@ -60,6 +61,13 @@ export const CORE_PROVIDERS: CoreProviderInfo[] = [
         description: "Access Gemini 2.5, 2.0 Flash and other Google AI models",
         placeholder: "AIza...",
         icon: GeminiIcon
+    },
+    {
+        id: "groq",
+        name: "Groq",
+        description: "Access Llama, Speech-to-text, and other models with ultra-fast inference",
+        placeholder: "gsk_...",
+        icon: GroqIcon
     },
     {
         id: "fal",

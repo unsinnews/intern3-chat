@@ -1,8 +1,25 @@
 import { httpAction } from "./_generated/server"
+import { decryptKey } from "./lib/encryption"
 import { getUserIdentity } from "./lib/identity"
 
-// Groq API key from environment variables
+// Groq API key from environment variables (fallback)
 const GROQ_API_KEY = process.env.GROQ_API_KEY
+
+async function getSettings(ctx: any, userId: string) {
+    const settings = await ctx.db
+        .query("settings")
+        .withIndex("by_userId", (q: any) => q.eq("userId", userId))
+        .unique()
+
+    if (!settings) {
+        // Return default settings structure
+        return {
+            coreAIProviders: {}
+        }
+    }
+
+    return settings
+}
 
 export const transcribeAudio = httpAction(async (ctx, request) => {
     try {
@@ -16,12 +33,35 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
             })
         }
 
-        // Check if API key is configured
-        if (!GROQ_API_KEY || GROQ_API_KEY === "your-groq-api-key-here") {
-            console.error("GROQ_API_KEY not configured. Please set environment variable.")
+        // Get user settings and try to use their Groq API key
+        let apiKey = GROQ_API_KEY
+
+        try {
+            const settings = await getSettings(ctx, user.id)
+            const groqProvider = settings.coreAIProviders?.groq
+
+            if (groqProvider?.enabled && groqProvider.encryptedKey) {
+                const decryptedKey = await decryptKey(groqProvider.encryptedKey)
+                if (decryptedKey) {
+                    apiKey = decryptedKey
+                    console.log("Using user's Groq API key for speech-to-text")
+                }
+            }
+        } catch (error) {
+            console.warn(
+                "Failed to get user's Groq API key, falling back to environment key:",
+                error
+            )
+        }
+
+        // Check if we have any API key configured
+        if (!apiKey || apiKey === "your-groq-api-key-here") {
+            console.error(
+                "GROQ_API_KEY not configured. Please set environment variable or configure in user settings."
+            )
             return new Response(
                 JSON.stringify({
-                    error: "Voice input service not configured. Please contact administrator."
+                    error: "Voice input service not configured. Please set up your Groq API key in AI Options or contact administrator."
                 }),
                 {
                     status: 500,
@@ -89,7 +129,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
         const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${GROQ_API_KEY}`
+                Authorization: `Bearer ${apiKey}`
             },
             body: groqFormData
         })
@@ -103,7 +143,7 @@ export const transcribeAudio = httpAction(async (ctx, request) => {
                 console.error("Invalid API key. Please check configuration.")
                 return new Response(
                     JSON.stringify({
-                        error: "Invalid API key. Please check configuration."
+                        error: "Invalid API key. Please check your Groq API key configuration."
                     }),
                     {
                         status: 500,
