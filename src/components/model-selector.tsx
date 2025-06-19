@@ -37,8 +37,8 @@ export const getProviderIcon = (model: DisplayModel, isCustom: boolean) => {
 
     // For shared models, try to determine provider from adapters
     const sharedModel = model as SharedModel
-    if (sharedModel.adapters) {
-        const firstAdapter = sharedModel.adapters[0]
+    if (sharedModel.customIcon || sharedModel.adapters) {
+        const firstAdapter = sharedModel.adapters?.[0]
         const icon = sharedModel.customIcon ?? firstAdapter?.split(":")[0]
 
         switch (icon) {
@@ -249,7 +249,7 @@ export function ModelSelector({
                 </Button>
             </ResponsivePopoverTrigger>
             <ResponsivePopoverContent
-                className="p-0 md:w-76"
+                className="p-0 md:w-80"
                 align="start"
                 title="Select Model"
                 description="Choose a model for your conversation"
@@ -271,7 +271,9 @@ export function ModelSelector({
                                                 ? "Anthropic"
                                                 : providerKey === "google"
                                                   ? "Google"
-                                                  : providerKey
+                                                  : providerKey === "fal"
+                                                    ? "Fal.AI"
+                                                    : providerKey
                                     }
                                 >
                                     {providerModels.map((model) => (
