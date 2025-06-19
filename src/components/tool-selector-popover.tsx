@@ -25,7 +25,7 @@ import { useModelStore } from "@/lib/model-store"
 import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
 import { Globe, Settings2 } from "lucide-react"
-import { memo, useState } from "react"
+import { memo, useMemo, useState } from "react"
 
 type ToolSelectorPopoverProps = {
     threadId?: string
@@ -54,16 +54,7 @@ export const ToolSelectorPopover = memo(
             session.user?.id ? {} : "skip"
         )
 
-        if (!userSettings) return null
-
-        const hasSupermemory = Boolean(userSettings.supermemory?.enabled)
-        const mcpServers = (userSettings.mcpServers || []).filter(
-            (server) => server.enabled !== false
-        )
-        const hasMcpServers = mcpServers.length > 0
-
-        // If no supermemory or MCP servers, show simple web search button
-        if (!hasSupermemory && !hasMcpServers) {
+        const webSearchButton = useMemo(() => {
             return (
                 <Button
                     type="button"
@@ -89,6 +80,20 @@ export const ToolSelectorPopover = memo(
                     <Globe className="size-4" />
                 </Button>
             )
+        }, [enabledTools, modelSupportsFunctionCalling, onEnabledToolsChange, className])
+
+        // If userSettings is not loaded, show the web search button as fallback to avoid flickering
+        if (!userSettings) return webSearchButton
+
+        const hasSupermemory = Boolean(userSettings.generalProviders?.supermemory?.enabled)
+        const mcpServers = (userSettings.mcpServers || []).filter(
+            (server) => server.enabled !== false
+        )
+        const hasMcpServers = mcpServers.length > 0
+
+        // If no supermemory or MCP servers, show simple web search button
+        if (!hasSupermemory && !hasMcpServers) {
+            return webSearchButton
         }
 
         // Calculate effective MCP overrides directly to ensure re-renders
