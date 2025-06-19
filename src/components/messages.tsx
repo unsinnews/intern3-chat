@@ -347,7 +347,7 @@ export function Messages({
                 <div
                     ref={contentRef}
                     className={cn(
-                        "mx-auto space-y-3 pb-40",
+                        "mx-auto space-y-3 pb-16",
                         getChatWidthClass(chatWidthState.chatWidth)
                     )}
                 >

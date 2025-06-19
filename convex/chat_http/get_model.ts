@@ -67,7 +67,6 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
                 } else {
                     finalModel = sdk_provider.languageModel(providerSpecificModelId)
                 }
-                finalModel = sdk_provider.languageModel(providerSpecificModelId)
             }
             break
         }
@@ -85,13 +84,13 @@ export const getModel = async (ctx: ActionCtx, modelId: string) => {
                     console.error(`Provider ${providerIdRaw} does not support image models`)
                     continue
                 }
+                finalModel = sdk_provider.imageModel(providerSpecificModelId)
+            } else {
                 if (providerIdRaw === "openai") {
                     finalModel = (sdk_provider as OpenAIProvider).responses(providerSpecificModelId)
                 } else {
-                    finalModel = sdk_provider.imageModel(providerSpecificModelId)
+                    finalModel = sdk_provider.languageModel(providerSpecificModelId)
                 }
-            } else {
-                finalModel = sdk_provider.languageModel(providerSpecificModelId)
             }
             break
         }

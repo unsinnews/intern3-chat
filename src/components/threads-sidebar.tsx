@@ -10,7 +10,6 @@ import {
     SidebarMenu,
     SidebarRail
 } from "@/components/ui/sidebar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import { useFunction } from "@/hooks/use-function"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
@@ -20,9 +19,9 @@ import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useNavigate } from "@tanstack/react-router"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
-import { ArrowBigUp, Loader2, Pin, Search } from "lucide-react"
+import { Loader2, Pin, Search } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { LogoSymbol } from "./logo"
+import { LogoMark } from "./logo"
 import { FolderItem } from "./threads/folder-item"
 import { NewFolderButton } from "./threads/new-folder-button"
 import { ThreadItem } from "./threads/thread-item"
@@ -381,26 +380,20 @@ export function ThreadsSidebar() {
     return (
         <Sidebar variant="inset">
             <SidebarHeader>
-                <div className="flex items-center gap-2">
-                    <LogoSymbol className="-translate-y-0.5 size-6 rounded-full" />
-                    <div className="cursor-default select-none font-semibold text-sidebar-foreground text-xl">
-                        <span>intern3.chat</span>
-                    </div>
+                <div className="flex w-full items-center justify-center gap-2">
+                    <LogoMark className="h-fit w-full px-4 pt-1.5" />
                 </div>
-                <div className="h-px w-full bg-border" />
+                <div className="my-2 h-px w-full bg-border" />
 
-                <Tooltip>
-                    <TooltipTrigger>
-                        <Link
-                            to="/"
-                            className={cn(
-                                buttonVariants({ variant: "default" }),
-                                "w-full justify-center"
-                            )}
-                        >
-                            New Chat
-                        </Link>
-                    </TooltipTrigger>
+                {/* <Tooltip> */}
+                {/* <TooltipTrigger> */}
+                <Link
+                    to="/"
+                    className={cn(buttonVariants({ variant: "default" }), "w-full justify-center")}
+                >
+                    New Chat
+                </Link>
+                {/* </TooltipTrigger>
                     <TooltipContent side="right">
                         <div className="flex items-center gap-1">
                             <span className="w-3.5 text-sm">
@@ -410,7 +403,7 @@ export function ThreadsSidebar() {
                             <span className="text-sm">O</span>
                         </div>
                     </TooltipContent>
-                </Tooltip>
+                </Tooltip> */}
                 {/* <Link
                     to="/library"
                     className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
