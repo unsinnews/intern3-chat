@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
+import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import {
     DEFAULT_PROJECT_ICON,
@@ -134,6 +134,7 @@ export function FolderItem({
         setEditIcon(project.icon || "")
         setShowEditDialog(true)
     }
+    const { setOpenMobile } = useSidebar()
 
     return (
         <>
@@ -153,6 +154,9 @@ export function FolderItem({
                         )}
                     >
                         <Link
+                            onClick={() => {
+                                setOpenMobile(false)
+                            }}
                             to="/folder/$folderId"
                             params={{ folderId: project._id }}
                             className="flex items-center gap-2"
