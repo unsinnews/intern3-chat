@@ -35,3 +35,23 @@
         font: -apple-system-body;
     }
 } */
+
+/** Sandpack Styling */
+.sandpack-container {
+    .sp-wrapper,
+    .sp-layout,
+    .sp-preview,
+    .sp-preview-container,
+    iframe {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+    
+    .sp-layout {
+        border: 1px solid hsl(var(--border)) !important;
+        border-radius: 0.5rem !important;
+        overflow: hidden;
+    }
+}

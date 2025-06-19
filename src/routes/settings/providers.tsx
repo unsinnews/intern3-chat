@@ -481,11 +481,14 @@ function ProvidersSettings() {
         key: ""
     })
 
-    const { currentProviders } = useAvailableModels(userSettings)
+    // Only call useAvailableModels if userSettings is valid
+    const { currentProviders } = useAvailableModels(
+        userSettings && !("error" in userSettings) ? userSettings : undefined
+    )
 
     // Helper function to get current search provider state
     const getCurrentSearchProviders = () => {
-        if (!userSettings) return {}
+        if (!userSettings || "error" in userSettings) return {}
         return userSettings.generalProviders || {}
     }
 

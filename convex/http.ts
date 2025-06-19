@@ -3,6 +3,7 @@ import { httpRouter } from "convex/server"
 import { getFile, uploadFile } from "./attachments"
 import { chatGET } from "./chat_http/get.route"
 import { chatPOST } from "./chat_http/post.route"
+import { transcribeAudio } from "./speech_to_text"
 
 const http = httpRouter()
 const cors = corsRouter(http, {
@@ -33,6 +34,13 @@ cors.route({
     path: "/upload",
     method: "POST",
     handler: uploadFile
+})
+
+// Speech-to-text route
+cors.route({
+    path: "/transcribe",
+    method: "POST",
+    handler: transcribeAudio
 })
 
 http.route({

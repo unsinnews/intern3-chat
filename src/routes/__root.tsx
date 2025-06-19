@@ -143,7 +143,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <html lang="en" suppressHydrationWarning>
             <head>
                 <ThemeScript />
-                {/* <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" /> */}
+                <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
                 <HeadContent />
             </head>
 

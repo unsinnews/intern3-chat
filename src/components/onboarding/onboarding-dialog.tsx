@@ -13,6 +13,7 @@ import {
     ArrowRight,
     BarChart3,
     Bot,
+    Box,
     Command,
     Edit,
     FileImage,
@@ -20,6 +21,7 @@ import {
     Folder,
     Image,
     Key,
+    Mic,
     Palette,
     Paperclip,
     Play,
@@ -118,7 +120,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
                         </div>
                     </Card>
 
-                    <div className="absolute inset-0 h-full w-full bg-gradient-to-b from-transparent via-background/80 to-background" />
+                    <div className="absolute inset-0 h-full w-full bg-gradient-to-b from-transparent via-popover/80 to-popover" />
                 </div>
                 <div className="-translate-y-10 space-y-3">
                     <h3 className="font-semibold text-xl tracking-tight">
@@ -233,8 +235,10 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
                         { icon: Play, label: "Resumable streams" },
                         { icon: Edit, label: "Edit/Regenerate messages" },
                         { icon: FileImage, label: "AI image library" },
+                        { icon: BarChart3, label: "Model usage dashboard" },
                         { icon: FileUp, label: "Upload image/text/PDF files" },
-                        { icon: BarChart3, label: "Model usage dashboard" }
+                        { icon: Box, label: "HTML/Mermaid rendering" },
+                        { icon: Mic, label: "Voice input" }
                     ].map(({ icon: Icon, label }) => (
                         <div
                             key={label}

@@ -15,6 +15,9 @@ export default defineConfig({
             "micromark-extension-math": "micromark-extension-llm-math"
         }
     },
+    server: {
+        proxy: {}
+    },
     plugins: [
         (process.env.ANALYZE && analyzer()) || null,
         tanstackStart({
