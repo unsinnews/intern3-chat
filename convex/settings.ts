@@ -26,7 +26,8 @@ export const DefaultSettings = (userId: string) =>
             brave: undefined,
             serper: undefined
         },
-        customization: undefined
+        customization: undefined,
+        onboardingCompleted: false
     }) satisfies Infer<typeof UserSettings>
 
 const getSettings = async (
@@ -674,6 +675,40 @@ export const updateUserSettingsPartial = mutation({
         }
 
         // Save settings
+        if (settings._id) {
+            await ctx.db.patch(settings._id, newSettings)
+        } else {
+            await ctx.db.insert("settings", newSettings)
+        }
+    }
+})
+
+export const getOnboardingStatus = query({
+    args: {},
+    handler: async (ctx): Promise<{ shouldShowOnboarding: boolean } | { error: string }> => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) return { error: "unauthorized:api" }
+
+        const settings = await getSettings(ctx, user.id)
+
+        // Show onboarding if onboardingCompleted is false or undefined
+        return { shouldShowOnboarding: !settings.onboardingCompleted }
+    }
+})
+
+export const completeOnboarding = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const user = await getUserIdentity(ctx.auth, { allowAnons: false })
+        if ("error" in user) throw new ChatError("unauthorized:api")
+
+        const settings = await getSettings(ctx, user.id)
+
+        const newSettings: Infer<typeof UserSettings> = {
+            ...settings,
+            onboardingCompleted: true
+        }
+
         if (settings._id) {
             await ctx.db.patch(settings._id, newSettings)
         } else {

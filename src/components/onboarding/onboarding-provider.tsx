@@ -21,11 +21,16 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
 
             return () => clearTimeout(timer)
         }
+
+        if (!isLoading && !shouldShowOnboarding) {
+            // If onboarding is complete, make sure dialog is closed
+            setIsDialogOpen(false)
+        }
     }, [isLoading, shouldShowOnboarding])
 
-    const handleOnboardingComplete = () => {
+    const handleOnboardingComplete = async () => {
         setIsDialogOpen(false)
-        completeOnboarding()
+        await completeOnboarding()
     }
 
     return (

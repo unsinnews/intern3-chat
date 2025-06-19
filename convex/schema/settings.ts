@@ -71,7 +71,8 @@ export const NonSensitiveUserSettings = v.object({
     titleGenerationModel: v.string(),
     customThemes: v.optional(v.array(v.string())),
     mcpServers: v.optional(v.array(MCPServerConfig)),
-    customization: v.optional(UserCustomization)
+    customization: v.optional(UserCustomization),
+    onboardingCompleted: v.optional(v.boolean())
 })
 
 export const GeneralProviderConfig = v.object({

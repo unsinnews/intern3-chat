@@ -1,5 +1,5 @@
 "use client"
-
+import OpenAI from "@/assets/openai.svg"
 import { Logo } from "@/components/logo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,17 +8,22 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useThemeManagement } from "@/hooks/use-theme-management"
 import { extractThemeColors } from "@/lib/theme-utils"
 import { cn } from "@/lib/utils"
-import { Link } from "@tanstack/react-router"
 import {
     ArrowLeft,
     ArrowRight,
+    BarChart3,
     Bot,
-    ExternalLink,
+    Command,
+    Edit,
+    FileImage,
+    FileUp,
+    Folder,
     Image,
     Key,
     Palette,
+    Paperclip,
+    Play,
     Search,
-    Settings,
     Sparkles,
     Wand2,
     Zap
@@ -39,6 +44,8 @@ interface OnboardingDialogProps {
     onComplete: () => void
 }
 
+const OpenAIIcon = OpenAI as unknown as React.ComponentType<{ className?: string }>
+
 const ONBOARDING_STEPS: OnboardingStep[] = [
     {
         id: "welcome",
@@ -49,36 +56,11 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
                 <div className="mx-auto h-24 w-24 rounded-full border-2 border-primary/20">
                     <Logo />
                 </div>
-                <div className="max-w-md space-y-3 text-center">
+                <div className="text-center">
                     <h3 className="font-bold text-2xl text-foreground">Welcome to intern3.chat</h3>
-
-                    <div className="mt-4 flex flex-wrap justify-center gap-2">
-                        <span className="text-muted-foreground text-sm">Built by:</span>
-                        <a
-                            href="https://x.com/vishyfishy2"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary text-sm hover:underline"
-                        >
-                            @vishyfishy2
-                        </a>
-                        <a
-                            href="https://x.com/iamsahaj_xyz"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary text-sm hover:underline"
-                        >
-                            @iamsahaj_xyz
-                        </a>
-                        <a
-                            href="https://x.com/blakssh"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary text-sm hover:underline"
-                        >
-                            @blakssh
-                        </a>
-                    </div>
+                    <span className="text-muted-foreground text-sm">
+                        The best open-source chatbot. Made by interns, for interns.
+                    </span>
                 </div>
             </div>
         )
@@ -90,18 +72,11 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
         content: (
             <div className="flex w-full flex-col items-center space-y-4">
                 <ThemeSelector />
-                <div className="space-y-2 text-center">
+                <div className="space-y-2 text-left">
                     <p className="text-muted-foreground text-xs leading-relaxed">
-                        Try switching themes and modes above! You can always change this later in
-                        settings.
+                        intern3 has a built-in theme switcher. Try some of the popular ones above!
+                        You can always change this later in settings.
                     </p>
-                    <Link to="/settings/appearance">
-                        <Button variant="outline" size="sm" className="h-8 gap-2 text-xs">
-                            <Settings className="h-3 w-3" />
-                            More Themes
-                            <ExternalLink className="h-3 w-3" />
-                        </Button>
-                    </Link>
                 </div>
             </div>
         )
@@ -111,36 +86,51 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
         title: "Bring Your Own Keys (BYOK)",
         icon: Key,
         content: (
-            <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-3 rounded-lg border border-border/50 bg-muted/20 p-3">
-                        <Bot className="h-6 w-6 text-primary" />
-                        <div>
-                            <div className="font-medium text-sm">OpenAI</div>
-                            <div className="text-muted-foreground text-xs">GPT-4, GPT-3.5</div>
+            <div className="-mb-12 space-y-6">
+                <div className="relative flex flex-col gap-2">
+                    <Card className="p-4 shadow-none">
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                                <div className="flex size-8 items-center justify-center rounded-lg">
+                                    <Logo />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-sm">intern3.chat Built-in</h4>
+                                    <p className="mt-0.5 text-muted-foreground text-xs">
+                                        Access built-in AI models without needing API keys. Rate
+                                        limits may apply.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center space-x-3 rounded-lg border border-border/50 bg-muted/20 p-3">
-                        <Zap className="h-6 w-6 text-primary" />
-                        <div>
-                            <div className="font-medium text-sm">Anthropic</div>
-                            <div className="text-muted-foreground text-xs">Claude 3</div>
+                    </Card>
+                    <Card className="p-4 shadow-none">
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                                <div className="flex size-8 items-center justify-center rounded-lg">
+                                    <OpenAIIcon className="size-6" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-sm">OpenAI</h4>
+                                    <p className="mt-0.5 text-muted-foreground text-xs">
+                                        Access GPT-4, GPT-4o, o3, and other OpenAI models
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </Card>
+
+                    <div className="absolute inset-0 h-full w-full bg-gradient-to-b from-transparent via-background/80 to-background" />
                 </div>
-                <div className="space-y-3">
-                    <h3 className="font-semibold text-xl">Your Keys, Your Control</h3>
+                <div className="-translate-y-10 space-y-3">
+                    <h3 className="font-semibold text-xl tracking-tight">
+                        Your Keys, Your Control
+                    </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                        Connect your own API keys for unlimited usage, better privacy, and access to
-                        the latest models. All keys are encrypted and stored securely.
+                        Use for free with basic built-in models, or connect your own API keys to use
+                        any model you want. intern3.chat works with all leading models (OpenAI,
+                        Gemini, Claude, etc.), and even custom OpenAI-compatible providers.
                     </p>
-                    <Link to="/settings/providers">
-                        <Button variant="outline" size="sm" className="gap-2">
-                            <Key className="h-4 w-4" />
-                            Setup API Keys
-                            <ExternalLink className="h-3 w-3" />
-                        </Button>
-                    </Link>
                 </div>
             </div>
         )
@@ -151,16 +141,19 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
         icon: Search,
         content: (
             <div className="space-y-6">
-                <div className="rounded-lg border border-border/50 bg-muted/10 p-4">
+                <Card className="p-4 shadow-none">
                     <div className="flex items-start space-x-3">
                         <Search className="mt-0.5 h-5 w-5 text-primary" />
                         <div className="space-y-2">
                             <div className="font-medium text-sm">
-                                "What's the latest news about AI?"
+                                "Is flutter the best mobile app framework?"
                             </div>
                             <div className="flex flex-wrap gap-1">
                                 <Badge variant="secondary" className="text-xs">
                                     Brave Search
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                    Firecrawl
                                 </Badge>
                                 <Badge variant="secondary" className="text-xs">
                                     Tavily
@@ -171,20 +164,58 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
                             </div>
                         </div>
                     </div>
-                </div>
+                </Card>
                 <div className="space-y-3">
-                    <h3 className="font-semibold text-xl">Real-time Information</h3>
+                    <h3 className="font-semibold text-xl tracking-tight">Real-time Web Search</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
                         Access up-to-date information from the web. Choose from multiple search
-                        providers and get comprehensive answers backed by real sources.
+                        providers and get comprehensive answers backed by real sources. Works with
+                        nearly any model!
                     </p>
-                    <Link to="/settings/ai-options">
-                        <Button variant="outline" size="sm" className="gap-2">
-                            <Search className="h-4 w-4" />
-                            Configure Search
-                            <ExternalLink className="h-3 w-3" />
-                        </Button>
-                    </Link>
+                </div>
+            </div>
+        )
+    },
+    {
+        id: "integrations",
+        title: "Powerful Integrations",
+        icon: Zap,
+        content: (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-2">
+                    <Card className="p-4 shadow-none">
+                        <div className="flex items-start space-x-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                <Zap className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <div className="font-medium text-sm">MCP Tools</div>
+                                <div className="text-muted-foreground text-xs leading-relaxed">
+                                    Connect external tools via Model Context Protocol over HTTP/MCP
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                    <Card className="p-4 shadow-none">
+                        <div className="flex items-start space-x-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                <Bot className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <div className="font-medium text-sm">Supermemory AI Memory</div>
+                                <div className="text-muted-foreground text-xs leading-relaxed">
+                                    Add persistent memory across conversations (BYOK)
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+                <div className="space-y-3">
+                    <h3 className="font-semibold text-xl tracking-tight">Powerful Integrations</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                        intern3 comes built-in with powerful connectors to enhance your AI
+                        experience.
+                    </p>
                 </div>
             </div>
         )
@@ -195,38 +226,32 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
         icon: Wand2,
         content: (
             <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-center space-x-3 rounded-lg border border-border/50 bg-muted/10 p-3">
-                        <Image className="h-5 w-5 text-primary" />
-                        <div className="flex-1">
-                            <div className="font-medium text-sm">Image Generation</div>
-                            <div className="text-muted-foreground text-xs">
-                                Create stunning visuals with AI
-                            </div>
+                <div className="flex flex-wrap gap-1.5">
+                    {[
+                        { icon: Image, label: "Image generation" },
+                        { icon: Folder, label: "Chat folders" },
+                        { icon: Command, label: "Keyboard shortcuts" },
+                        { icon: Paperclip, label: "Attachments management" },
+                        { icon: Play, label: "Resumable streams" },
+                        { icon: Edit, label: "Edit/Regenerate messages" },
+                        { icon: FileImage, label: "AI image library" },
+                        { icon: FileUp, label: "Upload image/text/PDF files" },
+                        { icon: BarChart3, label: "Model usage dashboard" }
+                    ].map(({ icon: Icon, label }) => (
+                        <div
+                            key={label}
+                            className="flex items-center space-x-2 rounded-lg border border-border/50 bg-muted/10 px-3 py-2"
+                        >
+                            <Icon className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">{label}</span>
                         </div>
-                    </div>
-                    <div className="flex items-center space-x-3 rounded-lg border border-border/50 bg-muted/10 p-3">
-                        <Bot className="h-5 w-5 text-primary" />
-                        <div className="flex-1">
-                            <div className="font-medium text-sm">Multiple AI Models</div>
-                            <div className="text-muted-foreground text-xs">
-                                Switch between different AI providers
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-3 rounded-lg border border-border/50 bg-muted/10 p-3">
-                        <Settings className="h-5 w-5 text-primary" />
-                        <div className="flex-1">
-                            <div className="font-medium text-sm">Advanced Customization</div>
-                            <div className="text-muted-foreground text-xs">
-                                Tailor everything to your needs
-                            </div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
-                <div className="space-y-2 text-center">
+                <div className="space-y-3">
+                    <h3 className="font-semibold text-xl tracking-tight">Feature packed</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                        Explore all these features and more to enhance your AI conversations.
+                        Our intern couldn't fit our tremendous feature list into actual slides, so
+                        here's a list instead.
                     </p>
                 </div>
             </div>
@@ -237,14 +262,15 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
         title: "Ready to Get Started?",
         icon: Sparkles,
         content: (
-            <div className="flex flex-col items-center space-y-6 text-center">
-                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-2 border-primary/20 bg-primary/10">
-                    <Sparkles className="h-12 w-12 text-primary" />
-                </div>
-                <div className="max-w-md space-y-4">
-                    <h3 className="font-bold text-2xl text-foreground">You're All Set! 🚀</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                        Start chatting with AI and make intern3.chat truly yours!
+            <div className="flex w-full flex-col items-start space-y-4 text-left">
+                <Sparkles className="size-10 text-primary" />
+                <div className="w-full space-y-1">
+                    <h3 className="font-bold text-2xl text-foreground tracking-tight">
+                        You're all set!
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                        Start chatting with AI and make intern3.chat truly yours! Don't forget to
+                        checkout the Settings page to customize your experience.
                     </p>
                 </div>
             </div>
@@ -256,30 +282,28 @@ function ThemeSelector() {
     const { themeState, filteredThemes, handleThemeSelect, toggleMode, selectedThemeUrl } =
         useThemeManagement()
 
-    const popularThemes = filteredThemes.filter((theme) => theme.type === "built-in").slice(0, 4)
+    const popularThemes = filteredThemes.filter((theme) => theme.type === "built-in").slice(0, 6)
 
     return (
         <div className="w-full max-w-md space-y-4">
-            <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm">Color Mode</h4>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={toggleMode}
-                    className="flex h-8 items-center justify-center gap-2 px-3"
-                >
-                    <div className="relative flex h-3 w-3 items-center justify-center">
-                        <SunIcon className="dark:-rotate-90 absolute h-3 w-3 transition-all duration-300 dark:scale-0" />
-                        <MoonIcon className="absolute h-3 w-3 rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100" />
-                    </div>
-                    <span className="text-xs">
-                        {themeState.currentMode === "light" ? "Light" : "Dark"}
-                    </span>
-                </Button>
-            </div>
-
             <div className="space-y-3">
-                <h4 className="font-medium text-sm">Popular Themes</h4>
+                <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-base tracking-tight">Themes</h4>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleMode}
+                        className="flex h-8 items-center justify-center gap-2 px-3"
+                    >
+                        <div className="relative flex h-3 w-3 items-center justify-center">
+                            <SunIcon className="dark:-rotate-90 absolute h-3 w-3 transition-all duration-300 dark:scale-0" />
+                            <MoonIcon className="absolute h-3 w-3 rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100" />
+                        </div>
+                        <span className="text-xs">
+                            {themeState.currentMode === "light" ? "Light" : "Dark"}
+                        </span>
+                    </Button>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                     {popularThemes.map((theme) => {
                         const colors =
@@ -380,18 +404,22 @@ export function OnboardingDialog({ isOpen, onComplete }: OnboardingDialogProps) 
                         </div>
 
                         <CardFooter className="relative flex items-center justify-between border-t-2 px-4 pt-4 sm:px-6">
-                            <Button
-                                variant="secondary"
-                                onClick={handlePrevious}
-                                disabled={currentStep === 0}
-                                className="h-8 gap-2 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
-                            >
-                                <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span className="hidden sm:inline">Previous</span>
-                                <span className="sm:hidden">Prev</span>
-                            </Button>
+                            {currentStep > 0 ? (
+                                <Button
+                                    variant="secondary"
+                                    onClick={handlePrevious}
+                                    disabled={currentStep === 0}
+                                    className="h-8 gap-2 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
+                                >
+                                    <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                                    <span className="hidden sm:inline">Previous</span>
+                                    <span className="sm:hidden">Prev</span>
+                                </Button>
+                            ) : (
+                                <div className="w-8" />
+                            )}
 
-                            <div className="flex gap-1">
+                            <div className="absolute right-[50%] flex translate-x-1/2 gap-1">
                                 {ONBOARDING_STEPS.map((_, index) => (
                                     <div
                                         key={index}
