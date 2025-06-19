@@ -1,6 +1,5 @@
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
     Select,
     SelectContent,
@@ -14,7 +13,7 @@ import { useSession } from "@/hooks/auth-hooks"
 import { browserEnv } from "@/lib/browser-env"
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
-import { Download, Image as ImageIcon, ImageOff, Search } from "lucide-react"
+import { Download, Image as ImageIcon, ImageOff } from "lucide-react"
 import { memo, useCallback, useMemo, useState } from "react"
 
 export const Route = createFileRoute("/_chat/library")({
@@ -113,42 +112,35 @@ const GeneratedImage = memo(({ asset }: { asset: GeneratedAsset }) => {
 
 GeneratedImage.displayName = "GeneratedImage"
 
-const MasonryGrid = memo(
-    ({ assets, isFiltered }: { assets: GeneratedAsset[]; isFiltered?: boolean }) => {
-        if (assets.length === 0) {
-            return (
-                <div className="py-24 text-center">
-                    <ImageIcon className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
-                    <h3 className="mb-2 font-medium text-xl">
-                        {isFiltered ? "No images found" : "No generated images yet"}
-                    </h3>
-                    <p className="mx-auto max-w-sm text-muted-foreground">
-                        {isFiltered
-                            ? "Try adjusting your search terms or filters."
-                            : "Generate images through the chat interface to see them appear here."}
-                    </p>
-                </div>
-            )
-        }
-
+const MasonryGrid = memo(({ assets }: { assets: GeneratedAsset[] }) => {
+    if (assets.length === 0) {
         return (
-            <div className="columns-1 gap-4 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
-                {assets.map((asset) => (
-                    <div key={asset.key} className="mb-4 break-inside-avoid">
-                        <GeneratedImage asset={asset} />
-                    </div>
-                ))}
+            <div className="py-24 text-center">
+                <ImageIcon className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+                <h3 className="mb-2 font-medium text-xl">No generated images yet</h3>
+                <p className="mx-auto max-w-sm text-muted-foreground">
+                    Generate images through the chat interface to see them appear here.
+                </p>
             </div>
         )
     }
-)
+
+    return (
+        <div className="columns-1 gap-4 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
+            {assets.map((asset) => (
+                <div key={asset.key} className="mb-4 break-inside-avoid">
+                    <GeneratedImage asset={asset} />
+                </div>
+            ))}
+        </div>
+    )
+})
 
 MasonryGrid.displayName = "MasonryGrid"
 
 function LibraryPage() {
     const session = useSession()
     const filesResult = useQuery(api.attachments.listFiles, session.user?.id ? {} : "skip")
-    const [searchQuery, setSearchQuery] = useState("")
     const [sortBy, setSortBy] = useState<"newest" | "oldest" | "size">("newest")
 
     // Filter for generated images only
@@ -169,19 +161,7 @@ function LibraryPage() {
         }
 
         // Filter for generated images (keys starting with "generations")
-        let filteredFiles = files.filter((file) => file.key.startsWith("generations/"))
-
-        // Apply search filter
-        if (searchQuery.trim()) {
-            filteredFiles = filteredFiles.filter(
-                (file) =>
-                    new Date(file.lastModified)
-                        .toLocaleDateString()
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                    formatFileSize(file.size).toLowerCase().includes(searchQuery.toLowerCase())
-            )
-        }
+        const filteredFiles = files.filter((file) => file.key.startsWith("generations/"))
 
         // Apply sorting
         filteredFiles.sort((a, b) => {
@@ -198,7 +178,7 @@ function LibraryPage() {
         })
 
         return filteredFiles
-    }, [filesResult, searchQuery, sortBy])
+    }, [filesResult, sortBy])
 
     const stats = useMemo(() => {
         if (!generatedAssets || generatedAssets.length === 0) {
@@ -238,25 +218,16 @@ function LibraryPage() {
                         </div>
                     )}
 
-                    {/* Search and Sort Controls */}
+                    {/* Sort Controls */}
                     {generatedAssets && generatedAssets.length > 0 && (
-                        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="relative max-w-sm flex-1">
-                                <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search by date or size..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10"
-                                />
-                            </div>
+                        <div className="mt-6 flex justify-start">
                             <Select
                                 value={sortBy}
                                 onValueChange={(value: "newest" | "oldest" | "size") =>
                                     setSortBy(value)
                                 }
                             >
-                                <SelectTrigger className="w-full sm:w-48">
+                                <SelectTrigger className="w-48">
                                     <SelectValue placeholder="Sort by" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -282,7 +253,7 @@ function LibraryPage() {
                         ))}
                     </div>
                 ) : (
-                    <MasonryGrid assets={generatedAssets} isFiltered={!!searchQuery.trim()} />
+                    <MasonryGrid assets={generatedAssets} />
                 )}
             </div>
         </div>
