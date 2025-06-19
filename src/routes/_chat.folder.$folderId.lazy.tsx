@@ -1,6 +1,8 @@
 import { FolderHero } from "@/components/folder-hero"
+import { Messages } from "@/components/messages"
 import { MultimodalInput } from "@/components/multimodal-input"
 import { SignupMessagePrompt } from "@/components/signup-message-prompt"
+import { StickToBottomButton } from "@/components/stick-to-bottom-button"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { MODELS_SHARED } from "@/convex/lib/models"
@@ -11,7 +13,7 @@ import { useChatIntegration } from "@/hooks/use-chat-integration"
 import { useDynamicTitle } from "@/hooks/use-dynamic-title"
 import { useThreadSync } from "@/hooks/use-thread-sync"
 import type { UploadedFile } from "@/lib/chat-store"
-import { useChatWidthStore } from "@/lib/chat-width-store"
+import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
 import { useDiskCachedPaginatedQuery, useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { useModelStore } from "@/lib/model-store"
 import { useThemeStore } from "@/lib/theme-store"
@@ -65,7 +67,7 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
         folderId
     })
 
-    const { handleInputSubmit } = useChatActions({
+    const { handleInputSubmit, handleRetry, handleEditAndRetry } = useChatActions({
         threadId,
         folderId
     })
@@ -76,6 +78,8 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
         handleInputSubmit(inputValue, fileValues)
         scrollToBottom({ animation: "smooth" })
     }
+
+    const isEmpty = !threadId && messages.length === 0
 
     if (!session?.user && !isPending) {
         return (
@@ -207,16 +211,73 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
     return (
         <div
             className={cn(
-                "relative mx-auto flex h-[calc(100vh-64px)] w-full max-w-3xl flex-col px-2"
+                "relative mb-80 flex flex-col",
+                isEmpty ? "h-[calc(100vh-8px)]" : "h-[calc(100vh-64px)]"
             )}
         >
+            <Messages
+                messages={messages}
+                onRetry={handleRetry}
+                onEditAndRetry={handleEditAndRetry}
+                status={status}
+                contentRef={contentRef}
+                scrollRef={scrollRef}
+            />
+
             <AnimatePresence mode="sync">
-                <div className="mt-32" />
-                <FolderHero project={project} />
-                <div className="z-[10] flex-col items-center justify-center gap-2">
-                    <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
-                </div>
-                <RecentThreads />
+                {isEmpty ? (
+                    <motion.div
+                        key="centered-content"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className={cn(
+                            "absolute inset-0 flex flex-col items-center overflow-y-auto [scrollbar-gutter:stable]",
+                            !isEmpty && "justify-center"
+                        )}
+                    >
+                        <div
+                            className={cn(
+                                "w-full",
+                                getChatWidthClass(chatWidth),
+                                "px-4",
+                                "flex min-h-[40vh] flex-col justify-end"
+                            )}
+                        >
+                            <FolderHero project={project} />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className="mt-8 w-full"
+                            >
+                                <MultimodalInput
+                                    onSubmit={handleInputSubmitWithScroll}
+                                    status={status}
+                                />
+                            </motion.div>
+                        </div>
+                        <div className={cn("w-full", getChatWidthClass(chatWidth), "px-4")}>
+                            <RecentThreads />
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="bottom-input"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="-bottom-[3.875rem] md:-bottom-10 absolute inset-x-0 z-[10] flex flex-col items-center justify-center gap-2"
+                    >
+                        <StickToBottomButton
+                            isAtBottom={isAtBottom}
+                            scrollToBottom={scrollToBottom}
+                        />
+                        <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
+                    </motion.div>
+                )}
             </AnimatePresence>
         </div>
     )

@@ -163,7 +163,7 @@ export function FolderItem({
                                     "flex size-3 flex-shrink-0 items-center justify-center rounded-full text-xs",
                                     colorClasses.split(" ").slice(1).join(" ")
                                 )}
-                            ></div>
+                            />
                             <span className="truncate font-medium">{project.name}</span>
                         </Link>
                     </SidebarMenuButton>
