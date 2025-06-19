@@ -29,7 +29,6 @@ import { api } from "@/convex/_generated/api"
 import {
     DEFAULT_PROJECT_ICON,
     PROJECT_COLORS,
-    PROJECT_ICONS,
     type ProjectColorId,
     getProjectColorClasses
 } from "@/lib/project-constants"
@@ -37,7 +36,7 @@ import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation } from "convex/react"
-import { Edit3, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
+import { Check, Edit3, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import type { Project } from "./types"
@@ -55,7 +54,6 @@ export function FolderItem({
     const [editName, setEditName] = useState("")
     const [editDescription, setEditDescription] = useState("")
     const [editColor, setEditColor] = useState<string>("blue")
-    const [editIcon, setEditIcon] = useState("")
     const [isEditing, setIsEditing] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
 
@@ -80,7 +78,7 @@ export function FolderItem({
                 name: trimmedName,
                 description: editDescription.trim() || undefined,
                 color: editColor,
-                icon: editIcon || undefined
+                icon: project.icon || DEFAULT_PROJECT_ICON
             })
 
             if (result && "error" in result) {
@@ -131,7 +129,6 @@ export function FolderItem({
         setEditName(project.name)
         setEditDescription(project.description || "")
         setEditColor(project.color || "blue")
-        setEditIcon(project.icon || "")
         setShowEditDialog(true)
     }
     const { setOpenMobile } = useSidebar()
@@ -163,12 +160,10 @@ export function FolderItem({
                         >
                             <div
                                 className={cn(
-                                    "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-sm text-xs",
+                                    "flex size-3 flex-shrink-0 items-center justify-center rounded-full text-xs",
                                     colorClasses.split(" ").slice(1).join(" ")
                                 )}
-                            >
-                                {project.icon || DEFAULT_PROJECT_ICON}
-                            </div>
+                            ></div>
                             <span className="truncate font-medium">{project.name}</span>
                         </Link>
                     </SidebarMenuButton>
@@ -224,13 +219,14 @@ export function FolderItem({
                     <DialogHeader>
                         <DialogTitle>Edit Folder</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="edit-folder-name">Folder Name</Label>
+                            <Label htmlFor="edit-folder-name">Name</Label>
                             <Input
                                 id="edit-folder-name"
                                 value={editName}
                                 onChange={(e) => setEditName(e.target.value)}
+                                className="max-w-[50%]"
                                 placeholder="Enter folder name"
                                 disabled={isEditing}
                                 autoFocus
@@ -250,7 +246,7 @@ export function FolderItem({
 
                         <div className="space-y-2">
                             <Label>Color</Label>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="flex gap-2">
                                 {PROJECT_COLORS.map((color) => (
                                     <button
                                         key={color.id}
@@ -258,49 +254,18 @@ export function FolderItem({
                                         onClick={() => setEditColor(color.id)}
                                         disabled={isEditing}
                                         className={cn(
-                                            "flex h-8 w-full items-center justify-center rounded-md border-2 transition-all",
+                                            "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all",
                                             color.class.split(" ").slice(1).join(" "),
                                             editColor === color.id
                                                 ? "scale-110 border-foreground"
                                                 : "border-transparent hover:scale-105"
                                         )}
                                     >
-                                        {/* Remove the letter display by not showing color.name[0] */}
+                                        {editColor === color.id && (
+                                            <Check className="h-4 w-4 text-white drop-shadow-sm" />
+                                        )}
                                     </button>
                                 ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-folder-icon">Icon (emoji)</Label>
-                            <div className="space-y-3">
-                                <Input
-                                    id="edit-folder-icon"
-                                    value={editIcon}
-                                    onChange={(e) => {
-                                        const value = e.target.value
-                                        // Limit to 3 characters to accommodate multi-character emojis
-                                        if (value.length <= 3) {
-                                            setEditIcon(value)
-                                        }
-                                    }}
-                                    placeholder="Enter an emoji or leave empty for default"
-                                    disabled={isEditing}
-                                    maxLength={3}
-                                />
-                                <div className="grid grid-cols-8 gap-1">
-                                    {PROJECT_ICONS.map((icon) => (
-                                        <button
-                                            key={icon}
-                                            type="button"
-                                            onClick={() => setEditIcon(icon)}
-                                            disabled={isEditing}
-                                            className="flex h-8 w-8 items-center justify-center rounded border hover:bg-accent"
-                                        >
-                                            {icon}
-                                        </button>
-                                    ))}
-                                </div>
                             </div>
                         </div>
                     </div>
