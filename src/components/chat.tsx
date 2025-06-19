@@ -45,7 +45,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     })
     const { themeState } = useThemeStore()
     const mode = themeState.currentMode
-    const { data: session } = useSession()
+    const { data: session, isPending } = useSession()
     const location = useLocation()
 
     useDynamicTitle({ threadId })
@@ -87,7 +87,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     const isEmpty = !threadId && messages.length === 0
     const userName = session?.user?.name
 
-    if (!session?.user) {
+    if (!session?.user && !isPending) {
         return (
             <div className="relative flex h-[calc(100vh-64px)] items-center justify-center">
                 <SignupMessagePrompt />
