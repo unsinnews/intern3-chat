@@ -72,7 +72,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
         scrollToBottom({ animation: "smooth" })
     }
 
-    const isEmpty = messages.length === 0
+    const isEmpty = messages.length === 0 && !threadId
 
     const userName =
         session?.user?.name ?? (isPending ? localStorage.getItem("DISK_CACHE:user-name") : null)
