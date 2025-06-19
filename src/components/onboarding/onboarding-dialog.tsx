@@ -1,5 +1,5 @@
 "use client"
-import OpenAI from "@/assets/openai.svg"
+import { OpenAIIcon } from "@/components/brand-icons"
 import { Logo } from "@/components/logo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -43,8 +43,6 @@ interface OnboardingDialogProps {
     isOpen: boolean
     onComplete: () => void
 }
-
-const OpenAIIcon = OpenAI as unknown as React.ComponentType<{ className?: string }>
 
 const ONBOARDING_STEPS: OnboardingStep[] = [
     {

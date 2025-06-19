@@ -1,5 +1,4 @@
-import MCPIcon from "@/assets/mcp.svg"
-import SupermemoryIcon from "@/assets/supermemory.svg"
+import { MCPIcon, SupermemoryIcon } from "@/components/brand-icons"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {

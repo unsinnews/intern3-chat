@@ -1,4 +1,4 @@
-import SupermemoryIcon from "@/assets/supermemory.svg"
+import { SupermemoryIcon } from "@/components/brand-icons"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"

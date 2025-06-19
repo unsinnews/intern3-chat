@@ -1,6 +1,4 @@
-import BraveIcon from "@/assets/brave.svg"
-import SerperIcon from "@/assets/serper.svg"
-import TavilyIcon from "@/assets/tavily.svg"
+import { BraveIcon, SerperDevIcon, TavilyIcon } from "@/components/brand-icons"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -197,7 +195,7 @@ const providerIcons: Record<SearchProvider, React.ComponentType<{ className?: st
         firecrawl: "🔥",
         brave: BraveIcon,
         tavily: TavilyIcon,
-        serper: SerperIcon
+        serper: SerperDevIcon
     }
 
 export const SearchProviderCard = memo(
