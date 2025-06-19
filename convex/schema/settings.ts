@@ -19,11 +19,6 @@ export const CustomAIProvider = v.object({
     encryptedKey: v.string()
 })
 
-export const SupermemoryConfig = v.object({
-    enabled: v.boolean(),
-    encryptedKey: v.string()
-})
-
 export const UserCustomization = v.object({
     name: v.optional(v.string()),
     aiPersonality: v.optional(v.string()),
@@ -76,13 +71,39 @@ export const NonSensitiveUserSettings = v.object({
     customModels: v.record(v.string(), CustomModel),
     titleGenerationModel: v.string(),
     customThemes: v.optional(v.array(v.string())),
-    supermemory: v.optional(SupermemoryConfig),
     mcpServers: v.optional(v.array(MCPServerConfig)),
     customization: v.optional(UserCustomization)
+})
+
+export const GeneralProviderConfig = v.object({
+    enabled: v.boolean(),
+    encryptedKey: v.string()
+})
+
+export const BraveProviderConfig = v.object({
+    enabled: v.boolean(),
+    encryptedKey: v.string(),
+    country: v.optional(v.string()),
+    searchLang: v.optional(v.string()),
+    safesearch: v.optional(v.union(v.literal("off"), v.literal("moderate"), v.literal("strict")))
+})
+
+export const SerperProviderConfig = v.object({
+    enabled: v.boolean(),
+    encryptedKey: v.string(),
+    language: v.optional(v.string()), // language
+    country: v.optional(v.string()) // country
 })
 
 export const UserSettings = v.object({
     ...NonSensitiveUserSettings.fields,
     coreAIProviders: v.record(v.string(), CoreAIProvider),
-    customAIProviders: v.record(v.string(), CustomAIProvider)
+    customAIProviders: v.record(v.string(), CustomAIProvider),
+    generalProviders: v.object({
+        supermemory: v.optional(GeneralProviderConfig),
+        firecrawl: v.optional(GeneralProviderConfig),
+        tavily: v.optional(GeneralProviderConfig),
+        brave: v.optional(BraveProviderConfig),
+        serper: v.optional(SerperProviderConfig)
+    })
 })

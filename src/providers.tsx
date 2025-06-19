@@ -30,7 +30,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
     return (
         <ClientOnly>
-            <ConvexQueryCacheProvider debug={true}>
+            <ConvexQueryCacheProvider>
                 <QueryClientProvider client={queryClient}>
                     <PostHogProvider
                         apiKey={browserEnv("VITE_POSTHOG_KEY")}

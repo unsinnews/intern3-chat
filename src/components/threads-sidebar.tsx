@@ -446,7 +446,7 @@ export function ThreadsSidebar() {
                 onCloseRenameDialog={handleCloseRenameDialog}
                 onCloseMoveDialog={handleCloseMoveDialog}
                 currentThread={currentThread}
-                projects={projects}
+                projects={"error" in projects ? [] : projects}
             />
 
             <SidebarRail />

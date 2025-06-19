@@ -16,8 +16,9 @@ import { Route as ChatRouteImport } from './routes/_chat'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as ChatIndexRouteImport } from './routes/_chat.index'
 import { Route as SettingsUsageRouteImport } from './routes/settings/usage'
+import { Route as SettingsProvidersRouteImport } from './routes/settings/providers'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
-import { Route as SettingsModelsProvidersRouteImport } from './routes/settings/models-providers'
+import { Route as SettingsModelsRouteImport } from './routes/settings/models'
 import { Route as SettingsCustomizationRouteImport } from './routes/settings/customization'
 import { Route as SettingsAttachmentsRouteImport } from './routes/settings/attachments'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
@@ -55,14 +56,19 @@ const SettingsUsageRoute = SettingsUsageRouteImport.update({
   path: '/usage',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
+const SettingsProvidersRoute = SettingsProvidersRouteImport.update({
+  id: '/providers',
+  path: '/providers',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
-const SettingsModelsProvidersRoute = SettingsModelsProvidersRouteImport.update({
-  id: '/models-providers',
-  path: '/models-providers',
+const SettingsModelsRoute = SettingsModelsRouteImport.update({
+  id: '/models',
+  path: '/models',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
 const SettingsCustomizationRoute = SettingsCustomizationRouteImport.update({
@@ -124,8 +130,9 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
   '/settings/customization': typeof SettingsCustomizationRoute
-  '/settings/models-providers': typeof SettingsModelsProvidersRoute
+  '/settings/models': typeof SettingsModelsRoute
   '/settings/profile': typeof SettingsProfileRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
   '/folder/$folderId': typeof ChatFolderFolderIdRoute
@@ -140,8 +147,9 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
   '/settings/customization': typeof SettingsCustomizationRoute
-  '/settings/models-providers': typeof SettingsModelsProvidersRoute
+  '/settings/models': typeof SettingsModelsRoute
   '/settings/profile': typeof SettingsProfileRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/': typeof ChatIndexRoute
   '/folder/$folderId': typeof ChatFolderFolderIdRoute
@@ -158,8 +166,9 @@ export interface FileRoutesById {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/attachments': typeof SettingsAttachmentsRoute
   '/settings/customization': typeof SettingsCustomizationRoute
-  '/settings/models-providers': typeof SettingsModelsProvidersRoute
+  '/settings/models': typeof SettingsModelsRoute
   '/settings/profile': typeof SettingsProfileRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/usage': typeof SettingsUsageRoute
   '/_chat/': typeof ChatIndexRoute
   '/_chat/folder/$folderId': typeof ChatFolderFolderIdRoute
@@ -176,8 +185,9 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/attachments'
     | '/settings/customization'
-    | '/settings/models-providers'
+    | '/settings/models'
     | '/settings/profile'
+    | '/settings/providers'
     | '/settings/usage'
     | '/'
     | '/folder/$folderId'
@@ -192,8 +202,9 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/attachments'
     | '/settings/customization'
-    | '/settings/models-providers'
+    | '/settings/models'
     | '/settings/profile'
+    | '/settings/providers'
     | '/settings/usage'
     | '/'
     | '/folder/$folderId'
@@ -209,8 +220,9 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/attachments'
     | '/settings/customization'
-    | '/settings/models-providers'
+    | '/settings/models'
     | '/settings/profile'
+    | '/settings/providers'
     | '/settings/usage'
     | '/_chat/'
     | '/_chat/folder/$folderId'
@@ -287,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsUsageRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/providers': {
+      id: '/settings/providers'
+      path: '/providers'
+      fullPath: '/settings/providers'
+      preLoaderRoute: typeof SettingsProvidersRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/profile': {
       id: '/settings/profile'
       path: '/profile'
@@ -294,11 +313,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
-    '/settings/models-providers': {
-      id: '/settings/models-providers'
-      path: '/models-providers'
-      fullPath: '/settings/models-providers'
-      preLoaderRoute: typeof SettingsModelsProvidersRouteImport
+    '/settings/models': {
+      id: '/settings/models'
+      path: '/models'
+      fullPath: '/settings/models'
+      preLoaderRoute: typeof SettingsModelsRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
     '/settings/customization': {
@@ -383,8 +402,9 @@ interface SettingsRouteRouteChildren {
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsAttachmentsRoute: typeof SettingsAttachmentsRoute
   SettingsCustomizationRoute: typeof SettingsCustomizationRoute
-  SettingsModelsProvidersRoute: typeof SettingsModelsProvidersRoute
+  SettingsModelsRoute: typeof SettingsModelsRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
+  SettingsProvidersRoute: typeof SettingsProvidersRoute
   SettingsUsageRoute: typeof SettingsUsageRoute
 }
 
@@ -393,8 +413,9 @@ const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsAttachmentsRoute: SettingsAttachmentsRoute,
   SettingsCustomizationRoute: SettingsCustomizationRoute,
-  SettingsModelsProvidersRoute: SettingsModelsProvidersRoute,
+  SettingsModelsRoute: SettingsModelsRoute,
   SettingsProfileRoute: SettingsProfileRoute,
+  SettingsProvidersRoute: SettingsProvidersRoute,
   SettingsUsageRoute: SettingsUsageRoute,
 }
 

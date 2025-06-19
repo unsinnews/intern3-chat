@@ -17,12 +17,14 @@ type SupermemoryCardProps = {
 
 export const SupermemoryCard = memo(({ userSettings, onSave, loading }: SupermemoryCardProps) => {
     const [isEditing, setIsEditing] = useState(false)
-    const [enabled, setEnabled] = useState(userSettings.supermemory?.enabled || false)
+    const [enabled, setEnabled] = useState(
+        userSettings.generalProviders?.supermemory?.enabled || false
+    )
     const [newKey, setNewKey] = useState("")
     const [rotatingKey, setRotatingKey] = useState(false)
 
-    const hasExistingKey = Boolean(userSettings.supermemory?.encryptedKey)
-    const isEnabled = userSettings.supermemory?.enabled || false
+    const hasExistingKey = Boolean(userSettings.generalProviders?.supermemory?.encryptedKey)
+    const isEnabled = userSettings.generalProviders?.supermemory?.enabled || false
 
     const handleSave = async () => {
         const canSave = !enabled || newKey.trim() || hasExistingKey
@@ -40,7 +42,7 @@ export const SupermemoryCard = memo(({ userSettings, onSave, loading }: Supermem
 
     const handleCancel = () => {
         setIsEditing(false)
-        setEnabled(userSettings.supermemory?.enabled || false)
+        setEnabled(userSettings.generalProviders?.supermemory?.enabled || false)
         setNewKey("")
         setRotatingKey(false)
     }

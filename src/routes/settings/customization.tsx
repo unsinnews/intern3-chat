@@ -21,85 +21,25 @@ function CustomizationSettings() {
         api.settings.getUserSettings,
         session.user?.id ? {} : "skip"
     )
-    const updateSettings = useConvexMutation(api.settings.updateUserSettings)
+    const updateSettings = useConvexMutation(api.settings.updateUserSettingsPartial)
 
     const [isSaving, setIsSaving] = useState(false)
 
-    // Using refs for uncontrolled inputs
     const nameRef = useRef<HTMLInputElement>(null)
     const personalityRef = useRef<HTMLTextAreaElement>(null)
     const contextRef = useRef<HTMLTextAreaElement>(null)
 
     const handleSave = async () => {
-        if (!userSettings || !session.user?.id) return
-
-        const name = nameRef.current?.value.trim()
-        const personality = personalityRef.current?.value.trim()
-        const context = contextRef.current?.value.trim()
-
-        // Validate character limits
-        if (personality && personality.length > 2000) {
-            toast.error("AI personality must be 2000 characters or less")
-            return
-        }
-
-        if (context && context.length > 2000) {
-            toast.error("Additional context must be 2000 characters or less")
-            return
-        }
+        if (!session.user?.id) return
 
         setIsSaving(true)
         try {
-            // Include current state for all core providers
-            const coreProviders: Record<string, { enabled: boolean; newKey?: string }> = {}
-            for (const [id, provider] of Object.entries(userSettings.coreAIProviders)) {
-                coreProviders[id] = {
-                    enabled: provider.enabled
-                }
-            }
-
-            // Include current state for all custom providers
-            const customProviders: Record<
-                string,
-                { name: string; enabled: boolean; endpoint: string; newKey?: string }
-            > = {}
-            for (const [id, provider] of Object.entries(userSettings.customAIProviders)) {
-                customProviders[id] = {
-                    name: provider.name,
-                    enabled: provider.enabled,
-                    endpoint: provider.endpoint
-                }
-            }
-
-            if ("_creationTime" in userSettings) {
-                userSettings._creationTime = undefined
-            }
-            if ("_id" in userSettings) {
-                userSettings._id = undefined
-            }
-
             await updateSettings({
-                userId: session.user.id,
-                baseSettings: {
-                    userId: session.user!.id,
-                    searchProvider: userSettings.searchProvider,
-                    searchIncludeSourcesByDefault: userSettings.searchIncludeSourcesByDefault,
-                    customModels: userSettings.customModels,
-                    titleGenerationModel: userSettings.titleGenerationModel,
-                    customThemes: userSettings.customThemes,
-                    supermemory: userSettings.supermemory,
-                    mcpServers: userSettings.mcpServers,
-                    customization: {
-                        name: name || undefined,
-                        aiPersonality: personality || undefined,
-                        additionalContext: context || undefined
-                    }
-                },
-                coreProviders,
-                customProviders,
-                supermemory: userSettings.supermemory
-                    ? { enabled: userSettings.supermemory.enabled }
-                    : undefined
+                customization: {
+                    name: nameRef.current?.value || undefined,
+                    aiPersonality: personalityRef.current?.value || undefined,
+                    additionalContext: contextRef.current?.value || undefined
+                }
             })
             toast.success("Customization settings saved")
         } catch (error) {
@@ -152,49 +92,46 @@ function CustomizationSettings() {
 
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="name">What should I call you?</Label>
+                            <Label htmlFor="name">Your Name</Label>
                             <Input
-                                ref={nameRef}
                                 id="name"
-                                placeholder="e.g. Theo (t3.gg), Mark (also t3.gg)"
-                                defaultValue={userSettings.customization?.name || ""}
-                                className="max-w-md"
+                                ref={nameRef}
+                                defaultValue={userSettings?.customization?.name || ""}
+                                placeholder="How should the AI address you?"
+                                maxLength={100}
                             />
-                            <p className="text-muted-foreground text-sm">
-                                Leave blank to use your account name
+                            <p className="text-muted-foreground text-xs">
+                                This helps the AI address you personally in conversations.
                             </p>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="personality">AI Personality Traits</Label>
+                            <Label htmlFor="personality">AI Personality</Label>
                             <Textarea
-                                ref={personalityRef}
                                 id="personality"
-                                placeholder="e.g., Be concise and direct. Use casual language. Include relevant examples. Focus on practical solutions."
-                                defaultValue={userSettings.customization?.aiPersonality || ""}
-                                rows={6}
+                                ref={personalityRef}
+                                defaultValue={userSettings?.customization?.aiPersonality || ""}
+                                placeholder="Describe how you want the AI to behave and communicate..."
+                                rows={4}
                                 maxLength={2000}
-                                className="resize-none"
                             />
-                            <p className="text-muted-foreground text-sm">
-                                Describe how you'd like the AI to communicate (max 2000 characters)
+                            <p className="text-muted-foreground text-xs">
+                                Shape the AI's communication style and personality.
                             </p>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="context">Additional Context</Label>
                             <Textarea
-                                ref={contextRef}
                                 id="context"
-                                placeholder="e.g., I'm a software developer working primarily with React and TypeScript. I prefer functional programming patterns. I'm learning Rust. Personally, Tauri > Electron any day of the week."
-                                defaultValue={userSettings.customization?.additionalContext || ""}
-                                rows={6}
+                                ref={contextRef}
+                                defaultValue={userSettings?.customization?.additionalContext || ""}
+                                placeholder="Share relevant information about yourself, your work, or preferences..."
+                                rows={4}
                                 maxLength={2000}
-                                className="resize-none"
                             />
-                            <p className="text-muted-foreground text-sm">
-                                Any background information the AI should know about you (max 2000
-                                characters)
+                            <p className="text-muted-foreground text-xs">
+                                Provide context that helps the AI give you more relevant responses.
                             </p>
                         </div>
 

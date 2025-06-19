@@ -128,52 +128,50 @@ export class SerperSearchAdapter implements SearchAdapter {
     }
 
     private async scrapeAndEnrichResults(results: SearchResult[]): Promise<SearchResult[]> {
+        const scrapingJobs = results.map((result) =>
+            this.scrapeUrl(result.url)
+                .then((scrapedContent) => {
+                    if (scrapedContent) {
+                        return {
+                            ...result,
+                            content: scrapedContent.text,
+                            markdown: scrapedContent.markdown || scrapedContent.text
+                        }
+                    }
+                    return result
+                })
+                .catch((error) => {
+                    console.warn(`Failed to scrape ${result.url}:`, error)
+                    return result
+                })
+        )
+
+        const scrapedResults = await Promise.all(scrapingJobs)
+
         const enrichedResults: SearchResult[] = []
         let totalContextUsed = 0
 
-        for (const result of results) {
-            try {
-                // Check if we can fit more content within the context window
-                if (totalContextUsed >= this.MAX_CONTEXT_WINDOW) {
-                    // Add remaining results without content
+        for (const result of scrapedResults) {
+            if (result.content && totalContextUsed < this.MAX_CONTEXT_WINDOW) {
+                const remainingContext = this.MAX_CONTEXT_WINDOW - totalContextUsed
+                if (result.content.length <= remainingContext) {
                     enrichedResults.push(result)
-                    continue
-                }
-
-                const scrapedContent = await this.scrapeUrl(result.url)
-
-                if (scrapedContent) {
-                    // Calculate how much context we can use for this result
-                    const remainingContext = this.MAX_CONTEXT_WINDOW - totalContextUsed
-                    const availableContextPerResult = Math.floor(
-                        remainingContext / (results.length - enrichedResults.length)
-                    )
-
-                    // Truncate content if it's too long
-                    let content = scrapedContent.text
-                    if (content.length > availableContextPerResult) {
-                        content = `${content.substring(0, availableContextPerResult)}...`
-                    }
-
-                    totalContextUsed += content.length
-
+                    totalContextUsed += result.content.length
+                } else {
+                    const truncatedContent = `${result.content.substring(0, remainingContext)}...`
                     enrichedResults.push({
                         ...result,
-                        content,
-                        markdown: scrapedContent.markdown || content
+                        content: truncatedContent,
+                        markdown: result.markdown
+                            ? `${result.markdown.substring(0, remainingContext)}...`
+                            : truncatedContent
                     })
-                } else {
-                    // If scraping failed, keep original result
-                    enrichedResults.push(result)
+                    totalContextUsed = this.MAX_CONTEXT_WINDOW
                 }
-            } catch (error) {
-                console.warn(`Failed to scrape ${result.url}:`, error)
-                // If scraping fails, keep the original result
-                enrichedResults.push(result)
+            } else {
+                const { content, markdown, ...rest } = result as any
+                enrichedResults.push(rest)
             }
-
-            // Small delay between requests to be respectful
-            await new Promise((resolve) => setTimeout(resolve, 100))
         }
 
         return enrichedResults

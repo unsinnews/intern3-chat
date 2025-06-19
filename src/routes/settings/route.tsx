@@ -7,16 +7,7 @@ import { cn } from "@/lib/utils"
 import { useConvexQuery } from "@convex-dev/react-query"
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
-import {
-    ArrowLeft,
-    BarChart3,
-    Bot,
-    Key,
-    PaintBucket,
-    Paperclip,
-    Sparkles,
-    User
-} from "lucide-react"
+import { ArrowLeft, BarChart3, Bot, Box, Key, PaintBucket, Paperclip, User } from "lucide-react"
 import type { ReactNode } from "react"
 
 interface SettingsLayoutProps {
@@ -32,9 +23,14 @@ const settingsNavItems = [
         icon: User
     },
     {
-        title: "Models/Providers",
-        href: "/settings/models-providers",
+        title: "Providers",
+        href: "/settings/providers",
         icon: Key
+    },
+    {
+        title: "Models",
+        href: "/settings/models",
+        icon: Box
     },
     {
         title: "AI Options",
@@ -44,7 +40,7 @@ const settingsNavItems = [
     {
         title: "Customization",
         href: "/settings/customization",
-        icon: Sparkles
+        icon: PaintBucket
     },
     {
         title: "Usage Analytics",
