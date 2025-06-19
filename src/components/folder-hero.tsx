@@ -27,7 +27,7 @@ export const FolderHero = ({ project }: FolderHeroProps) => {
         : {}
 
     return (
-        <motion.div {...animProps} className="mb-8 flex max-w-4xl gap-2">
+        <motion.div {...animProps} className="mb-8 flex max-w-4xl gap-2 px-3">
             <div
                 className={cn(
                     "mt-1 flex size-5 self-baseline",
@@ -48,13 +48,13 @@ export const FolderHero = ({ project }: FolderHeroProps) => {
                     <h1
                         className={cn(
                             "mb-1 font-bold text-foreground text-xl",
-                            !project.description && "pb-6"
+                            !project.description && "pb-5"
                         )}
                     >
                         {project.name}
                     </h1>
                 ) : (
-                    <Skeleton className="mb-2 h-8 w-48" />
+                    <Skeleton className="mb-2 h-7 w-48" />
                 )}
                 {project ? (
                     project?.description && (
@@ -63,7 +63,7 @@ export const FolderHero = ({ project }: FolderHeroProps) => {
                         </p>
                     )
                 ) : (
-                    <Skeleton className="mb-2 h-6 w-3/4" />
+                    <Skeleton className="mb-2 h-5 w-3/4" />
                 )}
             </div>
         </motion.div>

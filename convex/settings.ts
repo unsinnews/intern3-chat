@@ -8,7 +8,7 @@ import { MODELS_SHARED, type RegistryKey, type SharedModel } from "./lib/models"
 import type { UserSettings } from "./schema"
 import { NonSensitiveUserSettings } from "./schema/settings"
 
-const DefaultSettings = (userId: string) =>
+export const DefaultSettings = (userId: string) =>
     ({
         userId,
         searchProvider: "firecrawl",
@@ -54,9 +54,9 @@ export const getUserSettingsInternal = internalQuery({
 
 export const getUserSettings = query({
     args: {},
-    handler: async (ctx): Promise<Infer<typeof UserSettings>> => {
+    handler: async (ctx): Promise<Infer<typeof UserSettings> | { error: string }> => {
         const user = await getUserIdentity(ctx.auth, { allowAnons: false })
-        if ("error" in user) return DefaultSettings("id" in user ? (user.id ?? "") : "")
+        if ("error" in user) return { error: "unauthorized:api" }
         return await getSettings(ctx, user.id)
     }
 })

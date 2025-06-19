@@ -23,8 +23,10 @@ import { useSession } from "@/hooks/auth-hooks"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
+import { DefaultSettings } from "@/convex/settings"
+import { useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { type DisplayModel, useAvailableModels } from "@/lib/models-providers-shared"
-import { useConvexQuery } from "@convex-dev/react-query"
+import { useConvexAuth } from "@convex-dev/react-query"
 import { Brain, Check, ChevronDown, Eye, Globe, Image } from "lucide-react"
 import * as React from "react"
 import { BlackForestLabsIcon, StabilityIcon } from "./brand-icons"
@@ -164,12 +166,22 @@ export function ModelSelector({
     onModelChange: (modelId: string) => void
     className?: string
 }) {
+    const auth = useConvexAuth()
     const session = useSession()
-    const userSettings = useConvexQuery(
+    const userSettings = useDiskCachedQuery(
         api.settings.getUserSettings,
-        session.user?.id ? {} : "skip"
+        {
+            key: "user-settings",
+            default: DefaultSettings(session.user?.id ?? "CACHE"),
+            forceCache: true
+        },
+        session.user?.id && !auth.isLoading ? {} : "skip"
     )
-    const { availableModels } = useAvailableModels(userSettings)
+    console.log("userSettings", session.user?.id, userSettings, auth)
+
+    const { availableModels } = useAvailableModels(
+        "error" in userSettings ? DefaultSettings(session.user?.id ?? "") : userSettings
+    )
 
     const [open, setOpen] = React.useState(false)
 

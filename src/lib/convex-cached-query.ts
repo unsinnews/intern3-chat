@@ -1,9 +1,9 @@
+import { useQuery } from "convex-helpers/react/cache"
 import {
     type OptionalRestArgsOrSkip,
     type PaginatedQueryArgs,
     type PaginatedQueryReference,
-    usePaginatedQuery,
-    useQuery
+    usePaginatedQuery
 } from "convex/react"
 import type { FunctionReference } from "convex/server"
 import { useEffect, useMemo, useState } from "react"
@@ -30,26 +30,40 @@ export const useDiskCachedQuery = <
         key: string
         maxItems?: number
         default: ReturnType<typeof useQuery<Query>>
+        forceCache?: boolean
     },
     ...args: OptionalRestArgsOrSkip<Query>
 ) => {
-    const [isClient, setIsClient] = useState(false)
+    const isClient = typeof window !== "undefined"
     const result = useQuery(query, ...args)
-
-    useEffect(() => {
-        setIsClient(true)
-    }, [])
-
-    const disk_cache: CachedItem<T, IsArray, ExtraProps> = useMemo(() => {
+    const [disk_cache, setDiskCache] = useState<CachedItem<T, IsArray, ExtraProps>>(() => {
         if (!isClient) return cacheOptions.default as CachedItem<T, IsArray, ExtraProps>
         const cache = localStorage.getItem(`CVX_DISK_CACHE:${cacheOptions.key}`)
         return cache
             ? JSON.parse(cache)
             : (cacheOptions.default as CachedItem<T, IsArray, ExtraProps>)
-    }, [cacheOptions.key])
+    })
+
+    useEffect(() => {
+        if (!isClient) return
+
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === `CVX_DISK_CACHE:${cacheOptions.key}` && e.newValue) {
+                try {
+                    const newCache = JSON.parse(e.newValue)
+                    setDiskCache(newCache)
+                } catch (error) {
+                    console.warn("Failed to parse localStorage cache update:", error)
+                }
+            }
+        }
+
+        window.addEventListener("storage", handleStorageChange)
+        return () => window.removeEventListener("storage", handleStorageChange)
+    }, [cacheOptions.key, isClient])
 
     const output: CachedItem<T, IsArray, ExtraProps> | { error: unknown } =
-        args.length > 0 && args[0] === "skip"
+        args.length > 0 && args[0] === "skip" && !cacheOptions.forceCache
             ? (cacheOptions.default as CachedItem<T, IsArray, ExtraProps>)
             : (result ?? disk_cache)
 

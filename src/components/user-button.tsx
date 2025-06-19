@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { authClient } from "@/lib/auth-client"
+import { queryClient } from "@/providers"
 import { GitHubIcon } from "@daveyplate/better-auth-ui"
 import { useRouter } from "@tanstack/react-router"
 import { Loader2, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react"
@@ -42,7 +43,15 @@ export function UserButton() {
 
     const handleSignOut = async () => {
         await authClient.signOut()
+        await queryClient.resetQueries({ queryKey: ["session"] })
+        await queryClient.resetQueries({ queryKey: ["token"] })
         router.navigate({ to: "/" })
+        const keys = Object.keys(localStorage)
+        for (const key of keys) {
+            if (key.includes("_CACHE")) {
+                localStorage.removeItem(key)
+            }
+        }
     }
 
     const getInitials = (name: string) => {

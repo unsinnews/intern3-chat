@@ -172,6 +172,7 @@ export function MultimodalInput({
     status: ReturnType<typeof useChat>["status"]
 }) {
     const { token } = useToken()
+    console.log("token", token)
     const location = useLocation()
 
     // Extract threadId from URL

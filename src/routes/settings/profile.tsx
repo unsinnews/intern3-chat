@@ -15,7 +15,8 @@ import {
 } from "@/hooks/auth-hooks"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
-import { createFileRoute } from "@tanstack/react-router"
+import { queryClient } from "@/providers"
+import { createFileRoute, useRouter } from "@tanstack/react-router"
 import {
     Edit,
     Globe,
@@ -42,7 +43,7 @@ function UserAccountSettings() {
     const updateUser = useUpdateUser()
     const revokeSession = useRevokeSession()
     const revokeOtherSessions = useRevokeOtherSessions()
-
+    const router = useRouter()
     const [isEditingName, setIsEditingName] = useState(false)
     const [nameValue, setNameValue] = useState("")
 
@@ -96,7 +97,16 @@ function UserAccountSettings() {
     const handleSignOut = useCallback(async () => {
         try {
             await authClient.signOut()
+            await queryClient.resetQueries({ queryKey: ["session"] })
+            await queryClient.resetQueries({ queryKey: ["token"] })
+            const keys = Object.keys(localStorage)
+            for (const key of keys) {
+                if (key.includes("_CACHE")) {
+                    localStorage.removeItem(key)
+                }
+            }
             toast.success("Signed out successfully")
+            router.navigate({ to: "/" })
         } catch (error) {
             toast.error("Failed to sign out")
             console.error("Error signing out:", error)

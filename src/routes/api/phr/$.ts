@@ -23,12 +23,23 @@ export const ServerRoute = createServerFileRoute("/api/phr/$").methods({
             headers: filterHeaders(request.headers)
         })
 
-        return new Response(response.body, {
+        // Read the response body as ArrayBuffer to properly handle binary/compressed data
+        const body = await response.arrayBuffer()
+
+        // Filter out headers that might be incorrect after decompression
+        const responseHeaders = Object.fromEntries(
+            Array.from(response.headers.entries()).filter(
+                ([key]) =>
+                    key.toLowerCase() !== "content-length" &&
+                    key.toLowerCase() !== "content-encoding"
+            )
+        )
+
+        return new Response(body, {
             status: response.status,
             statusText: response.statusText,
             headers: {
-                ...Object.fromEntries(response.headers.entries()),
-                "Content-Encoding": "",
+                ...responseHeaders,
                 // Ensure CORS headers are preserved
                 "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
                 "Access-Control-Allow-Credentials": "true"
@@ -49,13 +60,24 @@ export const ServerRoute = createServerFileRoute("/api/phr/$").methods({
             // Note: duplex is not needed when using ArrayBuffer
         })
 
-        return new Response(response.body, {
+        // Read the response body to handle potential compression
+        const responseBody = await response.arrayBuffer()
+
+        // Filter out headers that might be incorrect after decompression
+        const responseHeaders = Object.fromEntries(
+            Array.from(response.headers.entries()).filter(
+                ([key]) =>
+                    key.toLowerCase() !== "content-length" &&
+                    key.toLowerCase() !== "content-encoding"
+            )
+        )
+
+        return new Response(responseBody, {
             status: response.status,
             statusText: response.statusText,
             headers: {
-                ...Object.fromEntries(response.headers.entries()),
+                ...responseHeaders,
                 // Ensure CORS headers are preserved
-                "Content-Encoding": "",
                 "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
                 "Access-Control-Allow-Credentials": "true"
             }
@@ -70,13 +92,23 @@ export const ServerRoute = createServerFileRoute("/api/phr/$").methods({
             headers: filterHeaders(request.headers)
         })
 
-        return new Response(response.body, {
+        const responseBody = await response.arrayBuffer()
+
+        // Filter out headers that might be incorrect
+        const responseHeaders = Object.fromEntries(
+            Array.from(response.headers.entries()).filter(
+                ([key]) =>
+                    key.toLowerCase() !== "content-length" &&
+                    key.toLowerCase() !== "content-encoding"
+            )
+        )
+
+        return new Response(responseBody, {
             status: response.status,
             statusText: response.statusText,
             headers: {
-                ...Object.fromEntries(response.headers.entries()),
+                ...responseHeaders,
                 // Ensure CORS headers are preserved
-                "Content-Encoding": "",
                 "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
                 "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Allow-Methods": "GET, POST, OPTIONS",

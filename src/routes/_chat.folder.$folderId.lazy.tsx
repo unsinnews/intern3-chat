@@ -11,15 +11,14 @@ import { useChatIntegration } from "@/hooks/use-chat-integration"
 import { useDynamicTitle } from "@/hooks/use-dynamic-title"
 import { useThreadSync } from "@/hooks/use-thread-sync"
 import type { UploadedFile } from "@/lib/chat-store"
-import { getChatWidthClass, useChatWidthStore } from "@/lib/chat-width-store"
-import { useDiskCachedQuery } from "@/lib/convex-cached-query"
+import { useChatWidthStore } from "@/lib/chat-width-store"
+import { useDiskCachedPaginatedQuery, useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { useModelStore } from "@/lib/model-store"
 import { useThemeStore } from "@/lib/theme-store"
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useLocation } from "@tanstack/react-router"
 import { createLazyFileRoute } from "@tanstack/react-router"
-import { usePaginatedQuery } from "convex/react"
 import { format } from "date-fns"
 import { Clock, Pin } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
@@ -91,8 +90,12 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
         const isRootPath = location.pathname === "/"
 
         // Fetch recent threads in this folder
-        const recentThreads = usePaginatedQuery(
+        const recentThreads = useDiskCachedPaginatedQuery(
             api.threads.getThreadsByProject,
+            {
+                key: `threads-folder-${folderId}`,
+                maxItems: 25
+            },
             { projectId: folderId },
             {
                 initialNumItems: 25
@@ -136,12 +139,12 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
 
         if (threads.length === 0)
             return (
-                <motion.div {...containerAnimProps} className="mt-8 w-full">
+                <motion.div {...containerAnimProps} className="mt-8 w-full px-1">
                     <div className="mb-4 flex items-center gap-2 font-medium text-muted-foreground text-sm">
                         <Clock className="size-4" />
                         Recent conversations
                     </div>
-                    <div className="grid grid-cols-1 gap-1.5 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-1.5 md:grid-cols-2">
                         <div className="col-span-full">
                             <div className="flex items-center justify-center rounded-lg border bg-background/50 px-4 py-3">
                                 <p className="text-muted-foreground text-sm">
@@ -154,12 +157,12 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
             )
 
         return (
-            <motion.div {...containerAnimProps} className="mt-8 w-full">
+            <motion.div {...containerAnimProps} className="mt-8 w-full px-1">
                 <div className="mb-4 flex items-center gap-2 font-medium text-muted-foreground text-sm">
                     <Clock className="size-4" />
                     Recent conversations
                 </div>
-                <div className="grid grid-cols-1 gap-1.5 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-1.5 md:grid-cols-2">
                     {threads.map((thread, index) => {
                         const threadAnimProps = isRootPath
                             ? {
@@ -204,24 +207,16 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
     return (
         <div
             className={cn(
-                "relative mx-auto flex h-[calc(100vh-64px)] w-full flex-col",
-                getChatWidthClass(chatWidth)
+                "relative mx-auto flex h-[calc(100vh-64px)] w-full max-w-3xl flex-col px-2"
             )}
         >
             <AnimatePresence mode="sync">
                 <div className="mt-32" />
                 <FolderHero project={project} />
-                <RecentThreads />
-                <motion.div
-                    key="bottom-input"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="-bottom-[3.875rem] md:-bottom-10 absolute inset-x-0 z-[10] flex flex-col items-center justify-center gap-2"
-                >
+                <div className="z-[10] flex-col items-center justify-center gap-2">
                     <MultimodalInput onSubmit={handleInputSubmitWithScroll} status={status} />
-                </motion.div>
+                </div>
+                <RecentThreads />
             </AnimatePresence>
         </div>
     )

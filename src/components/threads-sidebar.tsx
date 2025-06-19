@@ -20,6 +20,7 @@ import { useDiskCachedPaginatedQuery, useDiskCachedQuery } from "@/lib/convex-ca
 import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
 import { useNavigate } from "@tanstack/react-router"
+import { useConvexAuth } from "convex/react"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { Image, Loader2, Pin, Search } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -137,6 +138,7 @@ export function ThreadsSidebar() {
     const navigate = useNavigate()
     const isMobile = useIsMobile()
     const { setOpen, setOpenMobile } = useSidebar()
+    const auth = useConvexAuth()
 
     // Get all threads (not filtered by project anymore)
     const {
@@ -149,7 +151,7 @@ export function ThreadsSidebar() {
             key: "threads",
             maxItems: 50
         },
-        session?.user?.id
+        session?.user?.id && !auth.isLoading
             ? {
                   includeInFolder: false
               }
@@ -164,9 +166,10 @@ export function ThreadsSidebar() {
         api.folders.getUserProjects,
         {
             key: "projects",
-            default: []
+            default: [],
+            forceCache: true
         },
-        session?.user?.id ? {} : "skip"
+        session?.user?.id && !auth.isLoading ? {} : "skip"
     )
 
     const isLoading = false
@@ -274,10 +277,6 @@ export function ThreadsSidebar() {
     }, [])
 
     const renderContent = () => {
-        if (!isAuthenticated) {
-            return <></>
-        }
-
         if (isLoading) {
             return <LoadingSkeleton />
         }

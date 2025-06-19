@@ -13,7 +13,7 @@ import { useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { useModelStore } from "@/lib/model-store"
 import { useThemeStore } from "@/lib/theme-store"
 import { AnimatePresence, motion } from "motion/react"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { useStickToBottom } from "use-stick-to-bottom"
 import { Logo } from "./logo"
 import { MultimodalInput } from "./multimodal-input"
@@ -73,7 +73,14 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
     }
 
     const isEmpty = !threadId && messages.length === 0
-    const userName = session?.user?.name
+
+    const userName =
+        session?.user?.name ?? (isPending ? localStorage.getItem("DISK_CACHE:user-name") : null)
+
+    useEffect(() => {
+        if (!session?.user?.name || isPending) return
+        localStorage.setItem("DISK_CACHE:user-name", session.user.name)
+    }, [session?.user?.name, isPending])
 
     if (!session?.user && !isPending) {
         return (
