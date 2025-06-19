@@ -211,7 +211,7 @@ function LibraryPage() {
 
     if (!session.user?.id) {
         return (
-            <div className="container mx-auto max-w-6xl px-4 py-8">
+            <div className="container mx-auto max-w-6xl px-4 pt-12 pb-8">
                 <div className="mb-8">
                     <h1 className="mb-2 font-bold text-3xl">AI Library</h1>
                     <p className="text-muted-foreground">Your collection of AI-generated images</p>
@@ -226,7 +226,7 @@ function LibraryPage() {
     }
 
     return (
-        <div className="container mx-auto max-w-6xl px-4 py-8">
+        <div className="container mx-auto max-w-6xl px-4 pt-12 pb-8">
             <div className="mb-8">
                 <h1 className="mb-2 font-bold text-3xl">AI Library</h1>
                 <p className="text-muted-foreground">Your collection of AI-generated images</p>
