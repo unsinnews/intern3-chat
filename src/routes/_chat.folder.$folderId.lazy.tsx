@@ -83,7 +83,7 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
 
     if (!session?.user && !isPending) {
         return (
-            <div className="relative flex h-[calc(100vh-64px)] items-center justify-center">
+            <div className="relative flex h-[calc(100dvh-64px)] items-center justify-center">
                 <SignupMessagePrompt />
             </div>
         )
@@ -212,7 +212,7 @@ const FolderChat = ({ folderId }: FolderChatProps) => {
         <div
             className={cn(
                 "relative mb-80 flex flex-col",
-                isEmpty ? "h-[calc(100vh-8px)]" : "h-[calc(100vh-64px)]"
+                isEmpty ? "h-[calc(100dvh-8px)]" : "h-[calc(100dvh-64px)]"
             )}
         >
             <Messages

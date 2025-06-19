@@ -84,14 +84,14 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
 
     if (!session?.user && !isPending) {
         return (
-            <div className="relative flex h-[calc(100vh-64px)] items-center justify-center">
+            <div className="relative flex h-[calc(100dvh-64px)] items-center justify-center">
                 <SignupMessagePrompt />
             </div>
         )
     }
 
     return (
-        <div className="relative mb-80 flex h-[calc(100vh-64px)] flex-col">
+        <div className="relative mb-80 flex h-[calc(100dvh-64px)] flex-col">
             <Messages
                 messages={messages}
                 onRetry={handleRetry}
