@@ -528,7 +528,7 @@ export function MultimodalInput({
         const isText = fileTypeInfo.isText
 
         return (
-            <div className="max-h-[70vh] w-full overflow-auto">
+            <div className="max-h-[70dvh] w-full overflow-auto">
                 {isImage ? (
                     <img
                         src={dialogFile.content}
@@ -709,7 +709,7 @@ export function MultimodalInput({
                     }
                 }}
             >
-                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90vh] max-w-full">
+                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90dvh] max-w-full">
                     {dialogFile && (
                         <>
                             <DialogHeader>

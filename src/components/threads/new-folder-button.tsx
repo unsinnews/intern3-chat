@@ -16,7 +16,7 @@ import { Plus } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
-export function NewFolderButton() {
+export function NewFolderButton({ onClick }: { onClick?: () => void }) {
     const [showDialog, setShowDialog] = useState(false)
     const [folderName, setFolderName] = useState("")
     const [folderDescription, setFolderDescription] = useState("")
@@ -64,7 +64,10 @@ export function NewFolderButton() {
             <Button
                 size="sm"
                 variant={"ghost"}
-                onClick={() => setShowDialog(true)}
+                onClick={() => {
+                    setShowDialog(true)
+                    onClick?.()
+                }}
                 className="size-6 text-muted-foreground"
             >
                 <Plus className="size-4" />

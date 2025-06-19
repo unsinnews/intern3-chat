@@ -8,11 +8,13 @@ import {
     SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
-    SidebarRail
+    SidebarRail,
+    useSidebar
 } from "@/components/ui/sidebar"
 import { api } from "@/convex/_generated/api"
 import { useFunction } from "@/hooks/use-function"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { authClient } from "@/lib/auth-client"
 import { useDiskCachedPaginatedQuery, useDiskCachedQuery } from "@/lib/convex-cached-query"
 import { cn } from "@/lib/utils"
@@ -20,7 +22,7 @@ import { Link } from "@tanstack/react-router"
 import { useNavigate } from "@tanstack/react-router"
 import { isAfter, isToday, isYesterday, subDays } from "date-fns"
 import { Loader2, Pin, Search } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { LogoMark } from "./logo"
 import { FolderItem } from "./threads/folder-item"
 import { NewFolderButton } from "./threads/new-folder-button"
@@ -133,6 +135,8 @@ export function ThreadsSidebar() {
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const { data: session } = authClient.useSession()
     const navigate = useNavigate()
+    const isMobile = useIsMobile()
+    const { setOpen, setOpenMobile } = useSidebar()
 
     // Get all threads (not filtered by project anymore)
     const {
@@ -296,7 +300,7 @@ export function ThreadsSidebar() {
                     <SidebarGroupLabel className="pr-0">
                         Folders
                         <div className="flex-grow" />
-                        <NewFolderButton />
+                        <NewFolderButton onClick={() => setOpenMobile(false)} />
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
@@ -378,22 +382,26 @@ export function ThreadsSidebar() {
     }
 
     return (
-        <Sidebar variant="inset">
-            <SidebarHeader>
-                <div className="flex w-full items-center justify-center gap-2">
-                    <LogoMark className="h-fit w-full px-4 pt-1.5" />
-                </div>
-                <div className="my-2 h-px w-full bg-border" />
+        <>
+            <Sidebar variant="inset">
+                <SidebarHeader>
+                    <div className="flex w-full items-center justify-center gap-2">
+                        <LogoMark className="h-fit w-full px-4 pt-1.5" />
+                    </div>
+                    <div className="my-2 h-px w-full bg-border" />
 
-                {/* <Tooltip> */}
-                {/* <TooltipTrigger> */}
-                <Link
-                    to="/"
-                    className={cn(buttonVariants({ variant: "default" }), "w-full justify-center")}
-                >
-                    New Chat
-                </Link>
-                {/* </TooltipTrigger>
+                    {/* <Tooltip> */}
+                    {/* <TooltipTrigger> */}
+                    <Link
+                        to="/"
+                        className={cn(
+                            buttonVariants({ variant: "default" }),
+                            "w-full justify-center"
+                        )}
+                    >
+                        New Chat
+                    </Link>
+                    {/* </TooltipTrigger>
                     <TooltipContent side="right">
                         <div className="flex items-center gap-1">
                             <span className="w-3.5 text-sm">
@@ -404,45 +412,52 @@ export function ThreadsSidebar() {
                         </div>
                     </TooltipContent>
                 </Tooltip> */}
-                {/* <Link
+                    {/* <Link
                     to="/library"
                     className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
                 >
                     <FolderOpen className="h-4 w-4" />
                     Library
                 </Link> */}
-                <Button onClick={() => setCommandKOpen(true)} variant="outline">
-                    <Search className="h-4 w-4" />
-                    Search chats
-                    <div className="ml-auto flex items-center gap-1 text-xs">
-                        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-muted-foreground">
-                            <span className="text-sm">⌘</span>
-                            <span className="text-xs">K</span>
-                        </kbd>
-                    </div>
-                </Button>
-            </SidebarHeader>
-            <SidebarContent ref={scrollContainerRef} className="scrollbar-hide">
-                {renderContent()}
-            </SidebarContent>
-            {showGradient && (
-                <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
-            )}
+                    <Button
+                        onClick={() => {
+                            setOpenMobile(false)
+                            setCommandKOpen(true)
+                        }}
+                        variant="outline"
+                    >
+                        <Search className="h-4 w-4" />
+                        Search chats
+                        <div className="ml-auto flex items-center gap-1 text-xs">
+                            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-muted-foreground">
+                                <span className="text-sm">⌘</span>
+                                <span className="text-xs">K</span>
+                            </kbd>
+                        </div>
+                    </Button>
+                </SidebarHeader>
+                <SidebarContent ref={scrollContainerRef} className="scrollbar-hide">
+                    {renderContent()}
+                </SidebarContent>
+                {showGradient && (
+                    <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-20 bg-gradient-to-t from-sidebar via-sidebar/60 to-transparent" />
+                )}
+
+                {/* Centralized Thread Dialogs */}
+                <ThreadItemDialogs
+                    showDeleteDialog={showDeleteDialog}
+                    showRenameDialog={showRenameDialog}
+                    showMoveDialog={showMoveDialog}
+                    onCloseDeleteDialog={handleCloseDeleteDialog}
+                    onCloseRenameDialog={handleCloseRenameDialog}
+                    onCloseMoveDialog={handleCloseMoveDialog}
+                    currentThread={currentThread}
+                    projects={"error" in projects ? [] : projects}
+                />
+
+                <SidebarRail />
+            </Sidebar>
             <CommandK open={commandKOpen} onOpenChange={setCommandKOpen} />
-
-            {/* Centralized Thread Dialogs */}
-            <ThreadItemDialogs
-                showDeleteDialog={showDeleteDialog}
-                showRenameDialog={showRenameDialog}
-                showMoveDialog={showMoveDialog}
-                onCloseDeleteDialog={handleCloseDeleteDialog}
-                onCloseRenameDialog={handleCloseRenameDialog}
-                onCloseMoveDialog={handleCloseMoveDialog}
-                currentThread={currentThread}
-                projects={"error" in projects ? [] : projects}
-            />
-
-            <SidebarRail />
-        </Sidebar>
+        </>
     )
 }

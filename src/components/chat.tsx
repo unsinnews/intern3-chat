@@ -132,7 +132,7 @@ const ChatContent = ({ threadId: routeThreadId, folderId }: ChatProps) => {
         return (
             <motion.div
                 {...animProps}
-                className="mb-8 flex min-h-[30vh] w-full max-w-4xl flex-col px-5 text-left"
+                className="mb-8 flex min-h-[30dvh] w-full max-w-4xl flex-col px-5 text-left"
             >
                 <div className="flex-grow" />
                 {/* Large folder icon */}

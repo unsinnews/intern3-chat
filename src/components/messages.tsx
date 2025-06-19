@@ -317,7 +317,7 @@ export function Messages({
                 {(isText || isPdf) && (
                     <iframe
                         src={`${browserEnv("VITE_CONVEX_API_URL")}/r2?key=${previewFile.data}`}
-                        className="h-[69vh] w-full rounded border-0"
+                        className="h-[69dvh] w-full rounded border-0"
                         title={fileName}
                     />
                 )}
@@ -343,7 +343,7 @@ export function Messages({
 
     return (
         <>
-            <div className="min-h-[90vh] overflow-y-auto p-4 pt-0" ref={scrollRef}>
+            <div className="min-h-[90dvh] overflow-y-auto p-4 pt-0" ref={scrollRef}>
                 <div
                     ref={contentRef}
                     className={cn(
@@ -469,7 +469,7 @@ export function Messages({
                     }
                 }}
             >
-                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90vh]">
+                <DialogContent className="md:!max-w-[min(90vw,60rem)] max-h-[90dvh]">
                     {previewFile && (
                         <>
                             <DialogHeader>
