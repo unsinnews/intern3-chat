@@ -371,7 +371,7 @@ export function Messages({
                                 />
                             ) : (
                                 <>
-                                    <div className="prose-p:not-last:mb-4">
+                                    <div className="prose-p:not-last:mb-4 max-w-[calc(100vw-2rem)] overflow-hidden">
                                         {message.parts
                                             .filter((part) => part.type !== "file")
                                             .map((part, index) => (

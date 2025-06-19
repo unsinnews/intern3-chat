@@ -78,10 +78,11 @@ export const WebSearchToolRenderer = memo(
             <div className="w-full">
                 <button
                     type="button"
-                    className="flex w-full cursor-pointer items-center gap-2 text-left"
+                    className="flex w-full cursor-pointer flex-col gap-2 text-left md:flex-row md:items-center"
                     onClick={() => setIsExpanded(!isExpanded)}
                     disabled={isLoading}
                 >
+                    {/* Main row with icon, title, and chevron */}
                     <div className="flex flex-1 items-center gap-2">
                         {isLoading ? (
                             <Loader2 className="size-4 animate-spin text-primary" />
@@ -90,10 +91,27 @@ export const WebSearchToolRenderer = memo(
                         )}
                         <span className="font-medium text-primary">Web Search</span>
 
-                        <div className="flex flex-1 items-center justify-end gap-2">
+                        {/* Spacer to push chevron to the right on mobile */}
+                        <div className="flex-1 md:hidden" />
+
+                        {!isLoading && hasResults && (
+                            <div
+                                className={cn(
+                                    "transform transition-transform md:hidden",
+                                    isExpanded ? "rotate-180" : ""
+                                )}
+                            >
+                                <ChevronDown className="size-4 text-foreground" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Query and results info */}
+                    {(toolInvocation.args?.query || hasResults) && (
+                        <div className="flex items-center gap-2 md:ml-auto">
                             <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1 text-muted-foreground text-sm">
                                 {toolInvocation.args?.query && (
-                                    <span className="max-w-16 truncate text-muted-foreground text-sm md:max-w-full">
+                                    <span className="max-w-32 truncate text-muted-foreground text-sm md:max-w-48">
                                         "{toolInvocation.args.query}"
                                     </span>
                                 )}
@@ -108,18 +126,20 @@ export const WebSearchToolRenderer = memo(
                                     </span>
                                 )}
                             </div>
+
+                            {/* Desktop chevron */}
+                            {!isLoading && hasResults && (
+                                <div
+                                    className={cn(
+                                        "hidden transform transition-transform md:block",
+                                        isExpanded ? "rotate-180" : ""
+                                    )}
+                                >
+                                    <ChevronDown className="size-4 text-foreground" />
+                                </div>
+                            )}
                         </div>
-                        {!isLoading && hasResults && (
-                            <div
-                                className={cn(
-                                    "transform transition-transform",
-                                    isExpanded ? "rotate-180" : ""
-                                )}
-                            >
-                                <ChevronDown className="size-4 text-foreground" />
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </button>
 
                 <div
