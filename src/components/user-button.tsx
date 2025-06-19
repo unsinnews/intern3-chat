@@ -108,13 +108,13 @@ export function UserButton() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <a href="https://docs.intern3.chat" target="_blank" rel="noopener noreferrer">
-                        <BookText className="mr-2 h-4 w-4" />
+                        <BookText className="h-4 w-4" />
                         <span>Docs</span>
                     </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.navigate({ to: "/about" })}>
-                    <Users className="mr-2 h-4 w-4" />
+                    <Users className="h-4 w-4" />
                     <span>About Us</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -129,14 +129,14 @@ export function UserButton() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <a href="https://x.com/intern3chat" target="_blank" rel="noopener noreferrer">
-                        <XIcon className="mr-2 h-4 w-4" />
+                        <XIcon className="h-4 w-4" />
                         <span>Twitter</span>
                     </a>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.navigate({ to: "/privacy-policy" })}>
-                    <UserLock className="mr-2 h-4 w-4" />
+                    <UserLock className="h-4 w-4" />
                     <span>Privacy Policy</span>
                 </DropdownMenuItem>
 
