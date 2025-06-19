@@ -16,6 +16,8 @@ A modern, feature-rich AI chat application built by interns, for interns. It's t
 - **Custom AI prompt** configuration
 - **Web Search** integration with Brave Search and Firecrawl
 - **Image Generation** using fal.ai models and GPT-Image-1
+- **HTML/Mermaid/React** artifacts preview
+- **Native Voice input** in input box using Groq
 - **HTTP/SSE MCP Support** for Model Context Protocol
 - **Supermemory API** integration for persistent memories
 - **File Attachments** - Upload code, text files, PDFs, and images
