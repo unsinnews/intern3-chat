@@ -3,7 +3,8 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "postinstall": "patch-package",
+        "postinstall": "patch-package && cd node_modules/@convex-dev/r2 && tsc --project ./esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+        "postinstall:safe": "patch-package && (cd node_modules/@convex-dev/r2 && [ -f esm.json ] && tsc --project ./esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json || echo 'Skipping @convex-dev/r2 build - esm.json not found')",
         "dev": "vite dev --port 3000",
         "build": "vite build",
         "start": "node .output/server/index.mjs",
