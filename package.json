@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite dev --port 3000",
+        "postinstall": "patch-package",
         "build": "vite build",
         "start": "node .output/server/index.mjs",
         "lint": "biome check --write",
